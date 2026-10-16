@@ -1,0 +1,26 @@
+# Datos y secretos: nunca en el repo
+data/
+*.mp4
+*.mkv
+*.wav
+*.mp3
+*.m4a
+.env
+*.key
+# Python y herramientas
+__pycache__/
+.venv/
+*.pyc
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+# Modelos descargados
+models/
+*.gguf
+*.safetensors
+
+# Documentos del reto y de terceros (pueden contener secretos)
+*.pdf
+*.docx
+*.xlsx
+*.zip
