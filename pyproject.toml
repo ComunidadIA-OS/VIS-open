@@ -9,13 +9,20 @@ dependencies = ["pydantic>=2.6"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
+# Dependencias pesadas del pipeline (torch llega como dependencia transitiva).
+# Se instalan en la VM de OVH; los tests se saltan si faltan.
+pipeline = [
+    "faster-whisper>=1.2",
+    "whisperx>=3.8; python_version < '3.14'",
+    "pyannote.audio>=4.0",
+]
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["contracts"]
+packages = ["contracts", "pipeline"]
 
 [tool.pytest.ini_options]
 pythonpath = ["."]
