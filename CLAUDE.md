@@ -10,6 +10,7 @@ Entrega oficial: 30 oct 2026 08:00. Cierre del equipo: 28 oct. Presentación pre
 - M1 = estructura del repo, esquemas Pydantic (`contracts/`), CI, `make test` y `THIRD_PARTY_LICENSES.md`.
 - Licencia Apache-2.0 aprobada por Sabrina (16 oct 2026); falta comunicarla a Ivette y Veru.
 - El vídeo (gestos de levantar la mano) está en el MVP y no se propone como opcional; sin reconocimiento facial.
+- Fuente del MVP (16 oct): solo sesiones del Congreso, sin modificar ni alterar el vídeo; los vídeos nunca van al repo ni se usan para entrenar.
 - Infra: desarrollo y pruebas pequeñas en local (CPU); transcripción, diarización y LLM en las VM de OVHcloud (2 espacios, 2×V100S cada uno; Volta: float16/int8, sin bf16). OVH se usa de forma prioritaria. Credenciales nunca en el repo.
 - Documentos de referencia: propuesta de arquitectura y PRD (enlaces en `MEMORY.md`).
 - Las métricas (sección 5 del PRD) son un borrador hasta el visto bueno de Ivette.
@@ -25,7 +26,7 @@ vídeo → audio (FFmpeg) + gestos (OpenCV/MediaPipe) → faster-whisper + Whisp
 
 ## Reglas inamovibles
 1. Todo en local. Sin servicios en la nube ni claves de pago obligatorias.
-2. El género nunca se infiere de la cara ni de la voz. Valores permitidos: declarado, registro público, anotación de 2 personas o `desconocido` (siempre visible).
+2. El género nunca se infiere de la cara ni de la voz (tampoco del tono). Fuentes permitidas (16 oct): pistas del lenguaje de la transcripción con evidencia («la señora / el señor X»), declarado, registro público o revisión humana; si no, `desconocido` (siempre visible).
 3. Las cifras las calcula el código (pandas). El LLM nunca calcula ni resume números.
 4. El LLM no tiene herramientas, devuelve JSON cerrado por gramática, validado con Pydantic. Confianza <0,7 → revisión humana. Los datos van delimitados de las instrucciones.
 5. Conclusiones solo si la brecha supera el umbral (15 puntos, a fijar por Ivette), el tiempo sin atribuir es menor que la brecha y el resultado resiste los márgenes de error. Si no: "no concluyente".

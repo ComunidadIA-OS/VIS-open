@@ -18,14 +18,15 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Presentación del plan: https://claude.ai/artifact/B6QaA9ZNPNFEpiXrmPV1xN
 
 ## Decisiones tomadas / propuestas
-- MVP: audio de debates en vídeo, sin análisis de imagen. Pendiente de aprobación del equipo.
-- Género nunca inferido (declarado > registro público > anotación de 2 personas > desconocido).
+- MVP (Sabrina, 16 oct): "Observatorio MVP" del Congreso. Automatización que descarga sesiones sin alterarlas, analiza audio + vídeo (sin reconocimiento facial) e informa; 6 a 10 sesiones, descarga automática de prueba y dashboard de evolución. Detalle en banco-videos/propuesta-banco-videos.md (ficheros del proyecto).
+- Género (16 oct): nunca por cara ni voz. Se asigna por pistas del lenguaje («la señora / el señor X»), con evidencia; si no, `desconocido` y revisión humana. Falta el visto bueno de Ivette.
 - Jev: no usar (API alojada, sin pesos abiertos). Kev: experimental (Apache 2.0, solo inglés). `nimble` sí (Apache 2.0); `nimble-v3` no (CC BY-NC 4.0). Laya (Apache 2.0, multilingüe) como opción.
 - Sin LangChain; `DecisionEngine` propio, `RulesEngine` por defecto.
-- Licencia del repo propuesta: Apache 2.0.
+- Licencia del repo: Apache 2.0 (aprobada).
 
 ## Pendiente
-- Ivette: definiciones y umbrales de las 13 métricas y libro de códigos.
+- Ivette: definiciones y umbrales de las 19 métricas (M17 a M19 de equidad, añadidas el 16 oct) y libro de códigos.
+- Confirmar si el Congreso permite la descarga automática (robots de app.congreso.es).
 - Verificar licencias de FFmpeg, faster-whisper, WhisperX, pandas y Streamlit (anotadas de memoria).
 - Copiar el archivo de licencia de `nimble` a `THIRD_PARTY_LICENSES.md`.
 - Probar la V100S el día 2. Pedir token de Hugging Face (pyannote, modelo restringido).

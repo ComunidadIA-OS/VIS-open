@@ -1,6 +1,6 @@
 # VIS Open
 
-Herramienta abierta y local que mide la presencia, participación, protagonismo y representación de las mujeres en debates en vídeo (audio + gestos), sin reconocimiento facial. Reto "Mujeres por la IA Abierta" (SEDIA / Comunidad IA de Código Abierto). Equipo 6.
+Herramienta abierta y local que mide la presencia, participación, protagonismo y equidad en los turnos de las mujeres en sesiones grabadas (audio + vídeo), sin reconocimiento facial. Primer caso: sesiones del Congreso de los Diputados; después, Senado, Parlamento Europeo, universidades y salas de conferencias. Reto "Mujeres por la IA Abierta" (SEDIA / Comunidad IA de Código Abierto). Equipo 6.
 
 ## Estado
 
@@ -18,7 +18,7 @@ cp .env.example .env      # rellena HF_TOKEN; WHISPER_DEVICE=cuda en la VM
 make pipeline VIDEO=data/raw/debate.mp4
 ```
 
-La salida queda en `data/processed/<vídeo>/` (ignorado por git). El género de cada voz sale siempre como `desconocido`: lo anotan dos personas en `review_anotadora_1.csv` y `review_anotadora_2.csv`.
+La salida queda en `data/processed/<vídeo>/` (ignorado por git). Por ahora el género de cada voz sale como `desconocido` y lo anotan dos personas en `review_anotadora_1.csv` y `review_anotadora_2.csv`. Decisión del 16 oct (aún sin implementar): la IA asignará el género por pistas del lenguaje de la transcripción («la señora / el señor X» de la Presidencia, concordancias), con frase y minuto como evidencia, y solo los casos dudosos irán a revisión humana.
 
 ## Cómo probarlo
 
@@ -37,10 +37,14 @@ Requiere Python 3.11 o superior. Los tests usan solo datos sintéticos.
 - `decision/`, `metrics/`, `evaluation/`, `dashboard/`, `docker/`: carpetas reservadas para M2 en adelante.
 - `docs/`: documentación.
 - `THIRD_PARTY_LICENSES.md`: dependencias y sus licencias.
+- `CONTRIBUTING.md`, `CODE_OF_CONDUCT.md`, `SECURITY.md` y `CHANGELOG.md`: cómo contribuir, normas de convivencia, cómo comunicar una vulnerabilidad e historial de cambios.
+- `docs/MODEL_CARD.md`, `docs/DATASET_CARD.md`, `docs/RESPONSIBLE_USE.md` y `docs/FAQ.md`: ficha de modelos, ficha de datos, uso responsable y preguntas frecuentes.
 
 ## Principios
 
-- El género nunca se infiere de la cara ni de la voz: lo anotan dos personas y se informa como género atribuido; `desconocido` siempre es visible.
+- El género nunca se infiere de la cara ni de la voz: sale de pistas del lenguaje, de un dato declarado o de la revisión humana, y el informe dice cómo se obtuvo; `desconocido` siempre es visible.
+- Fuente: sesiones del Congreso descargadas sin alterar, citando fuente y fecha (aviso legal del Congreso). Los vídeos nunca van al repo ni se usan para entrenar.
+- Avisos: el producto avisa en la sala, en cada informe y al añadir una fuente.
 - Todo en local. No se suben al repo audio, vídeo, transcripciones reales ni secretos.
 
 ## Licencia
