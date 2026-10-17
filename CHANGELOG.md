@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- Bloque B (17 oct 2026, rama `fuente-congreso`): `sources/` con la interfaz `VideoSource` (RF-19), el adaptador del Congreso, el validador del manifiesto y la negativa de `pipeline/run.py` a analizar vídeos sin fila completa; `source.json` con la cita de fuente y fecha; descarga automática desactivada y sin código de red. `docs/FUENTE_CONGRESO.md`.
 - M2, 16 de octubre de 2026: `pipeline/` con extracción de audio, transcripción (faster-whisper + WhisperX), diarización (pyannote), línea de tiempo, CSV de revisión y punto de entrada `make pipeline`; extra opcional `[pipeline]` y licencias verificadas.
 - M1, 16 de octubre de 2026: estructura del repositorio (`contracts/`, `pipeline/`, `decision/`, `metrics/`, `evaluation/`, `dashboard/`, `docker/`, `docs/`, `tests/`).
 - Esquemas Pydantic en `contracts/`: `AnalysisEvent`, `AnalysisTimeline`, `Speaker`, tabla de revisión de voces (`ReviewRow`) y tabla de gestos de levantar la mano (`GestureRow`), con lectura y escritura de CSV.
