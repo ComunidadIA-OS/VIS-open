@@ -1,0 +1,259 @@
+origen,video_id,event_id,type,start_s,end_s,duration_s,speaker_id,gender,gender_source,provenance,confidence,zone_id,granted,text
+SINTETICO,SINTETICO_equilibrado,ev_00000,speech,0.0,4.69,4.69,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00001,speech,5.29,33.95,28.66,SPEAKER_02,hombre,declarado,ai_inferred,0.6,,,Estoy muy agradecido por poder intervenir. Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_equilibrado,ev_00002,speech,34.55,38.61,4.06,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00003,speech,39.22,67.63,28.41,SPEAKER_03,mujer,declarado,ai_inferred,0.767,,,Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_equilibrado,ev_00004,speech,69.19,73.38,4.19,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00005,speech,74.18,111.54,37.36,SPEAKER_04,hombre,declarado,ai_inferred,0.563,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_equilibrado,ev_00006,speech,113.11,116.14,3.03,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00007,speech,116.72,141.22,24.5,SPEAKER_01,mujer,declarado,ai_inferred,0.718,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_equilibrado,ev_00008,speech,142.62,146.65,4.03,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00009,speech,147.04,157.41,10.37,SPEAKER_01,mujer,declarado,ai_inferred,0.956,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_equilibrado,ev_00010,speech,158.6,163.15,4.55,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00011,speech,163.71,186.69,22.98,SPEAKER_01,mujer,declarado,ai_inferred,0.789,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_equilibrado,ev_00012,speech,187.31,191.94,4.63,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00013,speech,192.27,219.03,26.76,SPEAKER_01,mujer,declarado,ai_inferred,0.762,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_equilibrado,ev_00014,speech,220.5,223.9,3.4,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00015,speech,224.42,261.8,37.38,SPEAKER_01,mujer,declarado,ai_inferred,0.786,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_equilibrado,ev_00016,speech,262.74,266.74,4.0,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00017,speech,267.45,294.67,27.22,SPEAKER_04,hombre,declarado,ai_inferred,0.715,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_equilibrado,ev_00018,speech,296.55,301.09,4.54,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00019,speech,301.83,325.1,23.27,SPEAKER_04,hombre,declarado,ai_inferred,0.721,,,Estoy muy agradecido por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_equilibrado,ev_00020,speech,326.3,331.15,4.85,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00021,speech,331.67,366.2,34.53,SPEAKER_03,mujer,declarado,ai_inferred,0.737,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_equilibrado,ev_00022,speech,366.78,370.62,3.84,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00023,speech,371.3,381.67,10.37,SPEAKER_01,mujer,declarado,ai_inferred,0.761,,,Estoy muy agradecida por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_equilibrado,ev_00024,speech,383.02,387.77,4.75,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00025,speech,388.32,411.66,23.34,SPEAKER_02,hombre,declarado,ai_inferred,0.914,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_equilibrado,ev_00026,speech,412.85,417.15,4.3,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00027,speech,417.5,427.5,10.0,SPEAKER_01,mujer,declarado,ai_inferred,0.839,,,Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_equilibrado,ev_00028,speech,428.04,431.41,3.37,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00029,speech,432.0,470.53,38.53,SPEAKER_04,hombre,declarado,ai_inferred,0.898,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_equilibrado,ev_00030,speech,471.15,475.29,4.14,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00031,speech,475.79,489.13,13.34,SPEAKER_04,hombre,declarado,ai_inferred,0.847,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_equilibrado,ev_00032,speech,489.96,494.79,4.83,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00033,speech,495.25,511.29,16.04,SPEAKER_04,hombre,declarado,ai_inferred,0.954,,,Estoy muy agradecido por poder intervenir. Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_equilibrado,ev_00034,speech,511.99,516.18,4.19,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00035,speech,516.83,550.59,33.76,SPEAKER_01,mujer,declarado,ai_inferred,0.734,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_equilibrado,ev_00036,speech,551.65,556.2,4.55,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00037,speech,556.75,571.36,14.61,SPEAKER_02,hombre,declarado,ai_inferred,0.88,,,Estoy muy agradecido por poder intervenir. Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_equilibrado,ev_00038,speech,573.32,576.79,3.47,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00039,speech,577.01,610.7,33.69,SPEAKER_04,hombre,declarado,ai_inferred,0.863,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_equilibrado,ev_00040,speech,611.56,616.07,4.51,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00041,speech,616.57,630.39,13.82,SPEAKER_01,mujer,declarado,ai_inferred,0.824,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_equilibrado,ev_00042,speech,631.31,635.26,3.95,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00043,speech,635.58,650.25,14.67,SPEAKER_02,hombre,declarado,ai_inferred,0.727,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_equilibrado,ev_00044,speech,651.06,655.7,4.64,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00045,speech,655.95,672.11,16.16,SPEAKER_04,hombre,declarado,ai_inferred,0.582,,,Estoy muy agradecido por poder intervenir. Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_equilibrado,ev_00046,speech,673.77,678.12,4.35,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00047,speech,678.4,689.22,10.82,SPEAKER_01,mujer,declarado,ai_inferred,0.899,,,Estoy muy agradecida por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_equilibrado,ev_00048,speech,689.84,694.69,4.85,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00049,speech,695.27,722.14,26.87,SPEAKER_01,mujer,declarado,ai_inferred,0.671,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_equilibrado,ev_00050,speech,723.74,727.41,3.67,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00051,speech,728.19,743.23,15.04,SPEAKER_03,mujer,declarado,ai_inferred,0.912,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_equilibrado,ev_00052,speech,745.09,749.84,4.75,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00053,speech,750.06,789.97,39.91,SPEAKER_02,hombre,declarado,ai_inferred,0.907,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_equilibrado,ev_00054,speech,791.53,795.89,4.36,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00055,speech,796.13,816.72,20.59,SPEAKER_02,hombre,declarado,ai_inferred,0.905,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_equilibrado,ev_00056,speech,817.53,821.64,4.11,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_equilibrado,ev_00057,speech,822.28,858.02,35.74,SPEAKER_01,mujer,declarado,ai_inferred,0.81,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_equilibrado,ev_00058,speech,858.79,863.33,4.54,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_equilibrado,ev_00059,speech,863.71,895.99,32.28,SPEAKER_04,hombre,declarado,ai_inferred,0.852,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00000,speech,0.0,3.23,3.23,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00001,speech,3.66,24.41,20.75,SPEAKER_05,hombre,declarado,ai_inferred,0.653,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00002,speech,26.09,29.7,3.61,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00003,speech,30.25,40.19,9.94,SPEAKER_04,hombre,declarado,ai_inferred,0.857,,,Estoy muy agradecido por poder intervenir. Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00004,speech,42.06,46.69,4.63,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00005,speech,47.33,79.46,32.13,SPEAKER_01,mujer,declarado,ai_inferred,0.786,,,Estoy muy agradecida por poder intervenir. Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00006,speech,80.0,84.73,4.73,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00007,speech,85.4,98.98,13.58,SPEAKER_03,hombre,declarado,ai_inferred,0.579,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00008,speech,100.86,105.2,4.34,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00009,speech,105.44,137.95,32.51,SPEAKER_05,hombre,declarado,ai_inferred,0.652,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00010,speech,139.93,144.78,4.85,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00011,speech,145.16,181.65,36.49,SPEAKER_04,hombre,declarado,ai_inferred,0.612,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00012,speech,182.91,187.01,4.1,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00013,speech,187.46,196.79,9.33,SPEAKER_04,hombre,declarado,ai_inferred,0.939,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00014,speech,198.4,201.87,3.47,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00015,speech,202.13,230.46,28.33,SPEAKER_03,hombre,declarado,ai_inferred,0.929,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00016,speech,231.75,236.42,4.67,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00017,speech,237.22,274.45,37.23,SPEAKER_05,hombre,declarado,ai_inferred,0.96,,,Estoy muy agradecido por poder intervenir. Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00018,speech,275.45,279.56,4.11,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00019,speech,279.98,304.16,24.18,SPEAKER_04,hombre,declarado,ai_inferred,0.957,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00020,speech,305.37,309.31,3.94,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00021,speech,309.65,348.27,38.62,SPEAKER_03,hombre,declarado,ai_inferred,0.858,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00022,speech,349.51,353.76,4.25,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00023,speech,354.15,381.42,27.27,SPEAKER_02,hombre,declarado,ai_inferred,0.787,,,Estoy muy agradecido por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00024,speech,382.93,387.87,4.94,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00025,speech,388.38,408.27,19.89,SPEAKER_04,hombre,declarado,ai_inferred,0.654,,,Estoy muy agradecido por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00026,speech,410.22,414.65,4.43,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00027,speech,415.11,429.48,14.37,SPEAKER_03,hombre,declarado,ai_inferred,0.574,,,Estoy muy agradecido por poder intervenir. Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00028,speech,430.75,434.66,3.91,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00029,speech,435.33,470.4,35.07,SPEAKER_04,hombre,declarado,ai_inferred,0.66,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00030,speech,471.06,474.72,3.66,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00031,speech,475.51,492.88,17.37,SPEAKER_02,hombre,declarado,ai_inferred,0.912,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00032,speech,494.31,498.25,3.94,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00033,speech,498.95,533.6,34.65,SPEAKER_05,hombre,declarado,ai_inferred,0.745,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00034,speech,535.3,538.31,3.01,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00035,speech,539.05,573.73,34.68,SPEAKER_02,hombre,declarado,ai_inferred,0.71,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00036,speech,574.23,579.13,4.9,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00037,speech,579.6,613.66,34.06,SPEAKER_03,hombre,declarado,ai_inferred,0.758,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00038,speech,614.81,618.76,3.95,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00039,speech,619.26,635.84,16.58,SPEAKER_05,hombre,declarado,ai_inferred,0.782,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00040,speech,637.77,641.74,3.97,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00041,speech,641.98,656.58,14.6,SPEAKER_05,hombre,declarado,ai_inferred,0.721,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00042,speech,657.39,661.14,3.75,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00043,speech,661.74,689.68,27.94,SPEAKER_02,hombre,declarado,ai_inferred,0.864,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00044,speech,691.25,695.76,4.51,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00045,speech,696.22,729.21,32.99,SPEAKER_05,hombre,declarado,ai_inferred,0.953,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00046,speech,730.81,734.01,3.2,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00047,speech,734.43,756.43,22.0,SPEAKER_03,hombre,declarado,ai_inferred,0.953,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00048,speech,757.66,761.87,4.21,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00049,speech,762.59,796.48,33.89,SPEAKER_04,hombre,declarado,ai_inferred,0.697,,,Estoy muy agradecido por poder intervenir. Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00050,speech,798.22,801.84,3.62,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00051,speech,802.53,819.81,17.28,SPEAKER_01,mujer,declarado,ai_inferred,0.826,,,Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00052,speech,820.52,823.67,3.15,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00053,speech,824.47,856.83,32.36,SPEAKER_04,hombre,declarado,ai_inferred,0.887,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00054,speech,858.42,863.0,4.58,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00055,speech,863.79,897.53,33.74,SPEAKER_01,mujer,declarado,ai_inferred,0.942,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00056,speech,899.36,902.62,3.26,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00057,speech,902.93,912.54,9.61,SPEAKER_05,hombre,declarado,ai_inferred,0.83,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00058,speech,913.73,917.43,3.7,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_pocas_mujeres,ev_00059,speech,918.05,956.21,38.16,SPEAKER_04,hombre,declarado,ai_inferred,0.909,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_desconocidos,ev_00000,speech,0.0,4.38,4.38,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00001,speech,5.15,33.71,28.56,SPEAKER_02,hombre,declarado,ai_inferred,0.598,,,Estoy muy agradecido por poder intervenir. Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00002,speech,34.98,39.44,4.46,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra su señoría.
+SINTETICO,SINTETICO_con_desconocidos,ev_00003,speech,39.79,78.06,38.27,SPEAKER_03,desconocido,desconocido,ai_inferred,0.849,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00004,speech,79.29,84.01,4.72,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra su señoría.
+SINTETICO,SINTETICO_con_desconocidos,ev_00005,speech,84.52,116.98,32.46,SPEAKER_04,desconocido,desconocido,ai_inferred,0.944,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_desconocidos,ev_00006,speech,118.42,121.6,3.18,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra su señoría.
+SINTETICO,SINTETICO_con_desconocidos,ev_00007,speech,121.96,147.84,25.88,SPEAKER_03,desconocido,desconocido,ai_inferred,0.965,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_desconocidos,ev_00008,speech,149.69,154.24,4.55,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00009,speech,154.91,163.48,8.57,SPEAKER_01,mujer,declarado,ai_inferred,0.866,,,Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00010,speech,165.27,169.97,4.7,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00011,speech,170.68,183.92,13.24,SPEAKER_02,hombre,declarado,ai_inferred,0.591,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00012,speech,185.8,189.54,3.74,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00013,speech,190.03,203.14,13.11,SPEAKER_02,hombre,declarado,ai_inferred,0.934,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00014,speech,204.24,209.23,4.99,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00015,speech,209.82,230.01,20.19,SPEAKER_02,hombre,declarado,ai_inferred,0.708,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_desconocidos,ev_00016,speech,230.86,234.37,3.51,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00017,speech,235.14,255.74,20.6,SPEAKER_01,mujer,declarado,ai_inferred,0.653,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_desconocidos,ev_00018,speech,256.7,259.9,3.2,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra su señoría.
+SINTETICO,SINTETICO_con_desconocidos,ev_00019,speech,260.13,285.06,24.93,SPEAKER_04,desconocido,desconocido,ai_inferred,0.763,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00020,speech,287.04,290.23,3.19,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00021,speech,290.77,305.71,14.94,SPEAKER_01,mujer,declarado,ai_inferred,0.96,,,Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00022,speech,306.65,311.47,4.82,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00023,speech,312.22,333.14,20.92,SPEAKER_02,hombre,declarado,ai_inferred,0.656,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00024,speech,333.99,337.36,3.37,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00025,speech,337.67,359.71,22.04,SPEAKER_02,hombre,declarado,ai_inferred,0.881,,,Estoy muy agradecido por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00026,speech,360.22,364.18,3.96,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00027,speech,364.84,375.38,10.54,SPEAKER_01,mujer,declarado,ai_inferred,0.683,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00028,speech,376.42,380.38,3.96,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00029,speech,380.92,416.97,36.05,,sin_atribuir,,ai_inferred,0.699,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_desconocidos,ev_00030,speech,418.45,422.93,4.48,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00031,speech,423.3,433.67,10.37,SPEAKER_02,hombre,declarado,ai_inferred,0.597,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00032,speech,435.08,438.22,3.14,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra su señoría.
+SINTETICO,SINTETICO_con_desconocidos,ev_00033,speech,438.43,476.75,38.32,SPEAKER_04,desconocido,desconocido,ai_inferred,0.655,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_desconocidos,ev_00034,speech,478.1,482.98,4.88,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00035,speech,483.26,491.58,8.32,SPEAKER_01,mujer,declarado,ai_inferred,0.653,,,Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00036,speech,492.17,496.68,4.51,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00037,speech,497.4,533.63,36.23,SPEAKER_02,hombre,declarado,ai_inferred,0.64,,,Estoy muy agradecido por poder intervenir. Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_desconocidos,ev_00038,speech,534.97,539.32,4.35,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00039,speech,539.59,550.23,10.64,SPEAKER_02,hombre,declarado,ai_inferred,0.707,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00040,speech,550.99,554.76,3.77,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00041,speech,555.21,571.49,16.28,SPEAKER_01,mujer,declarado,ai_inferred,0.935,,,Estoy muy agradecida por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_desconocidos,ev_00042,speech,572.99,577.98,4.99,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra su señoría.
+SINTETICO,SINTETICO_con_desconocidos,ev_00043,speech,578.3,613.16,34.86,SPEAKER_04,desconocido,desconocido,ai_inferred,0.808,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_desconocidos,ev_00044,speech,615.08,618.79,3.71,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00045,speech,619.17,638.62,19.45,SPEAKER_02,hombre,declarado,ai_inferred,0.726,,,Estoy muy agradecido por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_desconocidos,ev_00046,speech,640.05,644.76,4.71,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra su señoría.
+SINTETICO,SINTETICO_con_desconocidos,ev_00047,speech,645.3,670.56,25.26,SPEAKER_04,desconocido,desconocido,ai_inferred,0.979,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_desconocidos,ev_00048,speech,671.2,675.03,3.83,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00049,speech,675.52,706.13,30.61,,sin_atribuir,,ai_inferred,0.794,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_desconocidos,ev_00050,speech,707.15,711.26,4.11,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00051,speech,711.7,749.59,37.89,SPEAKER_02,hombre,declarado,ai_inferred,0.682,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_desconocidos,ev_00052,speech,751.01,754.49,3.48,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00053,speech,755.11,776.9,21.79,,sin_atribuir,,ai_inferred,0.765,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00054,speech,778.12,782.71,4.59,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00055,speech,783.48,791.69,8.21,SPEAKER_01,mujer,declarado,ai_inferred,0.882,,,Estoy muy agradecida por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_desconocidos,ev_00056,speech,793.49,797.57,4.08,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_desconocidos,ev_00057,speech,798.07,830.48,32.41,SPEAKER_02,hombre,declarado,ai_inferred,0.557,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00058,speech,832.16,835.89,3.73,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_desconocidos,ev_00059,speech,836.34,851.58,15.24,SPEAKER_01,mujer,declarado,ai_inferred,0.585,,,Estoy muy agradecida por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_muestra_insuficiente,ev_00000,speech,0.0,4.75,4.75,SPEAKER_00,desconocido,desconocido,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_muestra_insuficiente,ev_00001,speech,5.31,17.92,12.61,SPEAKER_01,mujer,declarado,ai_inferred,0.846,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_muestra_insuficiente,ev_00002,speech,18.82,21.86,3.04,SPEAKER_00,desconocido,desconocido,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_muestra_insuficiente,ev_00003,speech,22.37,36.36,13.99,SPEAKER_01,mujer,declarado,ai_inferred,0.904,,,Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_muestra_insuficiente,ev_00004,speech,37.66,42.25,4.59,SPEAKER_00,desconocido,desconocido,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_muestra_insuficiente,ev_00005,speech,42.67,60.88,18.21,SPEAKER_01,mujer,declarado,ai_inferred,0.928,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_manos,ev_00000,speech,0.0,3.17,3.17,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00001,speech,3.72,25.06,21.34,SPEAKER_03,mujer,declarado,ai_inferred,0.711,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_manos,ev_00002,speech,25.61,30.04,4.43,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00003,speech,30.31,67.69,37.38,SPEAKER_02,hombre,declarado,ai_inferred,0.96,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00004,hand_raise,30.68,32.18,1.5,,sin_atribuir,,ai_inferred,0.674,Z4,true,
+SINTETICO,SINTETICO_con_manos,ev_00005,hand_raise,45.51,47.01,1.5,,sin_atribuir,,ai_inferred,0.859,Z3,true,
+SINTETICO,SINTETICO_con_manos,ev_00006,hand_raise,62.84,64.34,1.5,,sin_atribuir,,ai_inferred,0.56,Z1,false,
+SINTETICO,SINTETICO_con_manos,ev_00007,speech,69.44,72.72,3.28,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00008,hand_raise,69.49,70.99,1.5,,sin_atribuir,,ai_inferred,0.907,Z4,true,
+SINTETICO,SINTETICO_con_manos,ev_00009,speech,73.06,100.39,27.33,SPEAKER_04,hombre,declarado,ai_inferred,0.848,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_manos,ev_00010,speech,101.8,105.67,3.87,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00011,speech,106.31,133.09,26.78,SPEAKER_03,mujer,declarado,ai_inferred,0.926,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00012,speech,133.63,137.79,4.16,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00013,speech,138.13,172.18,34.05,SPEAKER_04,hombre,declarado,ai_inferred,0.587,,,Estoy muy agradecido por poder intervenir. Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_manos,ev_00014,speech,173.71,178.07,4.36,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00015,speech,178.47,199.9,21.43,SPEAKER_03,mujer,declarado,ai_inferred,0.618,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00016,hand_raise,198.18,199.68,1.5,,sin_atribuir,,ai_inferred,0.759,Z2,true,
+SINTETICO,SINTETICO_con_manos,ev_00017,speech,201.57,205.67,4.1,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00018,speech,206.01,217.12,11.11,SPEAKER_02,hombre,declarado,ai_inferred,0.933,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_manos,ev_00019,speech,218.43,222.8,4.37,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00020,speech,223.01,260.16,37.15,SPEAKER_04,hombre,declarado,ai_inferred,0.934,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_manos,ev_00021,hand_raise,244.66,246.16,1.5,,sin_atribuir,,ai_inferred,0.899,Z4,true,
+SINTETICO,SINTETICO_con_manos,ev_00022,hand_raise,259.43,260.93,1.5,,sin_atribuir,,ai_inferred,0.914,Z3,true,
+SINTETICO,SINTETICO_con_manos,ev_00023,speech,261.5,264.58,3.08,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00024,speech,265.12,298.94,33.82,SPEAKER_01,mujer,declarado,ai_inferred,0.7,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00025,speech,300.73,304.6,3.87,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00026,speech,304.97,322.94,17.97,SPEAKER_01,mujer,declarado,ai_inferred,0.651,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_manos,ev_00027,speech,324.75,329.4,4.65,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00028,speech,329.97,368.88,38.91,SPEAKER_01,mujer,declarado,ai_inferred,0.762,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_manos,ev_00029,hand_raise,332.16,333.66,1.5,,sin_atribuir,,ai_inferred,0.635,Z1,true,
+SINTETICO,SINTETICO_con_manos,ev_00030,speech,370.57,374.25,3.68,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00031,speech,374.97,405.04,30.07,SPEAKER_04,hombre,declarado,ai_inferred,0.612,,,Estoy muy agradecido por poder intervenir. Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_manos,ev_00032,hand_raise,396.11,397.61,1.5,,sin_atribuir,,ai_inferred,0.912,Z1,false,
+SINTETICO,SINTETICO_con_manos,ev_00033,speech,406.13,409.64,3.51,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00034,speech,410.32,440.9,30.58,SPEAKER_01,mujer,declarado,ai_inferred,0.928,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_manos,ev_00035,speech,442.57,446.53,3.96,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00036,speech,446.96,473.5,26.54,SPEAKER_04,hombre,declarado,ai_inferred,0.65,,,Estoy muy agradecido por poder intervenir. Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_manos,ev_00037,hand_raise,471.24,472.74,1.5,,sin_atribuir,,ai_inferred,0.809,Z4,false,
+SINTETICO,SINTETICO_con_manos,ev_00038,speech,475.15,478.56,3.41,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00039,speech,478.79,517.46,38.67,SPEAKER_04,hombre,declarado,ai_inferred,0.948,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_manos,ev_00040,speech,518.78,522.74,3.96,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00041,speech,523.45,549.0,25.55,SPEAKER_04,hombre,declarado,ai_inferred,0.82,,,Estoy muy agradecido por poder intervenir. Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_manos,ev_00042,speech,550.26,553.93,3.67,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00043,speech,554.28,584.74,30.46,SPEAKER_01,mujer,declarado,ai_inferred,0.931,,,Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_manos,ev_00044,speech,585.88,590.06,4.18,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00045,speech,590.49,611.62,21.13,SPEAKER_02,hombre,declarado,ai_inferred,0.917,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_manos,ev_00046,hand_raise,610.59,612.09,1.5,,sin_atribuir,,ai_inferred,0.72,Z1,true,
+SINTETICO,SINTETICO_con_manos,ev_00047,speech,613.37,616.45,3.08,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00048,speech,617.25,634.7,17.45,SPEAKER_03,mujer,declarado,ai_inferred,0.881,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_manos,ev_00049,speech,636.04,640.89,4.85,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00050,speech,641.42,661.67,20.25,SPEAKER_01,mujer,declarado,ai_inferred,0.886,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00051,speech,663.26,666.83,3.57,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00052,speech,667.15,707.12,39.97,SPEAKER_02,hombre,declarado,ai_inferred,0.878,,,Estoy muy agradecido por poder intervenir. Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_manos,ev_00053,speech,708.49,712.39,3.9,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00054,speech,713.05,737.04,23.99,SPEAKER_01,mujer,declarado,ai_inferred,0.846,,,Estoy muy agradecida por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00055,speech,738.15,742.74,4.59,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00056,speech,743.28,751.81,8.53,SPEAKER_01,mujer,declarado,ai_inferred,0.865,,,Estoy muy agradecida por poder intervenir. Creo que esta propuesta necesita más tiempo de debate.
+SINTETICO,SINTETICO_con_manos,ev_00057,speech,753.58,757.25,3.67,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00058,speech,758.04,778.33,20.29,SPEAKER_01,mujer,declarado,ai_inferred,0.741,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_manos,ev_00059,speech,779.89,783.69,3.8,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00060,speech,784.11,804.53,20.42,SPEAKER_02,hombre,declarado,ai_inferred,0.902,,,Pido que se revise el calendario de la tramitación.
+SINTETICO,SINTETICO_con_manos,ev_00061,speech,806.45,811.1,4.65,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00062,speech,811.82,830.15,18.33,SPEAKER_02,hombre,declarado,ai_inferred,0.82,,,Agradezco las aportaciones del resto de los grupos.
+SINTETICO,SINTETICO_con_manos,ev_00063,speech,831.48,835.77,4.29,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00064,speech,836.2,849.79,13.59,SPEAKER_02,hombre,declarado,ai_inferred,0.877,,,Estoy muy agradecido por poder intervenir. Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00065,speech,851.61,855.48,3.87,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra el señor diputado.
+SINTETICO,SINTETICO_con_manos,ev_00066,speech,855.83,865.53,9.7,SPEAKER_04,hombre,declarado,ai_inferred,0.816,,,Hoy quiero hablar de los presupuestos de la comunidad.
+SINTETICO,SINTETICO_con_manos,ev_00067,speech,867.3,870.56,3.26,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00068,speech,870.85,893.82,22.97,SPEAKER_01,mujer,declarado,ai_inferred,0.647,,,Estoy muy agradecida por poder intervenir. Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_manos,ev_00069,speech,895.18,899.28,4.1,SPEAKER_00,hombre,declarado,ai_inferred,0.92,,,Tiene la palabra la señora diputada.
+SINTETICO,SINTETICO_con_manos,ev_00070,speech,899.51,938.7,39.19,SPEAKER_01,mujer,declarado,ai_inferred,0.575,,,Vamos a votar la enmienda tal y como está redactada.
+SINTETICO,SINTETICO_con_manos,ev_00071,hand_raise,907.37,908.87,1.5,,sin_atribuir,,ai_inferred,0.515,Z2,true,

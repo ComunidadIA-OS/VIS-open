@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- Bloque F (17 oct 2026, rama `datos-sinteticos`): `evaluation/synthetic/` genera datos SINTÉTICOS con semilla fija (5 escenarios, con `desconocido`, tiempo sin atribuir y muestra insuficiente) en `evaluation/synthetic/muestras/`; `make synthetic`; `docs/DATOS_SINTETICOS.md`.
 - M2, 16 de octubre de 2026: `pipeline/` con extracción de audio, transcripción (faster-whisper + WhisperX), diarización (pyannote), línea de tiempo, CSV de revisión y punto de entrada `make pipeline`; extra opcional `[pipeline]` y licencias verificadas.
 - M1, 16 de octubre de 2026: estructura del repositorio (`contracts/`, `pipeline/`, `decision/`, `metrics/`, `evaluation/`, `dashboard/`, `docker/`, `docs/`, `tests/`).
 - Esquemas Pydantic en `contracts/`: `AnalysisEvent`, `AnalysisTimeline`, `Speaker`, tabla de revisión de voces (`ReviewRow`) y tabla de gestos de levantar la mano (`GestureRow`), con lectura y escritura de CSV.
