@@ -1,3 +1,4 @@
+from decision.engine import Decision, DecisionEngine, RulesEngine, Turn, get_engine
 from decision.gender_cues import (
     CueRules,
     GenderAssignment,
@@ -9,6 +10,11 @@ from decision.gender_cues import (
 )
 
 __all__ = [
+    "Decision",
+    "DecisionEngine",
+    "RulesEngine",
+    "Turn",
+    "get_engine",
     "CueRules",
     "GenderAssignment",
     "apply_assignments",
