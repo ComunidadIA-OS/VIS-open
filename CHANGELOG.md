@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- Bloque D (17 oct 2026, rama `metricas-marco`): `metrics/` con registro de métricas, `MetricResult` con la regla de «no concluyente» por muestra insuficiente, utilidades de tiempo de palabra por voz y por género (con `desconocido` y `sin_atribuir` aparte) y una métrica de ejemplo `X00_EJEMPLO`. No define M01 a M13 ni umbrales (de Ivette). Nueva dependencia: pandas. `docs/METRICAS_MARCO.md`.
 - M2, 16 de octubre de 2026: `pipeline/` con extracción de audio, transcripción (faster-whisper + WhisperX), diarización (pyannote), línea de tiempo, CSV de revisión y punto de entrada `make pipeline`; extra opcional `[pipeline]` y licencias verificadas.
 - M1, 16 de octubre de 2026: estructura del repositorio (`contracts/`, `pipeline/`, `decision/`, `metrics/`, `evaluation/`, `dashboard/`, `docker/`, `docs/`, `tests/`).
 - Esquemas Pydantic en `contracts/`: `AnalysisEvent`, `AnalysisTimeline`, `Speaker`, tabla de revisión de voces (`ReviewRow`) y tabla de gestos de levantar la mano (`GestureRow`), con lectura y escritura de CSV.

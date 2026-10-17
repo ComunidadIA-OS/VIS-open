@@ -11,6 +11,10 @@ Regla: cada dependencia se registra aquí con la licencia verificada en el metad
 | annotated-types | 0.8.0 | runtime (dep. de pydantic) | MIT |
 | typing-extensions | 4.16.0 | runtime (dep. de pydantic) | PSF-2.0 |
 | typing-inspection | 0.4.4 | runtime (dep. de pydantic) | MIT |
+| pandas | 3.0.5 | runtime (métricas) | BSD-3-Clause (texto de licencia en el metadato del paquete; clasificador «OSI Approved :: BSD License») |
+| numpy | 2.5.1 | runtime (dep. de pandas) | BSD-3-Clause AND 0BSD AND MIT AND Zlib AND CC0-1.0 (campo `License-Expression` del paquete) |
+| python-dateutil | 2.9.0.post0 | runtime (dep. de pandas) | doble licencia BSD / Apache-2.0 (clasificadores del paquete) |
+| tzdata | 2026.3 | runtime (dep. de pandas en Windows) | Apache-2.0 (metadato del paquete) |
 | pytest | 9.1.1 | desarrollo | MIT |
 | ruff | 0.16.8 | desarrollo | MIT |
 | pluggy, iniconfig, packaging, pygments | varias | desarrollo (dep. de pytest) | MIT, MIT, Apache-2.0 OR BSD-2-Clause, BSD-2-Clause |
@@ -44,7 +48,7 @@ Dependencias transitivas del extra (ctranslate2, transformers, nltk, omegaconf, 
 
 ## Pendientes de verificar (previstas, aún no instaladas)
 
-OpenCV, MediaPipe, pandas, Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
+OpenCV, MediaPipe, Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
 
 ## Licencia del proyecto
 
