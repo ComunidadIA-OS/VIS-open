@@ -1,0 +1,16 @@
+# Que nada sensible ni pesado entre en la imagen.
+.git
+.env
+data/
+models/
+*.mp4
+*.mkv
+*.wav
+*.mp3
+*.m4a
+*.pdf
+*.docx
+*.zip
+tests/
+__pycache__/
+.venv/

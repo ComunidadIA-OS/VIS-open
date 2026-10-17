@@ -46,6 +46,8 @@ Dependencias transitivas del extra (ctranslate2, transformers, nltk, omegaconf, 
 
 OpenCV, MediaPipe, pandas, Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
 
+Imágenes Docker (rama `docker-gpu`, no distribuidas en el repo): `python:3.12-slim-bookworm` (Python: PSF; Debian: licencias por paquete) y las bibliotecas NVIDIA CUDA/cuDNN/cuBLAS que PyTorch instala como ruedas `nvidia-*`. **Pendiente de verificar en la fuente**: las ruedas `nvidia-*` llevan la licencia de NVIDIA (no OSI) y se descargan en tiempo de construcción, no se redistribuyen en el repo; Sabrina debe dar el visto bueno a esta dependencia.
+
 ## Licencia del proyecto
 
 Apache-2.0: aprobada por Sabrina el 16 oct 2026.
