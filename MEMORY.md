@@ -24,6 +24,9 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Sin LangChain; `DecisionEngine` propio, `RulesEngine` por defecto.
 - Licencia del repo: Apache 2.0 (aprobada).
 
+## Estado (17 oct 2026)
+- M1 y M2 hechos y subidos (rama `m2-pipeline`). Trabajo en curso: prompt M3, una rama por bloque (A docker-gpu, B fuente-congreso, C genero-lenguaje, D metricas-marco, E decision-motores, F datos-sinteticos); sin merge ni push hasta que Sabrina decida.
+
 ## Pendiente
 - Ivette: definiciones y umbrales de las 19 métricas (M17 a M19 de equidad, añadidas el 16 oct) y libro de códigos.
 - Confirmar si el Congreso permite la descarga automática (robots de app.congreso.es).
