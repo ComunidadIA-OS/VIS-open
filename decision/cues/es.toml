@@ -1,0 +1,62 @@
+# Pistas de género en el lenguaje, español. PENDIENTE DE VALIDAR POR IVETTE.
+# Palabras genéricas de la lengua (tratamientos, cargos, concordancias), escritas por el equipo:
+# nada de listas de nombres propios. Para otro idioma, copia este fichero a <idioma>.toml.
+# Se comparan sin tildes ni mayúsculas. Género: mujer / hombre; solo se atribuye por lenguaje,
+# nunca por la cara, la voz o el tono.
+language = "es"
+
+[confidence]
+# Por debajo de 0,7 (REVIEW_CONFIDENCE_THRESHOLD) la voz queda `desconocido` y va a revisión.
+floor_grant = 0.85    # «tiene la palabra la señora X» (lo dice otra persona, p. ej. la Presidencia)
+self_role = 0.9       # «soy la diputada…», «soy el portavoz…»
+self_agreement = 0.75 # «estoy agradecida / agradecido…»
+as_role = 0.6         # «como diputada…»: puede ser una cita o un tercero, así que se revisa
+
+[floor_grant]
+# Frases con las que quien preside da la palabra; el género se lee en las palabras que siguen.
+phrases = [
+  "tiene la palabra",
+  "tiene usted la palabra",
+  "tiene el uso de la palabra",
+  "puede intervenir",
+  "puede usted intervenir",
+  "tiene la palabra para",
+]
+lookahead_tokens = 12   # palabras tras la frase donde buscar el tratamiento
+max_gap_s = 30          # la voz atribuida debe hablar como mucho este tiempo después
+
+[address]
+woman = ["senora", "dona"]
+man = ["senor", "don"]
+
+[roles]
+woman = [
+  "diputada", "senadora", "ministra", "presidenta", "vicepresidenta", "secretaria",
+  "consejera", "alcaldesa", "concejala", "eurodiputada", "compañera", "letrada",
+  "directora", "parlamentaria", "candidata", "delegada",
+]
+man = [
+  "diputado", "senador", "ministro", "presidente", "vicepresidente", "secretario",
+  "consejero", "alcalde", "concejal", "eurodiputado", "compañero", "letrado",
+  "director", "parlamentario", "candidato", "delegado",
+]
+# Cargos sin forma propia: el género sale del artículo («la portavoz», «el ponente»).
+epicene = ["portavoz", "ponente", "testigo", "periodista"]
+articles_woman = ["la", "una"]
+articles_man = ["el", "un"]
+
+[self_reference]
+# «soy / estoy…» + adjetivo con concordancia de género sobre quien habla.
+verbs = ["soy", "estoy", "me siento", "me encuentro", "me considero", "quedo", "me quedo"]
+adverbs = ["muy", "tan", "realmente", "especialmente", "profundamente", "bastante", "sumamente"]
+# pares [mujer, hombre]
+adjectives = [
+  ["agradecida", "agradecido"], ["encantada", "encantado"], ["orgullosa", "orgulloso"],
+  ["convencida", "convencido"], ["contenta", "contento"], ["preocupada", "preocupado"],
+  ["satisfecha", "satisfecho"], ["sorprendida", "sorprendido"], ["honrada", "honrado"],
+  ["emocionada", "emocionado"], ["decepcionada", "decepcionado"], ["dispuesta", "dispuesto"],
+  ["obligada", "obligado"], ["segura", "seguro"], ["cansada", "cansado"],
+]
+# Introducción de un cargo propio: «soy (la/el) <cargo>» y «como (la/el) <cargo>».
+self_role_verbs = ["soy"]
+as_role_words = ["como"]

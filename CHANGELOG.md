@@ -8,6 +8,8 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- Bloque C (17 oct 2026, rama `genero-lenguaje`): `decision/gender_cues.py` y `decision/cues/es.toml`: género por pistas del lenguaje con evidencia (frase, minuto, método, confianza), `desconocido` y fila de revisión si no hay pista o se contradicen. Pendiente de validar por Ivette. `docs/GENERO_LENGUAJE.md`.
+- `contracts/` (solo opcional): valor `GenderSource.LANGUAGE_CUE`, clase `GenderEvidence` y `Speaker.gender_evidence` (vacío por defecto).
 - M2, 16 de octubre de 2026: `pipeline/` con extracción de audio, transcripción (faster-whisper + WhisperX), diarización (pyannote), línea de tiempo, CSV de revisión y punto de entrada `make pipeline`; extra opcional `[pipeline]` y licencias verificadas.
 - M1, 16 de octubre de 2026: estructura del repositorio (`contracts/`, `pipeline/`, `decision/`, `metrics/`, `evaluation/`, `dashboard/`, `docker/`, `docs/`, `tests/`).
 - Esquemas Pydantic en `contracts/`: `AnalysisEvent`, `AnalysisTimeline`, `Speaker`, tabla de revisión de voces (`ReviewRow`) y tabla de gestos de levantar la mano (`GestureRow`), con lectura y escritura de CSV.

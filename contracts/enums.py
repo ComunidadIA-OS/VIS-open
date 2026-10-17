@@ -29,6 +29,7 @@ class GenderSource(StrEnum):
     DECLARED = "declarado"
     PUBLIC_RECORD = "registro_publico"
     PERCEIVED_BY_ANNOTATORS = "anotacion_percibida"
+    LANGUAGE_CUE = "pista_lenguaje"  # pistas del texto («la señora X»), con evidencia
     UNKNOWN = "desconocido"
 
 

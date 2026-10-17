@@ -10,6 +10,7 @@ from contracts.enums import (
 from contracts.models import (
     AnalysisEvent,
     AnalysisTimeline,
+    GenderEvidence,
     GestureRow,
     ReviewRow,
     Speaker,
@@ -21,6 +22,7 @@ __all__ = [
     "AnalysisTimeline",
     "AnnotatorConfidence",
     "EventType",
+    "GenderEvidence",
     "GenderSource",
     "GenderValue",
     "GestureRow",
