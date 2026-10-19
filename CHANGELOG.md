@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 19 oct 2026: se fija `av<19` en el extra `[pipeline]` y en `docker/constraints.txt`: con av 19.0.1, faster-whisper 1.2.1 falla con `TypeError: open() got an unexpected keyword argument 'metadata_errors'`.
 - 19 oct 2026: `pipeline/analyze.py` y `pipeline.run` encadenan el género por lenguaje y escriben `resumen.json` (tiempo de palabra por género, muestra y aviso de método) y `review_genero.csv` (solo voces dudosas).
 - Bloque A (17 oct 2026, rama `docker-gpu`): `docker/` con imagen CPU y GPU (V100S, float16/int8), `docker-compose.yml`, `.dockerignore`; `make smoke` (`pipeline/smoke.py`) que mide tiempo y memoria en un JSON; `docs/PRUEBA_GPU.md`. Sin probar aún en GPU.
 - Bloque B (17 oct 2026, rama `fuente-congreso`): `sources/` con la interfaz `VideoSource` (RF-19), el adaptador del Congreso, el validador del manifiesto y la negativa de `pipeline/run.py` a analizar vídeos sin fila completa; `source.json` con la cita de fuente y fecha; descarga automática desactivada y sin código de red. `docs/FUENTE_CONGRESO.md`.
