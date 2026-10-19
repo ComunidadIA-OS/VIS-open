@@ -6,10 +6,11 @@ Instrucciones para cualquier sesión de Claude Code que trabaje en este reposito
 Herramienta abierta y local que mide, a partir del audio y el vídeo de debates (sin reconocimiento facial), la presencia, participación, protagonismo y representación de las mujeres. Reto "Mujeres por la IA Abierta" (SEDIA / Comunidad IA de Código Abierto).
 Entrega oficial: 30 oct 2026 08:00. Cierre del equipo: 28 oct. Presentación presencial: 4 nov.
 
-## Estado: M1 y M2 hechos; en curso el trabajo del prompt M3 (17 oct 2026)
+## Estado: M1, M2 y prompt M3 hechos y en `main` (19 oct 2026)
 - M1 (hecho) = estructura del repo, esquemas Pydantic (`contracts/`), CI, `make test` y `THIRD_PARTY_LICENSES.md`.
 - M2 (hecho, rama `m2-pipeline`) = audio, transcripción, diarización, línea de tiempo y CSV de revisión.
-- Siguiente (prompt M3, una rama por bloque): Docker y prueba en GPU, fuente Congreso y manifiesto, género por lenguaje, marco de métricas, motores de decisión y datos sintéticos. Las métricas M01 a M13 y sus umbrales siguen siendo de Ivette.
+- Prompt M3 (hecho): Docker CPU/GPU, fuente Congreso y manifiesto, género por lenguaje, marco de métricas, motores de decisión, datos sintéticos y detector de mano levantada. `pipeline.run` ya encadena transcripción → diarización → género por lenguaje → `resumen.json`.
+- Pendiente: prueba real en OVH (GPU), M01 a M13 y umbrales (Ivette), panel, landing y vídeo (Veru), informe RGPD/AI Act.
 - Licencia Apache-2.0 aprobada por Sabrina (16 oct 2026); falta comunicarla a Ivette y Veru.
 - El vídeo (gestos de levantar la mano) está en el MVP y no se propone como opcional; sin reconocimiento facial.
 - Fuente del MVP (16 oct): solo sesiones del Congreso, sin modificar ni alterar el vídeo; los vídeos nunca van al repo ni se usan para entrenar.
