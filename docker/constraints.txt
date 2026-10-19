@@ -1,5 +1,6 @@
 # Versiones fijadas (las verificadas en THIRD_PARTY_LICENSES.md). Torch lo resuelve pip
 # desde TORCH_INDEX_URL (ver Dockerfile) y el smoke test comprueba que trae sm_70 (Volta).
 faster-whisper==1.2.1
+av<19
 whisperx==3.8.6
 pyannote.audio==4.0.7

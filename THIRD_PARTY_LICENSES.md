@@ -29,6 +29,7 @@ Extra opcional `[pipeline]`: no se instala en CI ni en los portátiles; se usa e
 | whisperx | 3.8.6 (requiere Python < 3.14) | alineado de palabras | BSD-2-Clause | https://github.com/m-bain/whisperX/blob/main/LICENSE |
 | pyannote.audio | 4.0.7 | diarización | MIT | https://github.com/pyannote/pyannote-audio/blob/main/LICENSE |
 | torch | 2.x (dep. de whisperx/pyannote) | runtime de modelos | BSD-3-Clause (archivo LICENSE); PyPI declara Apache-2.0 AND BSD-2/3-Clause AND MIT AND BSL-1.0 | https://github.com/pytorch/pytorch/blob/main/LICENSE |
+| av (PyAV) | 18.1.0 (fijado `<19`) | decodificación de audio de faster-whisper | BSD-3-Clause (campo `License-Expression` del paquete instalado) | https://pypi.org/project/av/ |
 | FFmpeg | binario externo, no se distribuye | extracción de audio | LGPL-2.1+ (GPL-2+ solo si se compila con `--enable-gpl`) | https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md |
 
 Modelos (se descargan en tiempo de ejecución, no se incluyen en el repo):

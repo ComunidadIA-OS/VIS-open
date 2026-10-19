@@ -12,6 +12,8 @@ dev = ["pytest>=8", "ruff"]
 # Dependencias pesadas del pipeline (torch llega como dependencia transitiva).
 # Se instalan en la VM de OVH; los tests se saltan si faltan.
 pipeline = [
+    # av 19 quita `metadata_errors`, que faster-whisper 1.2.1 aún usa (TypeError al abrir audio).
+    "av<19",
     "faster-whisper>=1.2",
     "whisperx>=3.8; python_version < '3.14'",
     "pyannote.audio>=4.0",
