@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 19 oct 2026: `pipeline/analyze.py` y `pipeline.run` encadenan el género por lenguaje y escriben `resumen.json` (tiempo de palabra por género, muestra y aviso de método) y `review_genero.csv` (solo voces dudosas).
 - Bloque A (17 oct 2026, rama `docker-gpu`): `docker/` con imagen CPU y GPU (V100S, float16/int8), `docker-compose.yml`, `.dockerignore`; `make smoke` (`pipeline/smoke.py`) que mide tiempo y memoria en un JSON; `docs/PRUEBA_GPU.md`. Sin probar aún en GPU.
 - Bloque B (17 oct 2026, rama `fuente-congreso`): `sources/` con la interfaz `VideoSource` (RF-19), el adaptador del Congreso, el validador del manifiesto y la negativa de `pipeline/run.py` a analizar vídeos sin fila completa; `source.json` con la cita de fuente y fecha; descarga automática desactivada y sin código de red. `docs/FUENTE_CONGRESO.md`.
 - Bloque E (17 oct 2026, rama `decision-motores`, parte de `genero-lenguaje`): `DecisionEngine`, `RulesEngine` y `LLMEngine` (API compatible con OpenAI, sin herramientas, salida cerrada por esquema, evidencia literal obligatoria, rechaza `nimble-v3`); `evaluation/benchmark.py` con F1 por clase; test con transcripción hostil. `docs/MOTORES_DECISION.md`.

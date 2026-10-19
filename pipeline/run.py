@@ -4,7 +4,8 @@ Uso: python -m pipeline.run data/raw/debate.mp4
 Salida en $DATA_DIR/processed/<nombre_del_vídeo>/ (DATA_DIR por defecto ./data, ignorado por git).
 El nombre del vídeo (sin extensión) es su `video_id` en el manifiesto ($DATA_DIR/manifiesto.csv o
 --manifest): si su fila no está completa, no se analiza. Junto a la salida se escribe `source.json`
-con la fuente y la fecha para citarlas.
+con la fuente y la fecha para citarlas; `resumen.json` (tiempo por género y aviso de método)
+y `review_genero.csv` (solo las voces con duda).
 """
 
 from __future__ import annotations
@@ -14,6 +15,8 @@ import json
 import os
 from pathlib import Path
 
+from contracts import ReviewRow, write_rows
+from pipeline.analyze import analyze_timeline
 from pipeline.audio import extract_audio, wav_duration_s
 from pipeline.diarize import DiarizeConfig, diarize
 from pipeline.timeline import build_timeline, write_outputs
@@ -56,6 +59,11 @@ def main(argv: list[str] | None = None) -> None:
     (out_dir / "source.json").write_text(
         json.dumps(source_citation(row), indent=2, ensure_ascii=False), encoding="utf-8"
     )
+    timeline, review, summary = analyze_timeline(timeline)
+    (out_dir / "resumen.json").write_text(
+        json.dumps(summary, indent=2, ensure_ascii=False), encoding="utf-8"
+    )
+    write_rows(review, ReviewRow, out_dir / "review_genero.csv")
     for path in write_outputs(timeline, out_dir):
         print(path)
 
