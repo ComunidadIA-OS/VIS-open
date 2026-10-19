@@ -1,6 +1,6 @@
 # Ficha de modelos y uso responsable
 
-VIS Open **no entrena ni ajusta modelos**: usa modelos abiertos ya entrenados y reglas deterministas. Esta ficha describe qué modelos intervienen, para qué sirven y dónde fallan. Las licencias exactas están en `THIRD_PARTY_LICENSES.md`.
+VIS Open usa modelos abiertos ya entrenados y reglas deterministas. La única excepción prevista es un **ajuste ligero del modelo de lenguaje** (Qwen) para la métrica M09, que se mide antes y después; si no mejora, se usa el modelo sin ajustar. Esta ficha describe qué modelos intervienen, para qué sirven y dónde fallan. Las licencias exactas están en `THIRD_PARTY_LICENSES.md`.
 
 ## Información del sistema
 
@@ -21,7 +21,7 @@ Quedan fuera `nimble-v3` (licencia no comercial) y cualquier API de pago.
 
 ## Datos de los modelos
 
-Con qué datos se entrenó cada modelo de terceros está en `docs/DATASET_CARD.md` (sección "Modelos usados y datos con los que se entrenaron"). Nosotras no entrenamos ni ajustamos nada.
+Con qué datos se entrenó cada modelo de terceros está en `docs/DATASET_CARD.md` (sección "Modelos usados y datos con los que se entrenaron"). Salvo el ajuste ligero de Qwen descrito arriba, no entrenamos ni ajustamos modelos. Los datos de ese ajuste se describen en `docs/DATASET_CARD.md`.
 
 ## Uso previsto
 

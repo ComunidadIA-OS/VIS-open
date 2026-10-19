@@ -17,6 +17,13 @@ Medir de forma transparente la presencia, la participación y el protagonismo de
 - **Sin datos reales en repositorios públicos:** ni audio, vídeo, transcripciones ni etiquetas de personas.
 - **Con credenciales protegidas:** los tokens no se comparten ni se suben.
 
+## Seudonimización y minimización de datos
+
+- **Sin nombres:** VIS Open no guarda nombres. Cada voz se identifica con un código anónimo (Persona 1, Persona 2…). En la evidencia del género y en las transcripciones, el nombre se sustituye por ese código.
+- **Solo lo necesario:** se guarda el tiempo de palabra, el turno, el género con su evidencia y los gestos de mano levantada; no se guardan imágenes de caras ni huellas de voz fuera del proceso de análisis.
+- **Límite honesto:** seudonimizar reduce el riesgo, pero la voz y la imagen siguen siendo datos personales y, según el RGPD, los datos seudonimizados también lo son. Por eso se mantienen la base legal, los avisos y la supervisión humana.
+- **Ajuste del modelo:** el único ajuste previsto (Qwen, para la métrica M09) usa solo texto seudonimizado; el modelo ajustado no se publica.
+
 ## Usos que no apoyamos
 
 - Vigilancia, seguimiento o identificación de personas.
@@ -33,4 +40,4 @@ Medir de forma transparente la presencia, la participación y el protagonismo de
 
 ## Marco
 
-El proyecto se ha diseñado teniendo en cuenta el código ético europeo de la IA y la normativa de protección de datos. El informe de cumplimiento RGPD y AI Act está previsto para el hito M7 y aún no se ha completado.
+El proyecto se ha diseñado teniendo en cuenta el código ético europeo de la IA y la normativa de protección de datos. El plan de puesta en producción (permisos, RGPD y Reglamento de IA) se completa el 28 de octubre de 2026 y parte de esta guía.
