@@ -14,19 +14,21 @@ datos de apoyo y deben revisarse antes de publicarse.
 from __future__ import annotations
 
 import re
+import tomllib
 import unicodedata
+from functools import lru_cache
 
 from contracts import AnalysisTimeline, EventType
-from decision.gender_cues import CueRules, load_rules
+from decision.gender_cues import CUES_DIR, CueRules, load_rules
 
 _TITLES = (
     "señora|señor|doña|don|señoría|diputada|diputado|senadora|senador|ministra|ministro|"
     "presidenta|presidente|vicepresidenta|vicepresidente|portavoz|secretaria|secretario|"
     "consejera|consejero|alcaldesa|alcalde|concejala|concejal|eurodiputada|eurodiputado|"
-    "compañera|compañero|letrada|letrado|directora|director|parlamentaria|parlamentario"
+    "compañera|compañero|letrada|letrado|directora|director"
 )
 _CAP = r"[A-ZÁÉÍÓÚÑÜ][\wÁÉÍÓÚÑÜáéíóúñü'’-]*"
-_NOT_TITLE = rf"(?!(?i:(?:{_TITLES}))\b)"
+_NOT_TITLE = rf"(?!(?i:(?:{_TITLES}))\b)(?!Persona\b)"
 _NAME_RUN = rf"{_NOT_TITLE}{_CAP}(?:\s+(?:(?:de|del|de\s+la|de\s+los|y)\s+)?{_CAP})*"
 # Título(s) + nombre; el nombre es lo que se sustituye (grupo «name»).
 _AFTER_TITLE = re.compile(rf"(?i:\b(?:{_TITLES})\b\s+)+(?P<name>{_NAME_RUN})")
@@ -50,11 +52,58 @@ def _code_for(name: str, registry: dict[str, str], new_code) -> str:
     return code
 
 
-def find_names(text: str) -> list[tuple[int, int, str]]:
-    """(inicio, fin, nombre) de cada nombre detectado, sin solapes."""
+@lru_cache
+def _keep_words(language: str = "es") -> frozenset[str]:
+    with (CUES_DIR / f"{language}.toml").open("rb") as fh:
+        words = tomllib.load(fh).get("pseudonymize", {}).get("keep", [])
+    return (
+        frozenset(t for w in words for t in _plain(w).split())
+        | frozenset(t for w in _TITLES.split("|") for t in _plain(w).split())
+        | {"persona"}
+    )
+
+
+_CAP_TOKEN = re.compile(_CAP)
+_SENTENCE_START = re.compile(r"(?:^|[.?!¿¡:;«\"(–—-])\s*$")
+
+
+def _strict_spans(text: str) -> list[tuple[int, int, str]]:
+    """Palabras con mayúscula a mitad de frase que no están en la lista de excepciones.
+
+    Una palabra con mayúscula al inicio de frase solo cuenta si va seguida de otra candidata
+    («Agustio Itamillasquer presenta»): una sola, no se distingue de una frase normal.
+    """
+    keep = _keep_words()
+    spans: list[tuple[int, int, str]] = []
+    held: re.Match | None = None  # candidata al inicio de frase, pendiente de la siguiente
+    for m in _CAP_TOKEN.finditer(text):
+        if _plain(m.group()).strip() in keep:
+            held = None
+            continue
+        if _SENTENCE_START.search(text[: m.start()]):
+            held = m
+            continue
+        if held is not None and text[held.end() : m.start()] == " ":
+            spans.append((held.start(), m.end(), text[held.start() : m.end()]))
+        elif spans and text[spans[-1][1] : m.start()] == " ":
+            spans[-1] = (spans[-1][0], m.end(), text[spans[-1][0] : m.end()])
+        else:
+            spans.append((m.start(), m.end(), m.group()))
+        held = None
+    return spans
+
+
+def find_names(text: str, strict: bool = False) -> list[tuple[int, int, str]]:
+    """(inicio, fin, nombre) de cada nombre detectado, sin solapes.
+
+    Con `strict`, añade cualquier palabra con mayúscula a mitad de frase que no sea una
+    institución o lugar conocido (redacta de más a propósito).
+    """
     spans = []
     for rx in (_AFTER_TITLE, _AFTER_INTRO):
         spans += [(m.start("name"), m.end("name"), m.group("name")) for m in rx.finditer(text)]
+    if strict:
+        spans += _strict_spans(text)
     spans.sort()
     out: list[tuple[int, int, str]] = []
     for s in spans:
@@ -71,7 +120,7 @@ def speaker_codes(timeline: AnalysisTimeline) -> dict[str, str]:
 
 
 def _replace(text: str, registry: dict[str, str]) -> str:
-    for start, end, name in reversed(find_names(text)):
+    for start, end, name in reversed(find_names(text, strict=True)):
         text = text[:start] + _code_for(name, registry, lambda: "Persona ?") + text[end:]
     return text
 
@@ -108,7 +157,7 @@ def pseudonymize_timeline(
                 _code_for(name, registry, lambda c=codes[nxt.speaker_id]: c)
     # 2) el resto de nombres: código nuevo, estable en todo el vídeo
     for ev in speech:
-        for _, _, name in find_names(ev.text or ""):
+        for _, _, name in find_names(ev.text or "", strict=True):
             if not any(k in registry for k in _keys(name)):
                 _code_for(name, registry, lambda n=next_extra: f"Persona {n}")
                 next_extra += 1

@@ -9,6 +9,8 @@ Pistas (ver `decision/cues/<idioma>.toml`, donde viven las palabras):
   que habla a continuación.
 - self_role: la propia voz dice «soy la diputada / el portavoz».
 - self_agreement: concordancia en primera persona («estoy agradecida»).
+- floor_grant_same_voice: lo mismo, pero la diarización juntó a la Presidencia con quien habla;
+  pista débil (< 0,7): solo sugiere en la revisión.
 - as_role: «como diputada…»; pista débil (puede ser un tercero), siempre a revisión.
 
 No implementado (pendiente): leer el tratamiento «señora presidenta» como pista sobre quien preside,
@@ -43,7 +45,7 @@ from pipeline.timeline import build_review_rows
 
 CUES_DIR = Path(__file__).parent / "cues"
 PHRASE_MAX_CHARS = 240
-METHODS = ("floor_grant", "self_role", "self_agreement", "as_role")
+METHODS = ("floor_grant", "floor_grant_same_voice", "self_role", "self_agreement", "as_role")
 
 
 def _tokens(text: str) -> list[str]:
@@ -216,6 +218,26 @@ def extract_cues(timeline: AnalysisTimeline, rules: CueRules) -> list[Cue]:
                 None,
             )
             if nxt is None or nxt.start_s - event.end_s > rules.max_gap_s:
+                # La diarización puede juntar a la Presidencia con quien habla: pista débil
+                # sobre la misma voz (< 0,7), solo para la revisión.
+                same = next(
+                    (
+                        e
+                        for e in speech[idx + 1 : idx + 2]
+                        if event.speaker_id is not None and e.speaker_id == event.speaker_id
+                        and e.start_s - event.end_s <= rules.max_gap_s
+                    ),
+                    None,
+                )  # fmt: skip
+                if same is not None:
+                    conf = rules.confidence.get("floor_grant_same_voice", 0.6)
+                    cues.append(
+                        Cue(
+                            event.speaker_id,  # type: ignore[arg-type]
+                            _evidence(event, gender, "floor_grant_same_voice", conf),
+                        )
+                    )
+                    break
                 continue
             cues.append(
                 Cue(

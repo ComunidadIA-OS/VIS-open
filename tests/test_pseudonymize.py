@@ -104,3 +104,38 @@ def test_input_not_mutated_and_no_text_is_fine():
     tl = make([("SPEAKER_00", "Tiene la palabra la señora Luna Ortega."), ("SPEAKER_01", "Hola.")])
     pseudonymize_timeline(tl)
     assert "Luna" in tl.events[0].text and tl.speakers[0].name == "Nombre Real"
+
+
+def test_strict_mode_redacts_unlisted_capitalised_words_but_keeps_institutions():
+    tl = make(
+        [
+            (
+                "SPEAKER_00",
+                "Gracias, Andrea. El Gobierno de España y el Grupo Parlamentario Popular.",
+            ),
+            ("SPEAKER_01", "Lo dijo la banquera Alcaraz. Agustio Itamillasquer presenta."),
+        ]
+    )
+    out, _ = pseudonymize_timeline(tl)
+    t0, t1 = out.events[0].text, out.events[1].text
+    assert "Andrea" not in t0 and "Gobierno de España" in t0 and "Grupo Parlamentario Popular" in t0
+    assert "Alcaraz" not in t1 and "Agustio" not in t1 and "Itamillasquer" not in t1
+    assert t1.startswith("Lo dijo la banquera Persona")  # el inicio de frase no se toca
+
+
+def test_sentence_initial_words_are_not_names():
+    tl = make([("SPEAKER_00", "Hoy hablamos. Pues bien. ¿Crees que sí? Vosotros lo sabéis.")])
+    out, _ = pseudonymize_timeline(tl)
+    assert out.events[0].text == tl.events[0].text
+
+
+def test_pseudonymizing_twice_is_stable():
+    tl = make(
+        [
+            ("SPEAKER_00", "Tiene la palabra la señora Luna Ortega. Gracias, Andrea."),
+            ("SPEAKER_01", "Hola."),
+        ]
+    )
+    once, _ = pseudonymize_timeline(tl)
+    twice, _ = pseudonymize_timeline(once)
+    assert [e.text for e in once.events] == [e.text for e in twice.events]
