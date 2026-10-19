@@ -1,0 +1,6 @@
+origen,video_id,n_speech_events,n_voices,n_voices_known_gender,seconds_mujer,seconds_hombre,seconds_desconocido,seconds_sin_atribuir,share_mujer_sobre_conocido,unattributed_share,conclusivo_ejemplo
+SINTETICO,SINTETICO_equilibrado,60,5,5,341.35,506.81,0.0,0.0,40.25,0.0,si
+SINTETICO,SINTETICO_pocas_mujeres,60,6,6,83.15,817.07,0.0,0.0,9.24,0.0,si
+SINTETICO,SINTETICO_con_desconocidos,60,5,3,102.7,388.14,219.98,88.45,20.92,0.3859,si
+SINTETICO,SINTETICO_muestra_insuficiente,6,2,1,44.81,0.0,12.38,0.0,100.0,0.2165,no
+SINTETICO,SINTETICO_con_manos,60,5,5,373.96,508.33,0.0,0.0,42.39,0.0,si

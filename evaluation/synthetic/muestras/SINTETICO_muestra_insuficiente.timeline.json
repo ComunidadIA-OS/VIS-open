@@ -1,0 +1,103 @@
+{
+  "schema_version": "1.0",
+  "video_id": "SINTETICO_muestra_insuficiente",
+  "duration_s": 63.81,
+  "speakers": [
+    {
+      "speaker_id": "SPEAKER_00",
+      "total_speech_s": 12.38,
+      "gender": "desconocido",
+      "gender_source": "desconocido",
+      "role": "presidencia (SINTETICO)",
+      "name": null
+    },
+    {
+      "speaker_id": "SPEAKER_01",
+      "total_speech_s": 44.81,
+      "gender": "mujer",
+      "gender_source": "declarado",
+      "role": null,
+      "name": null
+    }
+  ],
+  "events": [
+    {
+      "event_id": "ev_00000",
+      "type": "speech",
+      "start_s": 0.0,
+      "end_s": 4.75,
+      "speaker_id": "SPEAKER_00",
+      "text": "Tiene la palabra la señora diputada.",
+      "confidence": 0.92,
+      "provenance": "ai_inferred",
+      "source": "SINTETICO:faster-whisper",
+      "zone_id": null,
+      "granted": null
+    },
+    {
+      "event_id": "ev_00001",
+      "type": "speech",
+      "start_s": 5.31,
+      "end_s": 17.92,
+      "speaker_id": "SPEAKER_01",
+      "text": "Creo que esta propuesta necesita más tiempo de debate.",
+      "confidence": 0.8457242166542832,
+      "provenance": "ai_inferred",
+      "source": "SINTETICO:faster-whisper",
+      "zone_id": null,
+      "granted": null
+    },
+    {
+      "event_id": "ev_00002",
+      "type": "speech",
+      "start_s": 18.82,
+      "end_s": 21.86,
+      "speaker_id": "SPEAKER_00",
+      "text": "Tiene la palabra la señora diputada.",
+      "confidence": 0.92,
+      "provenance": "ai_inferred",
+      "source": "SINTETICO:faster-whisper",
+      "zone_id": null,
+      "granted": null
+    },
+    {
+      "event_id": "ev_00003",
+      "type": "speech",
+      "start_s": 22.37,
+      "end_s": 36.36,
+      "speaker_id": "SPEAKER_01",
+      "text": "Estoy muy agradecida por poder intervenir. Agradezco las aportaciones del resto de los grupos.",
+      "confidence": 0.9039830037921384,
+      "provenance": "ai_inferred",
+      "source": "SINTETICO:faster-whisper",
+      "zone_id": null,
+      "granted": null
+    },
+    {
+      "event_id": "ev_00004",
+      "type": "speech",
+      "start_s": 37.66,
+      "end_s": 42.25,
+      "speaker_id": "SPEAKER_00",
+      "text": "Tiene la palabra la señora diputada.",
+      "confidence": 0.92,
+      "provenance": "ai_inferred",
+      "source": "SINTETICO:faster-whisper",
+      "zone_id": null,
+      "granted": null
+    },
+    {
+      "event_id": "ev_00005",
+      "type": "speech",
+      "start_s": 42.67,
+      "end_s": 60.88,
+      "speaker_id": "SPEAKER_01",
+      "text": "Creo que esta propuesta necesita más tiempo de debate.",
+      "confidence": 0.9284719814057358,
+      "provenance": "ai_inferred",
+      "source": "SINTETICO:faster-whisper",
+      "zone_id": null,
+      "granted": null
+    }
+  ]
+}
