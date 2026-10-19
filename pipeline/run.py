@@ -19,6 +19,7 @@ from contracts import ReviewRow, write_rows
 from pipeline.analyze import analyze_timeline
 from pipeline.audio import extract_audio, wav_duration_s
 from pipeline.diarize import DiarizeConfig, diarize
+from pipeline.envfile import load_dotenv
 from pipeline.timeline import build_timeline, write_outputs
 from pipeline.transcribe import TranscribeConfig, transcribe
 from sources.manifest import ManifestError, require_ready
@@ -44,6 +45,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("video", type=Path)
     parser.add_argument("--manifest", type=Path, default=None)
     args = parser.parse_args(argv)
+    load_dotenv()
 
     data_dir = Path(os.environ.get("DATA_DIR") or "data")
     try:
