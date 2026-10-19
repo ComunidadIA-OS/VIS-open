@@ -21,6 +21,7 @@ from pathlib import Path
 from typing import Any
 
 from pipeline.diarize import DiarizeConfig, diarize
+from pipeline.envfile import load_dotenv
 from pipeline.transcribe import TranscribeConfig, transcribe
 
 
@@ -101,6 +102,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("audio", type=Path, nargs="?")
     parser.add_argument("--out", type=Path, default=None)
     args = parser.parse_args(argv)
+    load_dotenv()
 
     data_dir = Path(os.environ.get("DATA_DIR") or "data")
     wav = args.audio or make_tone_wav(data_dir / "smoke" / "tone.wav")

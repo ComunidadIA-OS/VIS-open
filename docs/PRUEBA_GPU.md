@@ -11,7 +11,7 @@ Reglas: sin audio real en el repo; el token de OVH y el de Hugging Face van solo
   docker run --rm --gpus all python:3.12-slim-bookworm nvidia-smi
   ```
 - Para entrar en la VM usa el token de OVH que ya tienes (no lo copies a ningún fichero del repo).
-- Un token de Hugging Face con las condiciones de `pyannote/speaker-diarization-3.1` aceptadas. Sin él, el smoke omite la diarización y lo dice en el JSON.
+- Un token de Hugging Face con las condiciones aceptadas de `pyannote/speaker-diarization-3.1`, `pyannote/segmentation-3.0` y `pyannote/speaker-diarization-community-1` (este último lo exige la versión 4 de pyannote). Sin él, el smoke omite la diarización y lo dice en el JSON.
 
 ## Pasos
 

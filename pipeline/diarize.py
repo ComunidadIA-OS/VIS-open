@@ -12,6 +12,7 @@ Configuración por variables de entorno (ver `.env.example`):
 from __future__ import annotations
 
 import os
+import wave
 from collections.abc import Mapping
 from dataclasses import dataclass
 from pathlib import Path
@@ -61,6 +62,23 @@ def normalize_labels(raw: list[tuple[float, float, str]]) -> list[SpeakerTurn]:
     return turns
 
 
+def load_waveform(wav: Path) -> dict:
+    """Lee un WAV PCM de 16 bits como forma de onda para pyannote.
+
+    Evita torchcodec, que en Windows exige las DLL de FFmpeg «shared». El audio de
+    `pipeline.audio` ya sale en PCM 16 bits, 16 kHz, mono.
+    """
+    import torch
+
+    with wave.open(str(wav), "rb") as fh:
+        if fh.getsampwidth() != 2:
+            raise ValueError("se espera un WAV PCM de 16 bits (el que genera extract_audio)")
+        channels, rate = fh.getnchannels(), fh.getframerate()
+        raw = fh.readframes(fh.getnframes())
+    data = torch.frombuffer(bytearray(raw), dtype=torch.int16).float() / 32768.0
+    return {"waveform": data.reshape(-1, channels).T.contiguous(), "sample_rate": rate}
+
+
 def diarize(wav: Path, config: DiarizeConfig) -> list[SpeakerTurn]:
     # Telemetría de pyannote desactivada: todo se queda en local.
     os.environ["PYANNOTE_METRICS_ENABLED"] = "0"
@@ -74,7 +92,7 @@ def diarize(wav: Path, config: DiarizeConfig) -> list[SpeakerTurn]:
 
     pipeline = Pipeline.from_pretrained(config.model, token=config.token)
     pipeline.to(torch.device(config.device))
-    output = pipeline(str(wav))
+    output = pipeline(load_waveform(wav))
     # pyannote 4 devuelve un objeto con .speaker_diarization; 3.x, la anotación directamente.
     annotation = getattr(output, "speaker_diarization", output)
     return normalize_labels(
