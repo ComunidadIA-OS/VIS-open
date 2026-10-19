@@ -15,9 +15,36 @@ Regla: cada dependencia se registra aquí con la licencia verificada en el metad
 | ruff | 0.16.8 | desarrollo | MIT |
 | pluggy, iniconfig, packaging, pygments | varias | desarrollo (dep. de pytest) | MIT, MIT, Apache-2.0 OR BSD-2-Clause, BSD-2-Clause |
 
+## Pipeline M2: verificadas en el repositorio oficial y en PyPI/Hugging Face (16 oct 2026)
+
+Extra opcional `[pipeline]`: no se instala en CI ni en los portátiles; se usa en la VM de OVH.
+
+| Componente | Versión (PyPI) | Uso | Licencia | Fuente |
+|---|---|---|---|---|
+| faster-whisper | 1.2.1 | transcripción | MIT | https://github.com/SYSTRAN/faster-whisper/blob/master/LICENSE |
+| whisperx | 3.8.6 (requiere Python < 3.14) | alineado de palabras | BSD-2-Clause | https://github.com/m-bain/whisperX/blob/main/LICENSE |
+| pyannote.audio | 4.0.7 | diarización | MIT | https://github.com/pyannote/pyannote-audio/blob/main/LICENSE |
+| torch | 2.x (dep. de whisperx/pyannote) | runtime de modelos | BSD-3-Clause (archivo LICENSE); PyPI declara Apache-2.0 AND BSD-2/3-Clause AND MIT AND BSL-1.0 | https://github.com/pytorch/pytorch/blob/main/LICENSE |
+| FFmpeg | binario externo, no se distribuye | extracción de audio | LGPL-2.1+ (GPL-2+ solo si se compila con `--enable-gpl`) | https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md |
+
+Modelos (se descargan en tiempo de ejecución, no se incluyen en el repo):
+
+| Modelo | Uso | Licencia | Acceso |
+|---|---|---|---|
+| Systran/faster-whisper-small | transcripción en CPU (por defecto) | MIT | libre |
+| Systran/faster-whisper-large-v3 | transcripción en GPU (por defecto) | MIT | libre |
+| pyannote/speaker-diarization-3.1 | diarización (por defecto) | MIT | restringido: aceptar condiciones en Hugging Face + `HF_TOKEN` |
+| pyannote/segmentation-3.0 | usado por 3.1 | MIT | restringido |
+| pyannote/wespeaker-voxceleb-resnet34-LM | embeddings de voz usados por 3.1 | CC-BY-4.0 (permite uso comercial; exige atribución) | libre |
+| pyannote/speaker-diarization-community-1 | alternativa (mejor DER), no usada por defecto | CC-BY-4.0 | restringido |
+
+La telemetría de pyannote.audio 4 se desactiva (`PYANNOTE_METRICS_ENABLED=0`).
+
+Dependencias transitivas del extra (ctranslate2, transformers, nltk, omegaconf, torchaudio, etc.): pendiente de listar con sus licencias tras la primera instalación en la VM (`pip-licenses`).
+
 ## Pendientes de verificar (previstas, aún no instaladas)
 
-faster-whisper, WhisperX, pyannote.audio (modelos con acceso restringido en Hugging Face: revisar condiciones), OpenCV, MediaPipe, pandas, Streamlit, FFmpeg (binario externo), llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
+OpenCV, MediaPipe, pandas, Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
 
 ## Licencia del proyecto
 
