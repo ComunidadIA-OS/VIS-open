@@ -1,0 +1,34 @@
+from metrics import example  # noqa: F401  (registra la métrica de ejemplo)
+from metrics.frame import (
+    Sample,
+    sample_of,
+    speech_time_by_gender,
+    speech_time_by_speaker,
+    timeline_to_frame,
+)
+from metrics.registry import (
+    MetricOutput,
+    MetricResult,
+    MetricSpec,
+    gap_is_conclusive,
+    get_metric,
+    list_metrics,
+    metric,
+    run_metric,
+)
+
+__all__ = [
+    "MetricOutput",
+    "MetricResult",
+    "MetricSpec",
+    "Sample",
+    "gap_is_conclusive",
+    "get_metric",
+    "list_metrics",
+    "metric",
+    "run_metric",
+    "sample_of",
+    "speech_time_by_gender",
+    "speech_time_by_speaker",
+    "timeline_to_frame",
+]

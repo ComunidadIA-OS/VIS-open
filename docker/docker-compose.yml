@@ -1,0 +1,45 @@
+# Desde la raíz del repo:
+#   docker compose -f docker/docker-compose.yml --profile cpu run --rm cpu
+#   docker compose -f docker/docker-compose.yml --profile gpu run --rm gpu
+# Sin .env también arranca (las variables quedan vacías); HF_TOKEN va solo en .env, nunca aquí.
+x-common: &common
+  build:
+    context: ..
+    dockerfile: docker/Dockerfile
+  env_file:
+    - path: ../.env
+      required: false
+  environment:
+    DATA_DIR: /data
+  volumes:
+    - ../data:/data        # vídeos y salidas viven fuera de la imagen (data/ está ignorado por git)
+    - models:/models       # caché de modelos de Hugging Face
+
+services:
+  cpu:
+    <<: *common
+    profiles: [cpu]
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: cpu
+    image: vis-open:cpu
+
+  gpu:
+    <<: *common
+    profiles: [gpu]
+    build:
+      context: ..
+      dockerfile: docker/Dockerfile
+      target: gpu
+    image: vis-open:gpu
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+
+volumes:
+  models:

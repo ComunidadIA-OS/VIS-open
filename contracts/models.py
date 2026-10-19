@@ -21,6 +21,22 @@ class _Strict(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
 
+class GenderEvidence(_Strict):
+    """Pista del lenguaje que sostiene (o contradice) el género atribuido a una voz."""
+
+    gender: GenderValue
+    method: str = Field(min_length=1)
+    phrase: str = Field(min_length=1)
+    start_s: float = Field(ge=0)
+    event_id: str | None = None
+    confidence: float = Field(ge=0, le=1)
+    provenance: Provenance = Provenance.AI_INFERRED
+
+    @property
+    def minute(self) -> float:
+        return round(self.start_s / 60, 2)
+
+
 class Speaker(_Strict):
     speaker_id: str = Field(pattern=SPEAKER_ID_PATTERN)
     total_speech_s: float = Field(default=0.0, ge=0)
@@ -28,6 +44,7 @@ class Speaker(_Strict):
     gender_source: GenderSource = GenderSource.UNKNOWN
     role: str | None = None
     name: str | None = None
+    gender_evidence: list[GenderEvidence] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _gender_matches_source(self) -> Speaker:
