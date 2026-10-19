@@ -34,6 +34,7 @@ Requiere Python 3.11 o superior. Los tests usan solo datos sintéticos.
 
 - `contracts/`: esquemas Pydantic (`AnalysisEvent`, `AnalysisTimeline`, `Speaker`, tablas de revisión y de gestos) y lectura/escritura de CSV.
 - `pipeline/`: `audio.py`, `transcribe.py`, `diarize.py`, `timeline.py` y `run.py` (punto de entrada).
+- `sources/`: fuentes de vídeo (`VideoSource`, adaptador del Congreso) y validador del manifiesto; ver `docs/FUENTE_CONGRESO.md`.
 - `decision/`, `metrics/`, `evaluation/`, `dashboard/`, `docker/`: carpetas reservadas para M2 en adelante.
 - `docs/`: documentación.
 - `THIRD_PARTY_LICENSES.md`: dependencias y sus licencias.
