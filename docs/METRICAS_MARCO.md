@@ -1,6 +1,6 @@
 # Marco de métricas
 
-Código en `metrics/`. **No incluye M01 a M13 ni sus umbrales**: son de Ivette y siguen pendientes de su libro de códigos. Aquí solo está lo común para que ella añada las suyas.
+Código en `metrics/`. M01, M02, M03, M04 y M13 están programadas en `metrics/borrador.py` como **borrador** (a partir de sus definiciones de una línea en el README): la definición formal, los mínimos de muestra (provisionales: 2 voces y 60 s con género conocido) y los umbrales son de Ivette. M09 (IA) y M14 (vídeo) aún no existen. Aquí está también lo común para que ella ajuste o añada las suyas.
 
 ## Qué hay
 

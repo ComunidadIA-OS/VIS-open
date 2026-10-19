@@ -1,4 +1,4 @@
-from metrics import example  # noqa: F401  (registra la métrica de ejemplo)
+from metrics import borrador, example  # noqa: F401  (registran las métricas)
 from metrics.frame import (
     Sample,
     sample_of,

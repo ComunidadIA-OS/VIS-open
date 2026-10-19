@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 19 oct 2026: `metrics/borrador.py` con M01, M02, M03, M04 y M13 en BORRADOR (definiciones de una línea del README; mínimos de muestra provisionales), pendientes de la definición formal de Ivette. 7 pruebas con casos hechos a mano.
 - 19 oct 2026: `decision/pseudonymize.py`: seudonimización. Cada voz es «Persona N»; los nombres tras un tratamiento («la señora X», «me llamo X») se sustituyen por el código de la voz o uno nuevo; `Speaker.name` se vacía; la tabla nombre → código no se guarda. `pipeline.analyze` lo aplica antes del género y `resumen.json` trae el mapa voz → «Persona N». Límite: un nombre suelto o escrito en minúscula no se detecta.
 - 19 oct 2026: la diarización lee el WAV con la librería estándar (`load_waveform`) y se lo pasa a pyannote como forma de onda, para no depender de torchcodec, que en Windows exige las DLL «shared» de FFmpeg. Probado en CPU: transcripción y diarización con un tono sintético.
 - 19 oct 2026: `pyannote/speaker-diarization-3.1` necesita aceptar también las condiciones de `pyannote/speaker-diarization-community-1` (restringido).
