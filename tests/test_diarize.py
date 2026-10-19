@@ -61,6 +61,7 @@ def test_diarize_with_fake_pyannote(monkeypatch, sine_wav):
     monkeypatch.setitem(sys.modules, "pyannote.audio", pyannote_audio)
     monkeypatch.setitem(sys.modules, "torch", SimpleNamespace(device=lambda d: f"device:{d}"))
     monkeypatch.delenv("PYANNOTE_METRICS_ENABLED", raising=False)
+    monkeypatch.setattr("pipeline.diarize.load_waveform", lambda p: {"waveform": None})
 
     turns = diarize(sine_wav, DiarizeConfig(token="fake"))
     assert seen == {"model": DEFAULT_MODEL, "token": "fake", "device": "device:cpu"}
@@ -75,3 +76,13 @@ def test_diarize_with_fake_pyannote(monkeypatch, sine_wav):
 def test_real_pyannote_on_synthetic_tone(sine_wav):
     turns = diarize(sine_wav, DiarizeConfig.from_env())
     assert all(t.end_s >= t.start_s for t in turns)
+
+
+def test_load_waveform_shape_and_range(sine_wav):
+    torch = pytest.importorskip("torch")
+    from pipeline.diarize import load_waveform
+
+    out = load_waveform(sine_wav)
+    assert out["sample_rate"] == 16_000
+    assert out["waveform"].shape == (1, 32_000) and out["waveform"].dtype == torch.float32
+    assert float(out["waveform"].abs().max()) <= 1.0
