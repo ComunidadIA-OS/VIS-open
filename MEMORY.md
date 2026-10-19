@@ -4,37 +4,35 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 
 ## Proyecto
 - Reto "Mujeres por la IA Abierta" (SEDIA / Comunidad IA de Código Abierto). Bases: https://github.com/ComunidadIA-OS/Reto-de-Mujeres-por-la-IA-abierta
-- Entrega oficial 30 oct 2026 08:00; presentación presencial 4 nov; el equipo cierra el 28 oct.
-- Contacto del reto: comunidad.ia.os@digital.gob.es; mentores en Discord #reto-mujeres-ia-abierta. Sesión de ética de mentores: 16 oct.
-- Términos y condiciones (docs/terminos-y-condiciones.pdf) no visibles en el repo del reto: pedirlos y leerlos.
+- Entregas: antes del 30 oct 2026 a las 08:00 (hora de Madrid), repositorio público con README y presentación .pptx (máximo 20 diapositivas); antes del 4 nov a las 08:00, vídeo de 5 minutos (la Organización lo permite hasta esa fecha) y versión corta del .pptx (5 minutos con demo). Cierre del código: 28 oct.
+- Falta de un entregable en plazo = exclusión de la evaluación.
+- Contacto del reto: comunidad.ia.os@digital.gob.es; mentoras en Discord #reto-mujeres-ia-abierta.
+- Repositorio en la organización de la Comunidad: https://github.com/ComunidadIA-OS/VIS-open (acceso ya resuelto; aún privado).
 
 ## Equipo
-- Sabrina (dirección, arquitectura, pipeline IA, infra, RGPD/AI Act), Ivette (métricas y validación, 2 h/día), Veru (datos, ética y género, dashboard, landing). Trabajo en remoto.
-- Nadie es especialista en ML/audio: solo modelos maduros, sin entrenar.
+- Sabrina (dirección, arquitectura, pipeline de IA, modelo de lenguaje, infraestructura, publicación y vídeo), Ivette (define y valida las métricas, sin programar; presentación .pptx), Veru (datos, programa las métricas, panel, plan de puesta en producción, revisión del repositorio).
+- Cada persona dispone de unas 2 h por día laborable; los fines de semana no se cuentan.
 
-## Documentos
-- Propuesta de arquitectura: https://claude.ai/code/artifact/2db12001-92f4-4151-881f-a5c5c038c74a
-- PRD: https://claude.ai/code/artifact/646d3e87-9345-42e2-9636-42beac3209aa
-- Presentación del plan: https://claude.ai/artifact/B6QaA9ZNPNFEpiXrmPV1xN
+## Plan de la entrega (19 oct)
+- Plan detallado en `docs/PLAN_DE_TRABAJO.md`.
+- 3 sesiones del Congreso. Métricas de esta entrega: M01, M02, M03, M04, M13, M14 (vídeo) y M09 (IA). El resto es evolución futura.
+- Ajuste ligero de Qwen (28 oct) con medición antes y después; si no mejora, se conserva el modelo sin ajustar. Datos (19 oct): texto de nuestra transcripción de una sesión con preguntas anotadas por Ivette, comprobado con el Diario de Sesiones; evaluación con otra sesión; el modelo ajustado no se publica.
+- Para M09 se puede usar Qwen a través de OVH AI Endpoints (API compatible con OpenAI); el sistema sigue siendo agnóstico al modelo.
 
-## Decisiones tomadas / propuestas
-- MVP (Sabrina, 16 oct): "Observatorio MVP" del Congreso. Automatización que descarga sesiones sin alterarlas, analiza audio + vídeo (sin reconocimiento facial) e informa; 6 a 10 sesiones, descarga automática de prueba y dashboard de evolución. Detalle en banco-videos/propuesta-banco-videos.md (ficheros del proyecto).
-- Género (16 oct): nunca por cara ni voz. Se asigna por pistas del lenguaje («la señora / el señor X»), con evidencia; si no, `desconocido` y revisión humana. Falta el visto bueno de Ivette.
-- Jev: no usar (API alojada, sin pesos abiertos). Kev: experimental (Apache 2.0, solo inglés). `nimble` sí (Apache 2.0); `nimble-v3` no (CC BY-NC 4.0). Laya (Apache 2.0, multilingüe) como opción.
+## Decisiones tomadas
+- Fuente: solo sesiones del Congreso, sin modificar; los vídeos nunca van al repo. Descarga manual por ahora; la automática es evolución futura.
+- Sin nombres (19 oct): cada voz se identifica con un código anónimo (Persona 1, Persona 2…); en la evidencia y en las transcripciones el nombre se sustituye por el código.
+- Género (16 oct): nunca por cara ni voz. Se asigna por pistas del lenguaje («la señora / el señor X»), con evidencia; si no, `desconocido` y revisión humana. Pendiente del visto bueno de Ivette.
+- El vídeo (manos levantadas) forma parte del producto, sin reconocimiento facial.
+- Jev: no usar. Kev: experimental (solo inglés). `nimble` sí (Apache 2.0); `nimble-v3` no (CC BY-NC 4.0).
 - Sin LangChain; `DecisionEngine` propio, `RulesEngine` por defecto.
-- Licencia del repo: Apache 2.0 (aprobada).
+- Licencia del repo: Apache-2.0 (aprobada).
 
-## Estado (17 oct 2026)
-- M1, M2 y prompt M3 (bloques A a G) fusionados en `main` de https://github.com/ComunidadIA-OS/VIS-open (19 oct). Repo aún privado; la prueba en OVH sigue pendiente.
+## Estado (19 oct 2026)
+- M1, M2 y los bloques A a G de M3 están unidos en `main`. `pipeline.run` encadena transcripción, diarización, género por lenguaje y `resumen.json`.
+- Pendiente: prueba real en la GPU de OVH, métricas definitivas, panel, M09 y ajuste del modelo.
 
 ## Pendiente
-- Ivette: definiciones y umbrales de las 19 métricas (M17 a M19 de equidad, añadidas el 16 oct) y libro de códigos.
-- Confirmar si el Congreso permite la descarga automática (robots de app.congreso.es).
-- Verificar licencias de FFmpeg, faster-whisper, WhisperX, pandas y Streamlit (anotadas de memoria).
-- Copiar el archivo de licencia de `nimble` a `THIRD_PARTY_LICENSES.md`.
-- Probar la V100S el día 2. Pedir token de Hugging Face (pyannote, modelo restringido).
-- Solicitar acceso a la organización GitHub de la Comunidad IA.
-- Aprobación de Sabrina para arrancar M1.
-
-## Calendario (oct 2026)
-M0 15–16 · M1 16–17 · M2 17–22 · M3 18–22 · M5 18–23 · M4 21–23 · M6 23 (núcleo funcionando) · M7 22–27 · M8 26–28.
+- Verificar en la fuente las licencias de OpenCV, MediaPipe, Streamlit y Qwen.
+- Confirmar si el Congreso permite la descarga automática (evolución futura).
+- Confirmar la licencia del corpus Àgora (evolución futura).

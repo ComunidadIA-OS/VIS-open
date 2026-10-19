@@ -27,11 +27,11 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Cambiado
 
+- 19 oct 2026 (documentación): plan de la entrega ajustado a las bases y a 2 h por persona y día laborable (`docs/PLAN_DE_TRABAJO.md`); alcance de 3 sesiones y métricas M01, M02, M03, M04, M13, M14 y M09; ajuste ligero de Qwen; especificación del panel (`docs/PANEL.md`); README con componentes de terceros y hoja de ruta; actualizados `MEMORY.md`, `CLAUDE.md`, `docs/MODEL_CARD.md` y `docs/DATASET_CARD.md`.
 - 16 de octubre de 2026 (decisiones de Sabrina, en documentación; código pendiente): fuente única, sesiones del Congreso sin alterar; alcance "Observatorio MVP" (6 a 10 sesiones, descarga automática de prueba, dashboard de evolución); género por pistas del lenguaje con revisión humana solo si hay duda; nuevas métricas de equidad (M17 a M19); avisos en sala, informe y alta de fuente.
 
 ### Pendiente
 
-- Confirmar si el Congreso permite la descarga automática (robots de app.congreso.es).
-
-- Probar el pipeline de M2 con un vídeo de prueba en la VM de OVH.
-- Motores de decisión, métricas deterministas (a validar por Ivette), panel en Streamlit y Docker.
+- Probar el código en la GPU de OVH con un vídeo corto.
+- Métricas de esta entrega (definiciones de Ivette), panel en Streamlit, M09 y ajuste ligero de Qwen.
+- Confirmar si el Congreso permite la descarga automática (evolución futura).

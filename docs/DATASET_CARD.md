@@ -30,14 +30,15 @@ El único texto que lee un LLM opcional es la transcripción de un debate; por e
 
 ## Separación de los datos (entrenamiento, validación, prueba)
 
-- **Entrenamiento:** no existe. No entrenamos ni ajustamos modelos, así que no hay conjunto de entrenamiento propio.
+- **Seudonimización (decisión del 19 oct):** no se guardan nombres. Cada voz se identifica con un código anónimo (Persona 1, Persona 2…) y, en la evidencia del género y en las transcripciones, el nombre se sustituye por ese código.
+- **Ajuste ligero del modelo de lenguaje (decisión del 19 oct):** se usa solo el **texto** seudonimizado de nuestra transcripción de una sesión, con las preguntas anotadas a mano por Ivette. Nunca se usan audio, vídeo ni huellas de voz. Se comprueba con el Diario de Sesiones (texto oficial del Congreso) y se evalúa con una sesión distinta de la del ajuste. El modelo ajustado no se publica; en el repositorio solo va el código para reproducir el ajuste.
 - **Pruebas de código:** datos sintéticos en `tests/`, separados de todo dato real.
-- **Evaluación de calidad:** 6 a 10 plenos y comisiones del Congreso de varias legislaturas, solo para medir, nunca para ajustar modelos. Referencia: el Diario de Sesiones (quién habla y en qué orden) y anotación manual de inicio y fin en 2 o 3 vídeos. Tamaño final: pendiente de Ivette.
+- **Evaluación de calidad:** 3 sesiones del Congreso en esta entrega (6 a 10 como evolución futura), solo para medir. Referencia: el Diario de Sesiones (quién habla y en qué orden) y anotación manual de inicio y fin en 2 o 3 vídeos. Tamaño final: pendiente de Ivette.
 - **Anotación de evaluación:** dos personas etiquetan de forma independiente 2 o 3 vídeos y una tercera resuelve desacuerdos.
 
 ## Modelos usados y datos con los que se entrenaron
 
-**No entrenamos ningún modelo.** Usamos modelos preentrenados de terceros tal cual. Esta tabla recoge, para cada uno, con qué datos lo entrenó su autor, según su ficha oficial (consultada el 2026-10-16). Los datos de entrenamiento son de terceros y no se redistribuyen en este repositorio.
+Usamos modelos preentrenados de terceros tal cual, salvo el ajuste ligero de Qwen para M09. Esta tabla recoge, para cada uno, con qué datos lo entrenó su autor, según su ficha oficial (consultada el 2026-10-16). Los datos de entrenamiento son de terceros y no se redistribuyen en este repositorio.
 
 | Modelo | Uso | Licencia | Datos con los que se entrenó (según su ficha) |
 |---|---|---|---|
