@@ -8,7 +8,8 @@ license = { text = "Apache-2.0" }
 dependencies = ["pydantic>=2.6", "pandas>=2.2"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff"]
+dev = ["pytest>=8", "ruff", "streamlit>=1.40"]
+dashboard = ["streamlit>=1.40"]
 # Dependencias pesadas del pipeline (torch llega como dependencia transitiva).
 # Se instalan en la VM de OVH; los tests se saltan si faltan.
 pipeline = [
@@ -24,7 +25,7 @@ requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["contracts", "pipeline", "sources", "decision", "metrics", "evaluation", "evaluation.synthetic"]
+packages = ["contracts", "pipeline", "sources", "decision", "metrics", "evaluation", "evaluation.synthetic", "dashboard"]
 
 [tool.setuptools.package-data]
 decision = ["cues/*.toml"]
