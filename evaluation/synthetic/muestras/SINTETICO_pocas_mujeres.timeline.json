@@ -9,7 +9,8 @@
       "gender": "hombre",
       "gender_source": "declarado",
       "role": "presidencia (SINTETICO)",
-      "name": null
+      "name": null,
+      "gender_evidence": []
     },
     {
       "speaker_id": "SPEAKER_01",
@@ -17,7 +18,8 @@
       "gender": "mujer",
       "gender_source": "declarado",
       "role": null,
-      "name": null
+      "name": null,
+      "gender_evidence": []
     },
     {
       "speaker_id": "SPEAKER_02",
@@ -25,7 +27,8 @@
       "gender": "hombre",
       "gender_source": "declarado",
       "role": null,
-      "name": null
+      "name": null,
+      "gender_evidence": []
     },
     {
       "speaker_id": "SPEAKER_03",
@@ -33,7 +36,8 @@
       "gender": "hombre",
       "gender_source": "declarado",
       "role": null,
-      "name": null
+      "name": null,
+      "gender_evidence": []
     },
     {
       "speaker_id": "SPEAKER_04",
@@ -41,7 +45,8 @@
       "gender": "hombre",
       "gender_source": "declarado",
       "role": null,
-      "name": null
+      "name": null,
+      "gender_evidence": []
     },
     {
       "speaker_id": "SPEAKER_05",
@@ -49,7 +54,8 @@
       "gender": "hombre",
       "gender_source": "declarado",
       "role": null,
-      "name": null
+      "name": null,
+      "gender_evidence": []
     }
   ],
   "events": [
