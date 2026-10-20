@@ -234,3 +234,19 @@ def test_extra_body_from_env_and_invalid_values():
     for bad in ({"LLM_EXTRA_BODY": "no json"}, {"LLM_EXTRA_BODY": "[1]"}, {"LLM_MAX_TOKENS": "x"}):
         with pytest.raises(ValueError):
             LLMEngine.from_env({"LLM_MODEL": "qwen3", **bad})
+
+
+def test_benchmark_detail_csv_has_one_row_per_turn(tmp_path):
+    import csv
+
+    from evaluation.benchmark import write_detail
+
+    turns = [
+        (Turn(turn_id="a", text="Hola."), "desconocido"),
+        (Turn(turn_id="b", text="x"), "mujer"),
+    ]
+    decisions: list = []
+    evaluate(RulesEngine(), turns, decisions)
+    write_detail(tmp_path / "d.csv", turns, decisions)
+    rows = list(csv.DictReader((tmp_path / "d.csv").open(encoding="utf-8")))
+    assert [r["turn_id"] for r in rows] == ["a", "b"] and [r["acierto"] for r in rows] == ["1", "0"]
