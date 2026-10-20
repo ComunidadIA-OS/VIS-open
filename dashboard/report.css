@@ -21,3 +21,5 @@ footer{margin-top:36px;color:var(--mut);font-size:13px}
 @media print{body{padding:0}
 h2{break-after:avoid}
 }
+.mut{color:var(--mut);font-size:14px;margin:4px 0}
+.axis{display:flex;justify-content:space-between;color:var(--mut);font-size:12px}

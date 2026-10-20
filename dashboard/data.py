@@ -416,21 +416,20 @@ def _reading(share: dict[str, float]) -> str:
 
 
 def _timeline_svg(session: Session) -> str:
-    """Línea de tiempo de la sesión: un tramo coloreado por género (SVG sin dependencias)."""
+    """Línea de tiempo: una barra por género (color) con eje en minutos, sin dependencias."""
     strip = timeline_strip(session).sort_values("inicio_min")
     end = max(float(session.timeline.duration_s) / 60, 0.01)
     rects = []
     for r in strip.itertuples():
         color = GENDER_COLORS.get(r.genero, "#e08a00")
-        x, w = 100 * r.inicio_min / end, max(100 * (r.fin_min - r.inicio_min) / end, 0.08)
-        rects.append(f"<rect x='{x:.3f}' y='0' width='{w:.3f}' height='30' fill='{color}'/>")
-    ticks = "".join(
-        f"<text x='{100 * m / end:.2f}' y='46' font-size='3.2'>{m} min</text>"
-        for m in range(0, int(end) + 1, max(1, int(end // 8)))
-    )
+        x, w = 100 * r.inicio_min / end, max(100 * (r.fin_min - r.inicio_min) / end, 0.1)
+        rects.append(f"<rect x='{x:.3f}' y='0' width='{w:.3f}' height='40' fill='{color}'/>")
+    step = max(1, int(end // 8))
+    ticks = "".join(f"<span>{m} min</span>" for m in range(0, int(end) + 1, step))
     return (
-        "<svg viewBox='0 0 100 50' preserveAspectRatio='none' width='100%' height='80'>"
-        f"{''.join(rects)}{ticks}</svg>"
+        "<p class='mut'>Cada franja es una intervención; el color es el género de quien habla.</p>"
+        "<svg viewBox='0 0 100 40' preserveAspectRatio='none' width='100%' height='70'>"
+        f"{''.join(rects)}</svg><div class='axis'>{ticks}</div>"
     )
 
 
