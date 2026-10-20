@@ -73,9 +73,10 @@ if not sessions:
     st.stop()
 
 if screen == "Sesión":
-    chosen = st.sidebar.selectbox("Sesión", [s.session_id for s in sessions])
+    title_col, pick_col = st.columns([3, 1])
+    chosen = pick_col.selectbox("Cambiar de vídeo", [s.session_id for s in sessions])
     s = next(x for x in sessions if x.session_id == chosen)
-    st.title(f"Sesión {s.session_id}")
+    title_col.title(f"Sesión {s.session_id}")
     if s.synthetic:
         st.warning("SINTÉTICO: datos de ejemplo, no es una sesión real.")
     else:
@@ -84,6 +85,11 @@ if screen == "Sesión":
         if src.get("url_origen"):
             st.markdown(f"[Fuente]({src['url_origen']})")
     st.info(METHOD_NOTICE)
+    if not s.metrics["M02"].conclusive:
+        st.warning(
+            "Esta sesión aún no tiene género asignado (voces sin pista en el texto o muestra "
+            "pequeña). Confirma las voces en la pestaña «Human in the loop»."
+        )
 
     video_file = video_path(s, DATA_DIR)
     minute_key = f"minuto_{s.session_id}"
