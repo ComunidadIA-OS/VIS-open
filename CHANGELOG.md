@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: `docs/PRODUCCION.md` (acceso con 2FA, datos compartidos, automatización: fuera de la entrega) y notas para la presentación en `MEMORY.md`.
 - 20 oct 2026: pestaña «Análisis de vídeo» junto al vídeo (personas visibles, tiempo en pantalla por género según el audio y manos levantadas con ▶ al momento); si la sesión no tiene análisis, explica cómo generarlo.
 - 20 oct 2026: acceso al panel con usuario, contraseña y segundo factor TOTP (`dashboard/auth.py`, solo biblioteca estándar), bloqueo tras 5 fallos y registro de accesos; el ID de conexión se guarda en cada revisión y dos confirmaciones del mismo ID no valen.
 - 20 oct 2026: panel responsive (letra fluida, columnas que se apilan en móvil). En la sesión, vídeo a la izquierda y a la derecha pestañas «Transcripción» (con botón ▶ que lleva el vídeo a ese minuto) y «Human in the loop» (voces desconocidas con sus tramos). La pantalla Evolución muestra el % de género por sesión y los ejes más grandes.
