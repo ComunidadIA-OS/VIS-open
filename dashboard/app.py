@@ -25,6 +25,7 @@ from dashboard.data import (
     inconclusive_reason,
     interventions_table,
     load_sessions,
+    make_clip,
     metric_card,
     save_review,
     timeline_strip,
@@ -54,6 +55,8 @@ COLORS = alt.Scale(
     domain=["mujer", "hombre", "desconocido", "sin_atribuir", "mano_levantada"],
     range=["#7b3fa0", "#2f7f8f", "#9a9a9a", "#d9d9d9", "#e08a00"],
 )
+
+SAMPLE_S = 9  # segundos de cada muestra de voz
 
 st.set_page_config(page_title="VIS Open", layout="wide")
 # Letra al doble (32 px) en pantalla grande o proyectada; baja sola en tablet y móvil (clamp).
@@ -164,19 +167,54 @@ if screen == "Sesión":
         st.success("Todas las voces de esta sesión ya tienen género.")
     else:
         st.write(
-            "Mira y escucha cada tramo. Pon mujer u hombre solo si lo tienes claro; si no, "
-            "desconocido. El género cuenta cuando **las dos anotadoras** coinciden."
+            "Escucha la muestra: valida **la voz que oyes**, no a las demás personas que salgan "
+            "en la imagen. Pon mujer u hombre solo si lo tienes claro; si dudas, desconocido "
+            "(o pulsa «Otra muestra»). El género cuenta cuando **las dos anotadoras** coinciden."
         )
     who = st.radio("Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}")
+
+    def next_sample(key: str) -> None:
+        st.session_state[key] = st.session_state.get(key, 0) + 1
+
     codes = speaker_codes(s.timeline)
     for row in pending:
         code = codes.get(row.speaker_id, row.speaker_id)
         st.subheader(code)
         blocks = voice_blocks(s.timeline, row.speaker_id)
-        for col, (start, end) in zip(st.columns(len(blocks) or 1), blocks, strict=False):
-            col.write(f"{code}: de {fmt_time(start)} a {fmt_time(end)}")
+        sample_key = f"muestra_{s.session_id}_{row.speaker_id}"
+        if blocks:
+            n = st.session_state.get(sample_key, 0) % len(blocks)
+            start, end = blocks[n]
+            stop = min(end, start + SAMPLE_S)
+            clip, text = st.columns([3, 2])
+            clip.write(
+                f"{code}: muestra {n + 1} de {len(blocks)}, de {fmt_time(start)} a {fmt_time(stop)}"
+            )
             if video_file:
-                col.video(video_file, start_time=int(start), end_time=int(min(end, start + 30)))
+                cut = make_clip(
+                    video_file, start, stop, DATA_DIR / "clips", f"{s.session_id}_{row.speaker_id}"
+                )
+                if cut:
+                    clip.video(cut)  # solo esos segundos
+                else:
+                    clip.video(video_file, start_time=int(start), end_time=int(stop))
+            said = next(
+                (
+                    t["texto"]
+                    for t in transcript_turns(s)
+                    if t["speaker_id"] == row.speaker_id and t["inicio_s"] >= start - 0.5
+                ),
+                "",
+            )
+            text.caption("Lo que dice en este tramo")
+            text.write(said[:400])
+            if len(blocks) > 1:
+                text.button(
+                    "Otra muestra",
+                    key=f"otra_{s.session_id}_{row.speaker_id}",
+                    on_click=next_sample,
+                    args=(sample_key,),
+                )
         with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
             gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
             confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)

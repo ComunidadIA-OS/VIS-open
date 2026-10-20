@@ -10,6 +10,8 @@ import csv
 import io
 import json
 import re
+import shutil
+import subprocess
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -135,6 +137,31 @@ def save_review(
     row.notes = notes or None
     row.annotator_id = connection_id
     write_rows(rows, ReviewRow, path)
+
+
+def make_clip(video: Path, start_s: float, stop_s: float, out_dir: Path, name: str) -> Path | None:
+    """Corta de verdad el tramo [start, stop] a un MP4 pequeño (FFmpeg); None si no se puede.
+
+    Así el reproductor solo tiene esos segundos (con `start_time`/`end_time` seguiría mostrando
+    el vídeo entero). El recorte se guarda en `out_dir` (dentro de `data/`, fuera del repo).
+    """
+    out = Path(out_dir) / f"{name}_{int(start_s)}_{int(stop_s)}.mp4"
+    if out.is_file():
+        return out
+    if shutil.which("ffmpeg") is None or stop_s <= start_s:
+        return None
+    out.parent.mkdir(parents=True, exist_ok=True)
+    cmd = [
+        "ffmpeg", "-y", "-loglevel", "error", "-ss", f"{start_s:.2f}", "-i", str(video),
+        "-t", f"{stop_s - start_s:.2f}", "-vf", "scale=-2:360", "-c:v", "libx264",
+        "-preset", "veryfast", "-crf", "28", "-c:a", "aac", "-b:a", "96k",
+        "-movflags", "+faststart", str(out),
+    ]  # fmt: skip
+    done = subprocess.run(cmd, capture_output=True, timeout=120, check=False)  # noqa: S603
+    if done.returncode != 0 or not out.is_file():
+        out.unlink(missing_ok=True)
+        return None
+    return out
 
 
 def fmt_time(seconds: float) -> str:
