@@ -8,6 +8,7 @@ from __future__ import annotations
 
 import html
 import json
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -97,17 +98,32 @@ def voices_to_review(folder: Path) -> list[ReviewRow]:
     return read_rows(ReviewRow, path) if path.is_file() else []
 
 
+CONNECTION_ID = re.compile(r"^[A-Za-z0-9_-]{2,20}$")
+
+
+def valid_connection_id(value: str) -> bool:
+    """ID de conexión: un código corto sin espacios (nunca un nombre ni un correo)."""
+    return bool(CONNECTION_ID.match(value or ""))
+
+
 def save_review(
-    folder: Path, n: int, speaker_id: str, gender: str, confidence: str, notes: str
+    folder: Path,
+    n: int,
+    speaker_id: str,
+    gender: str,
+    confidence: str,
+    notes: str,
+    connection_id: str,
 ) -> None:
-    """Guarda la decisión de la anotadora `n` sobre una voz en su CSV (se crea si no existe)."""
+    """Guarda la decisión de la anotadora `n` (con su ID de conexión) sobre una voz en su CSV."""
+    if not valid_connection_id(connection_id):
+        raise ValueError("ID de conexión no válido: 2 a 20 letras, números, - o _")
     path = _review_file(folder, n)
     rows = (
         read_rows(ReviewRow, path)
         if path.is_file()
         else [
-            r.model_copy(update={"annotator_id": f"anotadora_{n}"})
-            for r in voices_to_review(folder)
+            r.model_copy(update={"annotator_id": connection_id}) for r in voices_to_review(folder)
         ]
     )
     row = next((r for r in rows if r.speaker_id == speaker_id), None)
@@ -116,6 +132,7 @@ def save_review(
     row.gender = GenderValue(gender)
     row.confidence = AnnotatorConfidence(confidence)
     row.notes = notes or None
+    row.annotator_id = connection_id
     write_rows(rows, ReviewRow, path)
 
 
@@ -142,15 +159,54 @@ def voice_blocks(
     return [(b[0], b[1]) for b in sorted(longest)]
 
 
+def transcript_turns(session: Session, max_words: int = 60, gap_s: float = 3.0) -> list[dict]:
+    """Transcripción seudonimizada en trozos legibles: inicio, persona (código), género y texto."""
+    codes = speaker_codes(session.timeline)
+    gender = {sp.speaker_id: sp.gender.value for sp in session.timeline.speakers}
+    events = sorted(
+        (e for e in session.timeline.events if e.type == EventType.SPEECH and e.text),
+        key=lambda e: e.start_s,
+    )
+    turns: list[dict] = []
+    last_end = 0.0
+    for e in events:
+        prev = turns[-1] if turns else None
+        if (
+            prev
+            and prev["speaker_id"] == e.speaker_id
+            and e.start_s - last_end <= gap_s
+            and len(prev["texto"].split()) < max_words
+        ):
+            prev["texto"] += " " + e.text.strip()
+        else:
+            turns.append(
+                {
+                    "inicio_s": e.start_s,
+                    "speaker_id": e.speaker_id,
+                    "persona": codes.get(e.speaker_id, "sin atribuir"),
+                    "genero": gender.get(e.speaker_id, "sin_atribuir"),
+                    "texto": e.text.strip(),
+                }
+            )
+        last_end = e.end_s
+    return turns
+
+
 def agreed_genders(folder: Path) -> dict[str, str]:
-    """Voz → género, solo si las dos anotadoras pusieron el mismo (mujer u hombre)."""
-    answers: list[dict[str, str]] = []
+    """Voz → género, solo si dos anotadoras con ID de conexión distinto pusieron el mismo."""
+    answers: list[dict[str, tuple[str, str]]] = []
     for n in ANNOTATORS:
         path = _review_file(folder, n)
         rows = read_rows(ReviewRow, path) if path.is_file() else []
-        answers.append({r.speaker_id: r.gender.value for r in rows if r.gender})
+        answers.append(
+            {r.speaker_id: (r.gender.value, r.annotator_id or "") for r in rows if r.gender}
+        )
     first, second = answers
-    return {k: v for k, v in first.items() if v in KNOWN and second.get(k) == v}
+    return {
+        k: g
+        for k, (g, who) in first.items()
+        if g in KNOWN and second.get(k, ("", ""))[0] == g and who and who != second[k][1]
+    }
 
 
 def apply_confirmed(timeline: AnalysisTimeline, confirmed: dict[str, str]) -> AnalysisTimeline:
@@ -280,6 +336,12 @@ def evolution_table(sessions: list[Session]) -> pd.DataFrame:
         row["M14"] = row["M09"] = None  # aún no disponibles
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["fecha", "sesion"], ignore_index=True)
+
+
+def evolution_gender_table(sessions: list[Session]) -> pd.DataFrame:
+    """% de tiempo de palabra por género y sesión (existe aunque la métrica no sea concluyente)."""
+    frames = [gender_time_table(s).assign(sesion=s.session_id) for s in sessions]
+    return pd.concat(frames, ignore_index=True)[["sesion", "gender", "porcentaje"]]
 
 
 def report_html(session: Session) -> str:

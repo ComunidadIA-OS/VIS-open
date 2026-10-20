@@ -13,10 +13,12 @@ from pathlib import Path
 import altair as alt
 import streamlit as st
 
+from dashboard.auth import auth_enabled, check_login
 from dashboard.data import (
     METHOD_NOTICE,
     PENDING_METRICS,
     SOURCE_NOTICE,
+    evolution_gender_table,
     evolution_table,
     fmt_time,
     gender_time_table,
@@ -26,6 +28,8 @@ from dashboard.data import (
     report_html,
     save_review,
     timeline_strip,
+    transcript_turns,
+    valid_connection_id,
     video_path,
     video_tables,
     voice_blocks,
@@ -33,35 +37,79 @@ from dashboard.data import (
 )
 from decision.pseudonymize import speaker_codes
 
+
+def big(chart: alt.Chart) -> alt.Chart:
+    """Letra de ejes y leyendas legible en pantalla grande."""
+    return chart.configure_axis(labelFontSize=16, titleFontSize=18).configure_legend(
+        labelFontSize=16, titleFontSize=18
+    )
+
+
 COLORS = alt.Scale(
     domain=["mujer", "hombre", "desconocido", "sin_atribuir", "mano_levantada"],
     range=["#7b3fa0", "#2f7f8f", "#9a9a9a", "#d9d9d9", "#e08a00"],
 )
 
 st.set_page_config(page_title="VIS Open", layout="wide")
-# Letra al doble del tamaño por defecto (16 px → 32 px) para leerlo en pantalla grande o proyectado.
+# Letra al doble (32 px) en pantalla grande o proyectada; baja sola en tablet y móvil (clamp).
 st.markdown(
     "<style>"
     ".stApp p, .stApp li, .stApp label, [data-testid='stAlertContainer'] p,"
-    " [data-testid='stCaptionContainer'], [data-testid='stMetricLabel'] p {font-size: 2rem;}"
-    "[data-testid='stMetricValue'] {font-size: 4rem;}"
+    " [data-testid='stCaptionContainer'], [data-testid='stMetricLabel'] p"
+    " {font-size: clamp(1rem, 2.4vw, 2rem);}"
+    "[data-testid='stSidebar'] p, [data-testid='stSidebar'] label"
+    " {font-size: clamp(0.9rem, 1.4vw, 1.3rem);}"
+    "[data-testid='stTab'] p, .stButton p {font-size: clamp(0.9rem, 1.5vw, 1.4rem);}"
+    "[data-testid='stMetricValue'] {font-size: clamp(2rem, 4.5vw, 4rem);}"
     "[data-testid='stMetricLabel'] {overflow: visible; white-space: normal;}"
     "</style>",
     unsafe_allow_html=True,
 )
 DATA_DIR = Path(os.environ.get("DATA_DIR") or "data")
+
+
+def login_gate() -> str | None:
+    """Pide usuario, contraseña y código del autenticador si hay usuarios dados de alta."""
+    if not auth_enabled(DATA_DIR):
+        return None
+    if "user" not in st.session_state:
+        st.title("VIS Open")
+        with st.form("login"):
+            user_id = st.text_input("ID de usuario")
+            password = st.text_input("Contraseña", type="password")
+            code = st.text_input("Código de 6 cifras del autenticador")
+            if st.form_submit_button("Entrar"):
+                ok, why = check_login(DATA_DIR, user_id.strip(), password, code)
+                if ok:
+                    st.session_state["user"] = user_id.strip()
+                    st.rerun()
+                st.error(why)
+        st.stop()
+    return st.session_state["user"]
+
+
+current_user = login_gate()
 sessions = load_sessions(DATA_DIR)
 screen = st.sidebar.radio("Pantalla", ["Sesión", "Evolución"])
 st.sidebar.info(METHOD_NOTICE)
+if current_user:
+    st.sidebar.write(f"Conectada: {current_user}")
+    if st.sidebar.button("Salir"):
+        del st.session_state["user"]
+        st.rerun()
+    connection_id = current_user
+else:
+    connection_id = st.sidebar.text_input("ID de conexión (código, sin nombre)")
 
 if not sessions:
     st.warning("No hay sesiones procesadas.")
     st.stop()
 
 if screen == "Sesión":
-    chosen = st.sidebar.selectbox("Sesión", [s.session_id for s in sessions])
+    title_col, pick_col = st.columns([3, 1])
+    chosen = pick_col.selectbox("Cambiar de vídeo", [s.session_id for s in sessions])
     s = next(x for x in sessions if x.session_id == chosen)
-    st.title(f"Sesión {s.session_id}")
+    title_col.title(f"Sesión {s.session_id}")
     if s.synthetic:
         st.warning("SINTÉTICO: datos de ejemplo, no es una sesión real.")
     else:
@@ -70,52 +118,94 @@ if screen == "Sesión":
         if src.get("url_origen"):
             st.markdown(f"[Fuente]({src['url_origen']})")
     st.info(METHOD_NOTICE)
+    if not s.metrics["M02"].conclusive:
+        st.warning(
+            "Esta sesión aún no tiene género asignado (voces sin pista en el texto o muestra "
+            "pequeña). Confirma las voces en la pestaña «Human in the loop»."
+        )
 
     video_file = video_path(s, DATA_DIR)
-    if video_file:
-        minute = st.number_input(
-            "Ir al minuto",
-            min_value=0.0,
-            max_value=s.timeline.duration_s / 60,
-            value=0.0,
-            step=1.0,
-        )
-        st.video(video_file, start_time=int(minute * 60))
-        st.caption("Vídeo original del Congreso, sin alterar. Solo se ve en este equipo.")
+    minute_key = f"minuto_{s.session_id}"
+    max_minute = s.timeline.duration_s / 60
 
-        pending = voices_to_review(DATA_DIR / "processed" / s.session_id)
-        pending = [r for r in pending if r.speaker_id not in s.confirmed]
-        with st.expander(
-            f"Human in the loop: confirmar el género de las voces ({len(pending)} sin confirmar)"
-        ):
+    def go_to(seconds: float) -> None:
+        st.session_state[minute_key] = min(seconds / 60, max_minute)
+
+    left, right = st.columns([3, 2])
+    with left:
+        if video_file:
+            minute = st.number_input(
+                "Ir al minuto", min_value=0.0, max_value=max_minute, step=1.0, key=minute_key
+            )
+            st.video(video_file, start_time=int(minute * 60))
+            st.caption("Vídeo original del Congreso, sin alterar. Solo se ve en este equipo.")
+        else:
+            st.info("El vídeo original no está en este equipo (`data/raw/`): solo se ve el texto.")
+
+    pending = [
+        r
+        for r in voices_to_review(DATA_DIR / "processed" / s.session_id)
+        if r.speaker_id not in s.confirmed
+    ]
+    with right:
+        tab_text, tab_hitl = st.tabs(["Transcripción", f"Human in the loop ({len(pending)})"])
+        with tab_text:
+            with st.container(height=620):
+                for i, t in enumerate(transcript_turns(s)):
+                    st.button(
+                        f"▶ {fmt_time(t['inicio_s'])} · {t['persona']} · {t['genero']}",
+                        key=f"go_{s.session_id}_{i}",
+                        on_click=go_to,
+                        args=(t["inicio_s"],),
+                        disabled=not video_file,
+                    )
+                    st.write(t["texto"])
+        with tab_hitl:
             st.write(
-                "Mira y escucha cada tramo. Pon mujer u hombre solo si lo tienes claro; si no, "
-                "desconocido. El género cuenta cuando **las dos anotadoras** coinciden."
+                "Human in the loop: mira y escucha cada tramo. Pon mujer u hombre solo si lo "
+                "tienes claro; si no, desconocido. El género cuenta cuando **las dos anotadoras** "
+                "coinciden."
             )
             who = st.radio(
                 "Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}"
             )
+            if not valid_connection_id(connection_id):
+                st.warning(
+                    "Escribe tu ID de conexión en la barra lateral (2 a 20 letras o números, "
+                    "sin nombres) para poder guardar."
+                )
             codes = speaker_codes(s.timeline)
-            for row in pending:
-                code = codes.get(row.speaker_id, row.speaker_id)
-                st.subheader(code)
-                for start, end in voice_blocks(s.timeline, row.speaker_id):
-                    st.write(f"{code}: de {fmt_time(start)} a {fmt_time(end)}")
-                    st.video(video_file, start_time=int(start), end_time=int(min(end, start + 30)))
-                with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
-                    gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
-                    confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
-                    notes = st.text_input("Notas (opcional, sin nombres)")
-                    if st.form_submit_button("Guardar"):
-                        save_review(
-                            DATA_DIR / "processed" / s.session_id,
-                            who,
-                            row.speaker_id,
-                            gender,
-                            confidence,
-                            notes,
+            with st.container(height=520):
+                for row in pending:
+                    code = codes.get(row.speaker_id, row.speaker_id)
+                    st.subheader(code)
+                    for k, (start, end) in enumerate(voice_blocks(s.timeline, row.speaker_id)):
+                        st.button(
+                            f"▶ {code}: de {fmt_time(start)} a {fmt_time(end)}",
+                            key=f"blk_{s.session_id}_{row.speaker_id}_{k}",
+                            on_click=go_to,
+                            args=(start,),
+                            disabled=not video_file,
                         )
-                        st.success("Guardado. Recarga la página para ver el efecto en las cifras.")
+                    with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
+                        gender = st.radio(
+                            "Género", ["mujer", "hombre", "desconocido"], horizontal=True
+                        )
+                        confidence = st.radio(
+                            "Seguridad", ["alta", "media", "baja"], horizontal=True
+                        )
+                        notes = st.text_input("Notas (opcional, sin nombres)")
+                        if st.form_submit_button("Guardar"):
+                            save_review(
+                                DATA_DIR / "processed" / s.session_id,
+                                who,
+                                row.speaker_id,
+                                gender,
+                                confidence,
+                                notes,
+                                connection_id,
+                            )
+                            st.success("Guardado. Recarga la página para ver el efecto.")
 
     cards = [metric_card(r) for r in s.metrics.values()]
     for col, card in zip(st.columns(len(cards)), cards, strict=True):
@@ -126,16 +216,20 @@ if screen == "Sesión":
     st.subheader("Tiempo de palabra por género")
     gt = gender_time_table(s)
     st.altair_chart(
-        alt.Chart(gt)
-        .mark_bar()
-        .encode(x="gender", y="minutos", color=alt.Color("gender", scale=COLORS)),
+        big(
+            alt.Chart(gt)
+            .mark_bar()
+            .encode(x="gender", y="minutos", color=alt.Color("gender", scale=COLORS))
+        ),
         use_container_width=True,
     )
     st.subheader("Línea de tiempo")
     st.altair_chart(
-        alt.Chart(timeline_strip(s))
-        .mark_bar(height=30)
-        .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS)),
+        big(
+            alt.Chart(timeline_strip(s))
+            .mark_bar(height=30)
+            .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS))
+        ),
         use_container_width=True,
     )
     vt = video_tables(s)
@@ -145,9 +239,11 @@ if screen == "Sesión":
         left, right = st.columns(2)
         left.caption("Tiempo en pantalla por género (el género sale del audio)")
         left.altair_chart(
-            alt.Chart(vt[0])
-            .mark_bar()
-            .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS)),
+            big(
+                alt.Chart(vt[0])
+                .mark_bar()
+                .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
+            ),
             use_container_width=True,
         )
         right.caption("Manos levantadas por zona de la imagen")
@@ -163,14 +259,23 @@ if screen == "Sesión":
 else:
     st.title("Evolución entre sesiones")
     st.info(
-        "Con 3 sesiones no se pueden sacar tendencias; "
+        "Con pocas sesiones no se pueden sacar tendencias; "
         "el gráfico muestra cómo funcionará con más sesiones."
     )
-    evo = evolution_table(sessions)
+    st.subheader("Tiempo de palabra por género en cada sesión (%)")
     st.altair_chart(
-        alt.Chart(evo)
-        .mark_line(point=True)
-        .encode(x="sesion", y="M02", tooltip=["sesion", "M02", "M04"]),
+        big(
+            alt.Chart(evolution_gender_table(sessions))
+            .mark_bar()
+            .encode(
+                x="sesion",
+                y=alt.Y("porcentaje", scale=alt.Scale(domain=[0, 100])),
+                color=alt.Color("gender", scale=COLORS),
+                tooltip=["sesion", "gender", "porcentaje"],
+            )
+        ),
         use_container_width=True,
     )
+    st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
+    evo = evolution_table(sessions).astype(object).fillna("no concluyente")
     st.dataframe(evo, use_container_width=True)

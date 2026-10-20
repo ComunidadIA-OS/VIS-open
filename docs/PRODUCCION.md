@@ -3,7 +3,7 @@
 Lo que **no** forma parte de la entrega y se añadiría al pasar a producción. La entrega funciona en local, con ficheros, sin servicios de nube y sin cuentas.
 
 ## Acceso y usuarios
-- Usuario, contraseña y segundo factor (TOTP) para entrar al panel, con bloqueo tras varios fallos y registro de accesos. Hay un prototipo con la biblioteca estándar de Python en la rama `id-conexion` (no fusionada).
+- Usuario, contraseña y segundo factor (TOTP) para entrar al panel, con bloqueo tras varios fallos y registro de accesos. Hay un prototipo con la biblioteca estándar de Python en `dashboard/auth.py`, **desactivado por defecto**: solo se activa si existe `data/usuarios.json` (alta con `python -m dashboard.auth add <id>`). La demo y la entrega funcionan sin él.
 - ID de conexión guardado en cada revisión, para saber quién confirmó qué y exigir dos personas distintas.
 - Si el panel se comparte en una red: detrás de un proxy con HTTPS y con caducidad de sesión.
 
