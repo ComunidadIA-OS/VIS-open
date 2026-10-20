@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: baseline de vídeo sin cara en `pipeline/video.py` (seguimiento de personas por solape de cajas, tiempo en pantalla, tamaño y centralidad por pista; género solo por audio); `evaluation/video_eval.py` (error de conteo, F1 de manos y género de las pistas con «desconocido» aparte); `docs/EVALUACION.md` con el plan de evaluación, la decisión de no usar género por la cara y el texto para la diapositiva «Evaluación y límites».
 - 20 oct 2026: `pipeline/video.py` (prototipo): personas visibles y manos levantadas por zona con MediaPipe Pose Landmarker, una pasada a 2 fotogramas por segundo, sin caras, sin identificar y sin guardar imágenes; `python -m pipeline.video data/raw/V001.mp4 --model <modelo.task>` escribe `video.json`. Extra `[video]`. El modelo `.task` no se incluye.
 - 19 oct 2026: la diarización lee el WAV con la librería estándar (`load_waveform`) y se lo pasa a pyannote como forma de onda, para no depender de torchcodec, que en Windows exige las DLL «shared» de FFmpeg. Probado en CPU: transcripción y diarización con un tono sintético.
 - 19 oct 2026: `pyannote/speaker-diarization-3.1` necesita aceptar también las condiciones de `pyannote/speaker-diarization-community-1` (restringido).
