@@ -28,6 +28,9 @@ from dashboard.data import (
     make_clip,
     metric_card,
     save_review,
+    show_interventions,
+    show_tracks,
+    show_voices,
     timeline_strip,
     transcript_csv,
     transcript_turns,
@@ -84,7 +87,7 @@ st.markdown(
     " .st-key-video_box [data-testid='stAlertContainer'] p"
     " {font-size: clamp(0.85rem, 2vw, 1.7rem);}"
     "[data-testid='stTable'] td, [data-testid='stTable'] th"
-    " {font-size: clamp(1rem, 1.8vw, 1.5rem);}"
+    " {font-size: clamp(1.1rem, 2vw, 1.7rem);}"
     "</style>",
     unsafe_allow_html=True,
 )
@@ -276,31 +279,34 @@ if screen == "Sesión":
             st.write(t["texto"])
     st.subheader("Voces y género")
     voices = voices_table(s)
-    st.table(
-        voices.drop(columns=["evidencia"]).style.hide(axis="index").format(precision=2, na_rep="-")
-    )
+    st.table(show_voices(voices).style.hide(axis="index"))
     st.caption("Pulsa en una voz para ver su transcripción.")
     by_voice = voice_transcripts(s)
     with st.container(key="voices_box"):
         for r in voices.itertuples():
-            with st.expander(f"{r.persona} · {r.genero} · {r.minutos} min"):
+            with st.expander(f"{r.persona} · {r.genero} · {fmt_time(r.minutos * 60)}"):
                 for t in by_voice.get(r.persona, []):
                     st.write(f"**{fmt_time(t['inicio_s'])}** {t['texto']}")
     st.subheader("Intervenciones")
     inter = interventions_table(s)
-    shown = st.multiselect(
-        "Género a mostrar",
-        ["mujer", "hombre", "desconocido", "sin_atribuir"],
-        default=["mujer", "hombre", "desconocido", "sin_atribuir"],
-    )
+    genders = ["mujer", "hombre", "desconocido", "sin_atribuir"]
+    st.write("Género a mostrar")
+    controls, _ = st.columns([7, 3])  # los controles ocupan el 70 % de la izquierda
+    shown = [
+        g
+        for g in genders
+        if controls.checkbox(g.replace("_", " "), value=True, key=f"genero_{s.session_id}_{g}")
+    ]
     rows = inter[inter["genero"].isin(shown)].drop(columns=["evidencia"])
     per_page = 25
     pages = max(1, -(-len(rows) // per_page))
-    page = st.number_input(f"Página (de {pages})", min_value=1, max_value=pages, value=1, step=1)
+    page = controls.number_input(
+        f"Página (de {pages})", min_value=1, max_value=pages, value=1, step=1
+    )
     st.table(
-        rows.iloc[(page - 1) * per_page : page * per_page]
-        .style.hide(axis="index")
-        .format(precision=2)
+        show_interventions(rows.iloc[(page - 1) * per_page : page * per_page]).style.hide(
+            axis="index"
+        )
     )
     with st.container(key="video_box"):
         st.header("Análisis de vídeo (MediaPipe, sin caras)")
@@ -343,9 +349,7 @@ if screen == "Sesión":
                 use_container_width=True,
             )
             st.subheader("Pistas con más tiempo en pantalla")
-            st.table(
-                video_tracks_with_totals(s).style.hide(axis="index").format(precision=2, na_rep="-")
-            )
+            st.table(show_tracks(video_tracks_with_totals(s)).style.hide(axis="index"))
             hands = v.get("manos_levantadas", [])
             st.subheader("Manos levantadas")
             st.caption("Zona de la imagen y momento; ▶ mueve el vídeo de arriba.")

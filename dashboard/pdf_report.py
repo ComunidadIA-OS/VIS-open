@@ -31,6 +31,7 @@ from dashboard.data import (
     SOURCE_NOTICE,
     Session,
     _reading,
+    fmt_pct,
     fmt_time,
     gender_time_table,
     inconclusive_reason,
@@ -313,8 +314,10 @@ def report_pdf(
         Paragraph("Tiempo de palabra por género", st["h3"]),
         _stacked_bar(gt),
         _grid(
-            [["Género", "Minutos", "%"]]
-            + [[r.gender, f"{r.minutos:.2f}", f"{r.porcentaje:.1f}"] for r in gt.itertuples()],
+            [["Género", "Tiempo de palabra", "%"]]
+            + [
+                [r.gender, fmt_time(r.minutos * 60), fmt_pct(r.porcentaje)] for r in gt.itertuples()
+            ],
             [WIDTH * 0.5, WIDTH * 0.25, WIDTH * 0.25],
         ),
         Paragraph("Línea de tiempo", st["h3"]),
@@ -324,9 +327,9 @@ def report_pdf(
         _timeline(session),
         Paragraph("Voces", st["h3"]),
         _grid(
-            [["Persona", "Género", "Origen", "Minutos", "Intervenciones"]]
+            [["Persona", "Género", "Origen", "Tiempo de palabra", "Intervenciones"]]
             + [
-                [r.persona, r.genero, r.origen, f"{r.minutos:.2f}", str(r.intervenciones)]
+                [r.persona, r.genero, r.origen, fmt_time(r.minutos * 60), str(r.intervenciones)]
                 for r in voices.itertuples()
             ]
         ),
@@ -398,8 +401,8 @@ def report_pdf(
                         + [
                             [
                                 str(r.pista),
-                                f"{r.minutos_en_pantalla:.2f}",
-                                f"{r.porcentaje:.1f}",
+                                fmt_time(r.minutos_en_pantalla * 60),
+                                fmt_pct(r.porcentaje),
                                 "" if pd.isna(r.tamano_medio) else f"{r.tamano_medio:.2f}",
                                 "" if pd.isna(r.centralidad) else f"{r.centralidad:.2f}",
                                 r.genero_por_audio,

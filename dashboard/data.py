@@ -169,6 +169,54 @@ def fmt_time(seconds: float) -> str:
     return f"{m}:{sec:02d}"
 
 
+def fmt_pct(value: float) -> str:
+    return f"{value:.1f} %"
+
+
+def show_interventions(rows: pd.DataFrame) -> pd.DataFrame:
+    """Intervenciones para pantalla: inicio y duración en m:ss."""
+    return pd.DataFrame(
+        {
+            "persona": rows["persona"],
+            "inicio": [fmt_time(m * 60) for m in rows["inicio_min"]],
+            "duración": [fmt_time(d) for d in rows["duracion_s"]],
+            "género": rows["genero"],
+            "texto": rows["texto"],
+        }
+    )
+
+
+def show_voices(voices: pd.DataFrame) -> pd.DataFrame:
+    """Voces para pantalla: tiempo de palabra en m:ss."""
+    return pd.DataFrame(
+        {
+            "persona": voices["persona"],
+            "género": voices["genero"],
+            "origen": voices["origen"],
+            "tiempo de palabra": [fmt_time(m * 60) for m in voices["minutos"]],
+            "intervenciones": voices["intervenciones"],
+        }
+    )
+
+
+def show_tracks(tracks: pd.DataFrame) -> pd.DataFrame:
+    """Pistas de vídeo para pantalla: tiempo en m:ss, porcentaje con %, vacíos sin símbolo."""
+
+    def num(x: float) -> str:
+        return "" if pd.isna(x) else f"{x:.2f}"
+
+    return pd.DataFrame(
+        {
+            "pista": tracks["pista"],
+            "tiempo en pantalla": [fmt_time(m * 60) for m in tracks["minutos_en_pantalla"]],
+            "% del tiempo": [fmt_pct(x) for x in tracks["porcentaje"]],
+            "tamaño medio": [num(x) for x in tracks["tamano_medio"]],
+            "centralidad": [num(x) for x in tracks["centralidad"]],
+            "género (audio)": tracks["genero_por_audio"],
+        }
+    )
+
+
 def voice_blocks(
     timeline: AnalysisTimeline, speaker_id: str, gap_s: float = 3.0, top: int = 3
 ) -> list[tuple[float, float]]:

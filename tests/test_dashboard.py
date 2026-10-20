@@ -317,3 +317,30 @@ def test_make_clip_cuts_only_the_requested_seconds(tmp_path):
     )  # fmt: skip
     assert 2.5 < float(out.stdout) < 3.5
     assert make_clip(src, 3.0, 3.0, tmp_path / "clips", "x") is None
+
+
+def test_screen_tables_use_minutes_and_percent_format():
+    import pandas as pd
+
+    from dashboard.data import show_interventions, show_tracks, show_voices
+
+    rows = pd.DataFrame(
+        {"persona": ["Persona 1"], "inicio_min": [1.5], "duracion_s": [7.3],
+         "genero": ["mujer"], "texto": ["hola"]}
+    )  # fmt: skip
+    out = show_interventions(rows)
+    assert out.loc[0, "inicio"] == "1:30" and out.loc[0, "duración"] == "0:07"
+    voices = pd.DataFrame(
+        {"persona": ["Persona 1"], "genero": ["hombre"], "origen": ["x"],
+         "minutos": [13.65], "intervenciones": [4]}
+    )  # fmt: skip
+    assert show_voices(voices).loc[0, "tiempo de palabra"] == "13:39"
+    tracks = pd.DataFrame(
+        {"pista": ["1"], "minutos_en_pantalla": [10.06], "porcentaje": [11.9],
+         "tamano_medio": [float("nan")], "centralidad": [0.5], "genero_por_audio": ["mujer"]}
+    )  # fmt: skip
+    shown = show_tracks(tracks)
+    assert (
+        shown.loc[0, "tiempo en pantalla"] == "10:03" and shown.loc[0, "% del tiempo"] == "11.9 %"
+    )
+    assert shown.loc[0, "tamaño medio"] == ""
