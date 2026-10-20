@@ -48,16 +48,17 @@ Si existe `data/usuarios.json`, el panel pide ID de usuario, contraseña y el c�
 - Contraseñas con scrypt y sal; nunca en claro. Cinco fallos en 15 minutos bloquean 15 minutos. Todo intento se anota en `data/auth_log.jsonl` (sin contraseñas ni códigos).
 - `data/` no se sube al repo. Límite conocido: sin caducidad de sesión ni TLS propio; para compartirlo en una red, detrás de un proxy HTTPS.
 
-## Informe descargable
+## Informe descargable (PDF)
 
-Un botón **«Descargar informe»** en la pantalla 1 genera un fichero con el contenido de esa sesión:
+El botón **«Descargar informe (PDF)»** de la pantalla de sesión genera un PDF (ReportLab, BSD) con:
 
-- La ficha de la sesión y la fuente.
-- Las siete métricas con su valor o «no concluyente».
-- El gráfico de tiempo de palabra.
-- El método, las limitaciones y el porcentaje sin atribuir.
+- La ficha de la sesión y la fuente, y un resumen con una lectura prudente de la brecha (qué pasaría según cómo fueran las voces sin género).
+- Las métricas con su valor o «no concluyente», y por qué.
+- Análisis de audio: tiempo de palabra por género, línea de tiempo y voces.
+- Análisis de vídeo (MediaPipe, sin caras): personas visibles a lo largo del vídeo, tiempo en pantalla, manos levantadas y pistas.
+- El método y los límites.
 
-Formato por defecto: HTML (se abre en cualquier navegador y se puede imprimir a PDF). Un PDF directo queda como evolución futura.
+La transcripción completa no va en el PDF: se descarga aparte en un CSV («Descargar transcripción (CSV)»), y el PDF enlaza a él. `python -m dashboard.export` guarda ambos ficheros de todas las sesiones en `data/informes/` (con `--link-base URL` el enlace apunta a un almacenamiento privado donde se suba el CSV).
 
 ## Pantalla 2 · Evolución entre sesiones
 

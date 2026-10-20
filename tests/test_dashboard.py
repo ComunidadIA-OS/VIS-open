@@ -9,8 +9,8 @@ from dashboard.data import (
     interventions_table,
     load_sessions,
     metric_card,
-    report_html,
 )
+from dashboard.pdf_report import report_pdf
 
 APP = Path(__file__).parent.parent / "dashboard" / "app.py"
 
@@ -40,8 +40,8 @@ def test_interventions_never_show_names_only_codes(sessions):
 def test_evolution_and_report(sessions):
     evo = evolution_table(sessions)
     assert len(evo) == 5 and {"M01", "M02", "M03", "M04", "M13", "M14", "M09"} <= set(evo.columns)
-    html = report_html(sessions[0])
-    assert "SINTÉTICO" in html and "Método y límites" in html and "no disponible todavía" in html
+    pdf = report_pdf(sessions[0], compress=False)
+    assert pdf.startswith(b"%PDF") and b"datos de ejemplo" in pdf and b"Resumen" in pdf
 
 
 def test_real_session_folder_is_read(tmp_path):
@@ -55,7 +55,7 @@ def test_real_session_folder_is_read(tmp_path):
     (d / "source.json").write_text('{"cita": "Fuente: X", "fecha_evento": "2026-10-16"}', "utf-8")
     s = load_sessions(tmp_path)
     assert [x.session_id for x in s] == ["V001"] and not s[0].synthetic
-    assert "Fuente: X" in report_html(s[0])
+    assert b"Fuente: X" in report_pdf(s[0], compress=False)
 
 
 def test_app_loads_without_errors(tmp_path, monkeypatch):
@@ -219,9 +219,9 @@ def test_voices_table_has_one_row_per_voice_with_minutes_and_origin(sessions):
 
 
 def test_report_has_summary_timeline_voices_and_prudent_reading(sessions):
-    h = report_html(sessions[0])
-    for part in ("Resumen", "Línea de tiempo", "<svg", "Voces", "Intervenciones", "Transcripción"):
-        assert part in h
+    pdf = report_pdf(sessions[0], compress=False)
+    for part in (b"Resumen", b"Voces", b"Persona", b"transcripcion_"):
+        assert part in pdf
     from dashboard.data import _reading
 
     assert "podría cambiar" in _reading({"mujer": 20.0, "hombre": 50.0, "desconocido": 30.0})
@@ -232,7 +232,8 @@ def test_report_has_summary_timeline_voices_and_prudent_reading(sessions):
 def test_voice_transcripts_csv_and_export_link_to_the_csv(sessions, tmp_path):
     import csv as _csv
 
-    from dashboard.data import export_session, transcript_csv, voice_transcripts
+    from dashboard.data import transcript_csv, voice_transcripts
+    from dashboard.export import export_session
 
     s = sessions[0]
     by_voice = voice_transcripts(s)
@@ -241,9 +242,9 @@ def test_voice_transcripts_csv_and_export_link_to_the_csv(sessions, tmp_path):
     assert rows and list(rows[0]) == ["inicio_s", "inicio", "persona", "genero", "texto"]
     report, table = export_session(s, tmp_path, link_base="https://almacen.example/privado/")
     assert table.name == f"transcripcion_{s.session_id}.csv" and table.is_file()
-    html_text = report.read_text(encoding="utf-8")
-    assert f"https://almacen.example/privado/transcripcion_{s.session_id}.csv" in html_text
-    assert "<details>" in html_text  # cada voz se despliega
+    assert report.name == f"informe_{s.session_id}.pdf" and report.read_bytes().startswith(b"%PDF")
+    link = f"https://almacen.example/privado/transcripcion_{s.session_id}.csv"
+    assert link.encode() in report_pdf(s, link, compress=False)  # el PDF enlaza al CSV
 
 
 def test_inconclusive_metrics_explain_why(sessions):
@@ -251,5 +252,7 @@ def test_inconclusive_metrics_explain_why(sessions):
 
     by = {s.session_id: s for s in sessions}
     assert "muestra insuficiente" in inconclusive_reason(by["SINTETICO_muestra_insuficiente"])
-    assert "Por qué" in report_html(by["SINTETICO_muestra_insuficiente"])
+    assert b"muestra insuficiente" in report_pdf(
+        by["SINTETICO_muestra_insuficiente"], compress=False
+    )
     assert inconclusive_reason(by["SINTETICO_pocas_mujeres"]) == ""

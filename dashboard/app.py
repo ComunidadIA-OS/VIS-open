@@ -26,7 +26,6 @@ from dashboard.data import (
     interventions_table,
     load_sessions,
     metric_card,
-    report_html,
     save_review,
     timeline_strip,
     transcript_csv,
@@ -40,6 +39,7 @@ from dashboard.data import (
     voices_table,
     voices_to_review,
 )
+from dashboard.pdf_report import report_pdf
 from decision.pseudonymize import speaker_codes
 
 
@@ -299,10 +299,10 @@ if screen == "Sesión":
         mime="text/csv",
     )
     st.download_button(
-        "Descargar informe",
-        report_html(s),
-        file_name=f"informe_{s.session_id}.html",
-        mime="text/html",
+        "Descargar informe (PDF)",
+        report_pdf(s),
+        file_name=f"informe_{s.session_id}.pdf",
+        mime="application/pdf",
     )
 else:
     st.title("Evolución entre sesiones")

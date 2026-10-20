@@ -33,6 +33,7 @@ Extra opcional `[pipeline]`: no se instala en CI ni en los portátiles; se usa e
 | torch | 2.x (dep. de whisperx/pyannote) | runtime de modelos | BSD-3-Clause (archivo LICENSE); PyPI declara Apache-2.0 AND BSD-2/3-Clause AND MIT AND BSL-1.0 | https://github.com/pytorch/pytorch/blob/main/LICENSE |
 | av (PyAV) | 18.1.0 (fijado `<19`) | decodificación de audio de faster-whisper | BSD-3-Clause (campo `License-Expression` del paquete instalado) | https://pypi.org/project/av/ |
 | mediapipe | 1.1.1 | personas visibles y manos levantadas (extra `[video]`) | Apache-2.0 (campo `License` y clasificador del paquete instalado) | https://pypi.org/project/mediapipe/ |
+| reportlab | 5.0.1 | informe descargable en PDF (extra `[dashboard]`) | BSD (campo `License` y clasificador OSI del paquete; la fuente Bitstream Vera que incluye permite redistribución) | https://pypi.org/project/reportlab/ |
 | opencv-python-headless | 5.0.0.93 | lectura de fotogramas (extra `[video]`) | Apache-2.0 (campo `License` y clasificador del paquete instalado; la rueda incluye FFmpeg, LGPL) | https://pypi.org/project/opencv-python-headless/ |
 | FFmpeg | binario externo, no se distribuye | extracción de audio | LGPL-2.1+ (GPL-2+ solo si se compila con `--enable-gpl`) | https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md |
 
