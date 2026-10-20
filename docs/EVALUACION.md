@@ -32,6 +32,21 @@ El modelo de pose (`pose_landmarker_full`, Apache-2.0) está pensado para una so
 
 Benchmark sintético (`SINTETICO_turnos.csv`) con Qwen3.5-9B por OVH AI Endpoints y el prompt simétrico: F1 macro 0,90 (mujer 0,99, hombre 0,97, desconocido 0,74), 10 % a revisión. Antes del prompt simétrico, hasta 22 de 69 hombres caían en «desconocido». Es un dato sintético: no sustituye la evaluación con turnos anotados por Ivette.
 
+## Anotar los 150 turnos de género (Ivette y Veru)
+
+```
+python -m evaluation.prepare_annotation      # lee data/processed/*/, escribe data/anotacion/
+```
+
+- `turnos_para_anotar.csv` (`turn_id,context_before,text,label`): lo único que ven quienes anotan. No lleva el género que asignó el sistema. Cada una rellena `label` por su cuenta (`mujer`, `hombre` o `desconocido`) mirando solo `context_before` y `text`, y solo si el texto da una pista explícita («tiene la palabra la señora…», «estoy agradecida»). Nunca por el nombre, la voz ni la imagen.
+- `clave_interna.csv`: qué turno es de qué sesión y qué género le dio el sistema. No se enseña a quien anota; se usa después para calcular el F1 con `evaluation.benchmark`.
+- Reparto por defecto: 60 mujer, 60 hombre y 30 desconocido **según el sistema**, solo para equilibrar la muestra; si una clase no llega, se completa con turnos de otras clases. Los turnos se parten en trozos de hasta ~60 palabras.
+- Ninguno de los dos ficheros se sube al repo (`data/` está ignorado): contienen transcripciones reales seudonimizadas.
+
+## Informe de análisis
+
+`python -m evaluation.informe` escribe `data/informe_analisis.md` con audio (voces, género, confianza), vídeo (personas, tiempo en pantalla, manos) y consumo del modelo de lenguaje (tokens, latencia, precio con los `LLM_PRICE_*` del `.env`). El consumo se mide con el benchmark sintético, no con sesiones reales.
+
 ## Cómo anotar el vídeo (Ivette)
 
 Se anotan 2 a 5 minutos de una sesión, sin nombres. Tres CSV en UTF-8 (no abrirlos con doble clic en Excel; usar «Importar» o un editor de texto):
