@@ -27,7 +27,7 @@ Elegir las sesiones, preparar el almacenamiento y el tablero, dejar listos los a
 | Cuándo | Quién | Tarea | Herramientas | Depende de |
 |---|---|---|---|---|
 | 19 oct | Ivette | Elegir 3 sesiones del Congreso de años distintos y completar su ficha en el manifiesto: fecha, enlace, legislatura y fuente. | Hoja de cálculo (manifiesto) | — |
-| 19 oct | Sabrina | Solicitar la clave de Hugging Face, comprobar el acceso a los espacios de OVH y a AI Endpoints, y enviar a la Organización los formularios de consentimiento. Pedir a la Organización que confirme por escrito la base legal para tratar los datos de las sesiones (art. 12.3 de los términos). El acceso a la organización de GitHub ya está resuelto. | Hugging Face, OVHcloud, correo | — |
+| 19 oct | Sabrina | Solicitar la clave de Hugging Face y comprobar el acceso a los espacios de OVH y a AI Endpoints (hecho el 20 oct). El acceso a la organización de GitHub ya está resuelto. **Opcional:** consultar a la Organización la base legal para tratar los datos de las sesiones (preguntas de `docs/BANCO_VIDEOS.md` §7); los formularios de consentimiento solo hacen falta si se graba a personas voluntarias, y la referencia «art. 12.3 de los términos» está por verificar contra el documento original. Las fuentes (aviso legal del Congreso y licencias) se citan en las presentaciones. | Hugging Face, OVHcloud, correo | — |
 | 19 oct | Veru | Preparar el almacenamiento de los vídeos (GitHub o, si no es posible, Drive) y un tablero sencillo con las tareas de este plan. | GitHub o Google Drive, GitHub Projects | — |
 | 20 oct | Sabrina | Probar el código ya integrado en la GPU de OVH con un vídeo corto y medir tiempo y memoria (docs/PRUEBA_GPU.md). | Docker, espacio 1 de OVH (make smoke) | — |
 
