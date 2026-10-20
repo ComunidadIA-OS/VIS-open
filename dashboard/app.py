@@ -32,6 +32,7 @@ from dashboard.data import (
     video_path,
     video_tables,
     voice_blocks,
+    voices_table,
     voices_to_review,
 )
 from decision.pseudonymize import speaker_codes
@@ -250,8 +251,16 @@ if screen == "Sesión":
                 disabled=not video_file,
             )
             st.write(t["texto"])
+    st.subheader("Voces y género")
+    st.dataframe(voices_table(s), use_container_width=True)
     st.subheader("Intervenciones")
-    st.dataframe(interventions_table(s), use_container_width=True)
+    inter = interventions_table(s)
+    shown = st.multiselect(
+        "Género a mostrar",
+        ["mujer", "hombre", "desconocido", "sin_atribuir"],
+        default=["mujer", "hombre", "desconocido", "sin_atribuir"],
+    )
+    st.dataframe(inter[inter["genero"].isin(shown)], use_container_width=True)
     st.download_button(
         "Descargar informe",
         report_html(s),

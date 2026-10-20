@@ -281,6 +281,31 @@ def interventions_table(session: Session) -> pd.DataFrame:
     )
 
 
+def voices_table(session: Session) -> pd.DataFrame:
+    """Una fila por voz: género, de dónde sale, minutos de palabra, intervenciones y evidencia."""
+    tl = session.timeline
+    codes = speaker_codes(tl)
+    speech = [e for e in tl.events if e.type == EventType.SPEECH and e.speaker_id]
+    rows = []
+    for sp in tl.speakers:
+        mine = [e for e in speech if e.speaker_id == sp.speaker_id]
+        ev = sp.gender_evidence[0] if sp.gender_evidence else None
+        rows.append(
+            {
+                "persona": codes.get(sp.speaker_id, sp.speaker_id),
+                "genero": sp.gender.value,
+                "origen": sp.gender_source.value,
+                "minutos": round(sum(e.end_s - e.start_s for e in mine) / 60, 2),
+                "intervenciones": len(mine),
+                "evidencia": f"{ev.method}: {ev.phrase}" if ev else "",
+            }
+        )
+    return pd.DataFrame(
+        rows,
+        columns=["persona", "genero", "origen", "minutos", "intervenciones", "evidencia"],
+    ).sort_values("minutos", ascending=False, ignore_index=True)
+
+
 def timeline_strip(session: Session) -> pd.DataFrame:
     """Franja de la sesión: tramos coloreados por género (y manos levantadas, si las hay)."""
     f = timeline_to_frame(session.timeline)
