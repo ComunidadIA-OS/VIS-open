@@ -22,6 +22,14 @@ Una medida solo vale si mejora algo simple:
 - **Personas visibles:** «siempre una persona en pantalla». El conteo con pose debe tener menos error.
 - **Manos:** «ninguna mano». El detector debe encontrar manos reales sin inventar otras.
 
+## Límites conocidos del vídeo
+
+El modelo de pose (`pose_landmarker_full`, Apache-2.0) está pensado para una sola persona a menos de ~4 m (ficha del modelo). Con `num_poses` alto sirve, pero en planos amplios del hemiciclo **cuenta de menos** y puede perder manos lejanas. Lo declaramos como límite y lo medimos contra `personas.csv`; no se presenta como conteo exacto de la sala.
+
+## Resultado del género por lenguaje (20 oct 2026)
+
+Benchmark sintético (`SINTETICO_turnos.csv`) con Qwen3.5-9B por OVH AI Endpoints y el prompt simétrico: F1 macro 0,90 (mujer 0,99, hombre 0,97, desconocido 0,74), 10 % a revisión. Antes del prompt simétrico, hasta 22 de 69 hombres caían en «desconocido». Es un dato sintético: no sustituye la evaluación con turnos anotados por Ivette.
+
 ## Cómo anotar el vídeo (Ivette)
 
 Se anotan 2 a 5 minutos de una sesión, sin nombres. Tres CSV en UTF-8 (no abrirlos con doble clic en Excel; usar «Importar» o un editor de texto):
