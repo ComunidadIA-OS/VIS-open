@@ -41,7 +41,7 @@ Término a usar tal cual en la presentación y el vídeo. En la pantalla de sesi
 
 ## Acceso: usuario, contraseña y segundo factor
 
-Si existe `data/usuarios.json`, el panel pide ID de usuario, contraseña y el código de 6 cifras de una app de autenticación (TOTP, RFC 6238), y no carga datos hasta entrar. Sin ese fichero va en modo abierto (demo sintética o uso local) y las anotadoras escriben un ID de conexión en la barra lateral.
+Si existe `data/usuarios.json`, el panel pide ID de usuario, contraseña y el código de 6 cifras de una app de autenticación (TOTP, RFC 6238), y no carga datos hasta entrar. Sin ese fichero va en modo abierto (demo sintética o uso local): cada revisión se guarda como `anotadora_1` o `anotadora_2`, según la que elijas, y hacen falta las dos para confirmar.
 
 - Alta (cada persona, en su equipo): `python -m dashboard.auth add <id>`. La contraseña se escribe sin mostrarse (mínimo 12 caracteres) y se enseña una sola vez el URI del autenticador. El ID es un código (`ana-1`), nunca un nombre ni un correo. También `list` y `remove <id>`.
 - El ID de conexión queda en `annotator_id` de cada revisión. Dos revisiones del mismo ID no cuentan como confirmación: hacen falta dos personas distintas.

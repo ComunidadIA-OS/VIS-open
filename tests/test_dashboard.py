@@ -195,3 +195,12 @@ def test_same_person_cannot_confirm_twice_and_bad_connection_id_is_refused(tmp_p
     assert not valid_connection_id("Ana García") and valid_connection_id("ID-2")
     with _pytest.raises(ValueError):
         save_review(folder, 1, "SPEAKER_00", "mujer", "alta", "", "ana@correo.es")
+
+
+def test_default_annotator_slots_are_valid_distinct_ids(tmp_path):
+    from dashboard.data import agreed_genders, save_review
+
+    folder = _review_folder(tmp_path)
+    for n in (1, 2):  # sin acceso con usuarios, la app guarda como «anotadora_N»
+        save_review(folder, n, "SPEAKER_00", "hombre", "alta", "", f"anotadora_{n}")
+    assert agreed_genders(folder) == {"SPEAKER_00": "hombre"}

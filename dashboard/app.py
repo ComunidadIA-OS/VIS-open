@@ -29,7 +29,6 @@ from dashboard.data import (
     save_review,
     timeline_strip,
     transcript_turns,
-    valid_connection_id,
     video_path,
     video_tables,
     voice_blocks,
@@ -97,9 +96,6 @@ if current_user:
     if st.sidebar.button("Salir"):
         del st.session_state["user"]
         st.rerun()
-    connection_id = current_user
-else:
-    connection_id = st.sidebar.text_input("ID de conexión (código, sin nombre)")
 
 if not sessions:
     st.warning("No hay sesiones procesadas.")
@@ -171,11 +167,6 @@ if screen == "Sesión":
             who = st.radio(
                 "Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}"
             )
-            if not valid_connection_id(connection_id):
-                st.warning(
-                    "Escribe tu ID de conexión en la barra lateral (2 a 20 letras o números, "
-                    "sin nombres) para poder guardar."
-                )
             codes = speaker_codes(s.timeline)
             with st.container(height=520):
                 for row in pending:
@@ -205,7 +196,7 @@ if screen == "Sesión":
                                 gender,
                                 confidence,
                                 notes,
-                                connection_id,
+                                current_user or f"anotadora_{who}",
                             )
                             st.success("Guardado. Recarga la página para ver el efecto.")
 
