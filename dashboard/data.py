@@ -369,30 +369,158 @@ def evolution_gender_table(sessions: list[Session]) -> pd.DataFrame:
     return pd.concat(frames, ignore_index=True)[["sesion", "gender", "porcentaje"]]
 
 
+REPORT_CSS = (Path(__file__).parent / "report.css").read_text(encoding="utf-8")
+GENDER_COLORS = {
+    "mujer": "var(--m)",
+    "hombre": "var(--h)",
+    "desconocido": "var(--d)",
+    "sin_atribuir": "var(--s)",
+}
+
+
+def _gender_bar(table: pd.DataFrame) -> str:
+    parts = "".join(
+        f"<div style='width:{r['porcentaje']}%;"
+        f"background:{GENDER_COLORS.get(r['gender'], '#999')}'>{r['porcentaje']:.0f}%</div>"
+        for _, r in table.iterrows()
+        if r["porcentaje"] >= 1
+    )
+    legend = "".join(
+        f"<span><i style='background:{c}'></i>{g.replace('_', ' ')}</span>"
+        for g, c in GENDER_COLORS.items()
+    )
+    return f"<div class='bar'>{parts}</div><div class='leg'>{legend}</div>"
+
+
+def _reading(share: dict[str, float]) -> str:
+    """Lectura prudente de la brecha: qué pasaría según cómo fueran las voces sin género."""
+    w, m = share.get("mujer", 0.0), share.get("hombre", 0.0)
+    rest = share.get("desconocido", 0.0) + share.get("sin_atribuir", 0.0)
+    low, high = w - (m + rest), (w + rest) - m
+    text = (
+        f"Con el género asignado, las mujeres tienen el {w:.1f} % del tiempo de palabra y los "
+        f"hombres el {m:.1f} %; el {rest:.1f} % no tiene género."
+    )
+    if rest < 1:
+        return text + f" La brecha (mujeres − hombres) es de {w - m:+.1f} puntos."
+    verdict = (
+        "El sentido de la brecha podría cambiar según quiénes sean esas voces: no es concluyente "
+        "hasta confirmarlas."
+        if low <= 0 <= high
+        else "El sentido de la brecha no cambiaría, pero su tamaño sí."
+    )
+    return (
+        text + f" La brecha (mujeres − hombres) estaría entre {low:+.1f} y {high:+.1f} puntos "
+        f"según cómo fueran esas voces. {verdict}"
+    )
+
+
+def _timeline_svg(session: Session) -> str:
+    """Línea de tiempo: una barra por género (color) con eje en minutos, sin dependencias."""
+    strip = timeline_strip(session).sort_values("inicio_min")
+    end = max(float(session.timeline.duration_s) / 60, 0.01)
+    rects = []
+    for r in strip.itertuples():
+        color = GENDER_COLORS.get(r.genero, "#e08a00")
+        x, w = 100 * r.inicio_min / end, max(100 * (r.fin_min - r.inicio_min) / end, 0.1)
+        rects.append(f"<rect x='{x:.3f}' y='0' width='{w:.3f}' height='40' fill='{color}'/>")
+    step = max(1, int(end // 8))
+    ticks = "".join(f"<span>{m} min</span>" for m in range(0, int(end) + 1, step))
+    return (
+        "<p class='mut'>Cada franja es una intervención; el color es el género de quien habla.</p>"
+        "<svg viewBox='0 0 100 40' preserveAspectRatio='none' width='100%' height='70'>"
+        f"{''.join(rects)}</svg><div class='axis'>{ticks}</div>"
+    )
+
+
 def report_html(session: Session) -> str:
-    """Informe descargable de una sesión (HTML; se imprime a PDF desde el navegador)."""
+    """Informe descargable de una sesión (HTML autónomo; se imprime a PDF desde el navegador)."""
     e = html.escape
     src = session.source or {}
-    cards = "".join(
-        f"<li><b>{e(c['titulo'])}</b>: {e(c['valor'])}</li>"
-        for c in map(metric_card, session.metrics.values())
-    )
-    pending = "".join(
-        f"<li>{e(k)} {e(v)}: no disponible todavía</li>" for k, v in PENDING_METRICS.items()
-    )
-    table = gender_time_table(session).to_html(index=False, border=0)
-    s13 = session.metrics["M13"]
+    tl = session.timeline
+    gt = gender_time_table(session)
+    share = dict(zip(gt["gender"], gt["porcentaje"], strict=True))
+    voices = voices_table(session)
+    known = int((voices["genero"] != "desconocido").sum())
+    confirmed = len(session.confirmed)
     ficha = (
         "SINTÉTICO: datos de ejemplo, no son una sesión real."
         if session.synthetic
         else e(src.get("cita") or SOURCE_NOTICE)
     )
+    cards = "".join(
+        f"<div class='card'><span>{e(c['titulo'].split(' (')[0])}</span>"
+        f"<b>{e(c['valor'])}</b></div>"
+        for c in map(metric_card, session.metrics.values())
+    )
+    pending = "".join(
+        f"<li>{e(k)} {e(v)}: no disponible todavía</li>" for k, v in PENDING_METRICS.items()
+    )
+    summary = (
+        f"Sesión de {tl.duration_s / 60:.0f} minutos con {len(voices)} voces, de las que "
+        f"{known} tienen género asignado"
+        + (f" ({confirmed} confirmadas por dos anotadoras)" if confirmed else "")
+        + f". {_reading(share)}"
+    )
+    voices_rows = "".join(
+        f"<tr><td>{e(r.persona)}</td><td>{e(r.genero)}</td><td>{e(r.origen)}</td>"
+        f"<td>{r.minutos}</td><td>{r.intervenciones}</td></tr>"
+        for r in voices.itertuples()
+    )
+    inter = interventions_table(session)
+    interventions = inter.drop(columns=["evidencia"]).to_html(index=False, border=0)
+    transcript = "".join(
+        f"<p><b>{fmt_time(t['inicio_s'])} · {e(t['persona'])} · {e(t['genero'])}</b><br>"
+        f"{e(t['texto'])}</p>"
+        for t in transcript_turns(session)
+    )
+    video = ""
+    if video_tables(session):
+        v = session.video
+        pct = v["tiempo_en_pantalla_por_genero_%"]
+        screen = pd.DataFrame({"gender": list(pct), "porcentaje": list(pct.values())})
+        hands = v.get("manos_levantadas_por_zona", {})
+        video = (
+            "<h2>Análisis de vídeo (sin caras)</h2>"
+            f"<div class='warn'>{e(v['aviso'])}</div>"
+            f"<p>Personas visibles a la vez: máximo {v['personas_visibles_max']}, mediana "
+            f"{v['personas_visibles_mediana']}; fotogramas sin nadie: "
+            f"{v['fotogramas_sin_personas_%']} %.</p><p>Tiempo en pantalla por género "
+            "(el género sale del audio):</p>"
+            + _gender_bar(screen)
+            + "<p>Manos levantadas por zona: "
+            + (", ".join(f"{e(z)}: {n}" for z, n in hands.items()) or "ninguna detectada")
+            + ".</p>"
+            + "<p>Momentos: "
+            + (
+                ", ".join(
+                    f"{fmt_time(h['inicio_s'])} (zona {e(h['zona'])})"
+                    for h in v.get("manos_levantadas", [])
+                )
+                or "ninguno"
+            )
+            + ".</p>"
+        )
     return (
-        f"<!doctype html><meta charset='utf-8'><title>Informe {e(session.session_id)}</title>"
-        f"<h1>Informe de la sesión {e(session.session_id)}</h1><p>{ficha}</p>"
-        f"<h2>Métricas</h2><ul>{cards}{pending}</ul>"
-        f"<h2>Tiempo de palabra por género</h2>{table}"
+        "<!doctype html><html lang='es'><meta charset='utf-8'>"
+        "<meta name='viewport' content='width=device-width,initial-scale=1'>"
+        f"<title>Informe {e(session.session_id)}</title><style>{REPORT_CSS}</style>"
+        f"<h1>Informe de la sesión {e(session.session_id)}</h1><p class='sub'>{ficha}</p>"
+        f"<h2>Resumen</h2><div class='note'>{e(summary)}</div>"
+        f"<h2>Métricas</h2><div class='grid'>{cards}</div><ul>{pending}</ul>"
+        f"<h2>Tiempo de palabra por género</h2>{_gender_bar(gt)}"
+        f"{gt.to_html(index=False, border=0)}"
+        f"<h2>Línea de tiempo</h2>{_timeline_svg(session)}"
+        "<h2>Voces</h2><table><tr><th>Persona</th><th>Género</th><th>Origen</th>"
+        f"<th>Minutos</th><th>Intervenciones</th></tr>{voices_rows}</table>"
+        f"{video}"
+        f"<h2>Intervenciones</h2>{interventions}"
+        f"<h2>Transcripción</h2><details><summary>Ver la transcripción seudonimizada</summary>"
+        f"{transcript}</details>"
         f"<h2>Método y límites</h2><p>{e(METHOD_NOTICE)}</p>"
-        f"<p>Tiempo sin atribuir: {s13.value if s13.conclusive else 'n/d'} %. "
-        "Métricas en borrador pendientes de validación.</p>"
+        "<ul><li>El género sale solo del texto o de la confirmación de dos anotadoras "
+        "(Human in the loop); nunca de la cara ni del sonido.</li>"
+        "<li>Las voces sin pista clara figuran como «desconocido» y pasan a revisión humana.</li>"
+        "<li>Métricas en borrador pendientes de validación.</li></ul>"
+        "<footer>VIS Open · cifras calculadas por código · sin nombres, sin caras.</footer></html>"
     )
