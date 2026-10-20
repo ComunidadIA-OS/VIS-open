@@ -1,7 +1,8 @@
 """Panel de VIS Open (Streamlit). Uso: streamlit run dashboard/app.py
 
 Lee `data/processed/*/`; si no hay sesiones, enseña las SINTÉTICAS del repositorio.
-No calcula nada con IA y nunca muestra nombres, caras ni fotogramas.
+No calcula nada con IA, nunca muestra nombres y no analiza caras. Si el vídeo original está en
+`data/raw/` (solo en el equipo local), lo reproduce tal cual.
 """
 
 from __future__ import annotations
@@ -17,14 +18,20 @@ from dashboard.data import (
     PENDING_METRICS,
     SOURCE_NOTICE,
     evolution_table,
+    fmt_time,
     gender_time_table,
     interventions_table,
     load_sessions,
     metric_card,
     report_html,
+    save_review,
     timeline_strip,
+    video_path,
     video_tables,
+    voice_blocks,
+    voices_to_review,
 )
+from decision.pseudonymize import speaker_codes
 
 COLORS = alt.Scale(
     domain=["mujer", "hombre", "desconocido", "sin_atribuir", "mano_levantada"],
@@ -32,15 +39,18 @@ COLORS = alt.Scale(
 )
 
 st.set_page_config(page_title="VIS Open", layout="wide")
+# Letra al doble del tamaño por defecto (16 px → 32 px) para leerlo en pantalla grande o proyectado.
 st.markdown(
     "<style>"
-    "[data-testid='stCaptionContainer'], [data-testid='stMetricLabel'] p {font-size: 1.05rem;}"
-    "[data-testid='stMetricValue'] {font-size: 2.4rem;}"
+    ".stApp p, .stApp li, .stApp label, [data-testid='stAlertContainer'] p,"
+    " [data-testid='stCaptionContainer'], [data-testid='stMetricLabel'] p {font-size: 2rem;}"
+    "[data-testid='stMetricValue'] {font-size: 4rem;}"
     "[data-testid='stMetricLabel'] {overflow: visible; white-space: normal;}"
     "</style>",
     unsafe_allow_html=True,
 )
-sessions = load_sessions(Path(os.environ.get("DATA_DIR") or "data"))
+DATA_DIR = Path(os.environ.get("DATA_DIR") or "data")
+sessions = load_sessions(DATA_DIR)
 screen = st.sidebar.radio("Pantalla", ["Sesión", "Evolución"])
 st.sidebar.info(METHOD_NOTICE)
 
@@ -60,6 +70,52 @@ if screen == "Sesión":
         if src.get("url_origen"):
             st.markdown(f"[Fuente]({src['url_origen']})")
     st.info(METHOD_NOTICE)
+
+    video_file = video_path(s, DATA_DIR)
+    if video_file:
+        minute = st.number_input(
+            "Ir al minuto",
+            min_value=0.0,
+            max_value=s.timeline.duration_s / 60,
+            value=0.0,
+            step=1.0,
+        )
+        st.video(video_file, start_time=int(minute * 60))
+        st.caption("Vídeo original del Congreso, sin alterar. Solo se ve en este equipo.")
+
+        pending = voices_to_review(DATA_DIR / "processed" / s.session_id)
+        pending = [r for r in pending if r.speaker_id not in s.confirmed]
+        with st.expander(
+            f"Human in the loop: confirmar el género de las voces ({len(pending)} sin confirmar)"
+        ):
+            st.write(
+                "Mira y escucha cada tramo. Pon mujer u hombre solo si lo tienes claro; si no, "
+                "desconocido. El género cuenta cuando **las dos anotadoras** coinciden."
+            )
+            who = st.radio(
+                "Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}"
+            )
+            codes = speaker_codes(s.timeline)
+            for row in pending:
+                code = codes.get(row.speaker_id, row.speaker_id)
+                st.subheader(code)
+                for start, end in voice_blocks(s.timeline, row.speaker_id):
+                    st.write(f"{code}: de {fmt_time(start)} a {fmt_time(end)}")
+                    st.video(video_file, start_time=int(start), end_time=int(min(end, start + 30)))
+                with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
+                    gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
+                    confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
+                    notes = st.text_input("Notas (opcional, sin nombres)")
+                    if st.form_submit_button("Guardar"):
+                        save_review(
+                            DATA_DIR / "processed" / s.session_id,
+                            who,
+                            row.speaker_id,
+                            gender,
+                            confidence,
+                            notes,
+                        )
+                        st.success("Guardado. Recarga la página para ver el efecto en las cifras.")
 
     cards = [metric_card(r) for r in s.metrics.values()]
     for col, card in zip(st.columns(len(cards)), cards, strict=True):

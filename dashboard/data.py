@@ -13,7 +13,16 @@ from pathlib import Path
 
 import pandas as pd
 
-from contracts import AnalysisTimeline, EventType
+from contracts import (
+    AnalysisTimeline,
+    AnnotatorConfidence,
+    EventType,
+    GenderSource,
+    GenderValue,
+    ReviewRow,
+    read_rows,
+    write_rows,
+)
 from decision.pseudonymize import speaker_codes
 from metrics import MetricResult, run_metric, timeline_to_frame
 
@@ -37,6 +46,7 @@ class Session:
     source: dict | None = None
     summary: dict | None = None
     video: dict | None = None
+    confirmed: dict[str, str] = field(default_factory=dict)  # voz → género de 2 anotadoras
     synthetic: bool = False
     metrics: dict[str, MetricResult] = field(default_factory=dict)
 
@@ -65,9 +75,98 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
             tl = AnalysisTimeline.model_validate_json(path.read_text("utf-8"))
             sessions.append(Session(tl.video_id, tl, synthetic=True))
     for s in sessions:
+        if not s.synthetic:
+            s.confirmed = agreed_genders(processed / s.session_id)
+            s.timeline = apply_confirmed(s.timeline, s.confirmed)
         frame = timeline_to_frame(s.timeline)
         s.metrics = {m: run_metric(m, frame) for m in CARD_METRICS}
     return sessions
+
+
+ANNOTATORS = (1, 2)
+KNOWN = {GenderValue.WOMAN.value, GenderValue.MAN.value}
+
+
+def _review_file(folder: Path, n: int) -> Path:
+    return folder / f"review_anotadora_{n}.csv"
+
+
+def voices_to_review(folder: Path) -> list[ReviewRow]:
+    """Voces que el análisis por lenguaje dejó sin género (`review_genero.csv`)."""
+    path = folder / "review_genero.csv"
+    return read_rows(ReviewRow, path) if path.is_file() else []
+
+
+def save_review(
+    folder: Path, n: int, speaker_id: str, gender: str, confidence: str, notes: str
+) -> None:
+    """Guarda la decisión de la anotadora `n` sobre una voz en su CSV (se crea si no existe)."""
+    path = _review_file(folder, n)
+    rows = (
+        read_rows(ReviewRow, path)
+        if path.is_file()
+        else [
+            r.model_copy(update={"annotator_id": f"anotadora_{n}"})
+            for r in voices_to_review(folder)
+        ]
+    )
+    row = next((r for r in rows if r.speaker_id == speaker_id), None)
+    if row is None:
+        raise ValueError(f"voz desconocida: {speaker_id}")
+    row.gender = GenderValue(gender)
+    row.confidence = AnnotatorConfidence(confidence)
+    row.notes = notes or None
+    write_rows(rows, ReviewRow, path)
+
+
+def fmt_time(seconds: float) -> str:
+    m, sec = divmod(int(seconds), 60)
+    return f"{m}:{sec:02d}"
+
+
+def voice_blocks(
+    timeline: AnalysisTimeline, speaker_id: str, gap_s: float = 3.0, top: int = 3
+) -> list[tuple[float, float]]:
+    """Tramos seguidos de una voz (pausas de hasta `gap_s`), los `top` más largos, en orden."""
+    events = sorted(
+        (e for e in timeline.events if e.type == EventType.SPEECH and e.speaker_id == speaker_id),
+        key=lambda e: e.start_s,
+    )
+    blocks: list[list[float]] = []
+    for e in events:
+        if blocks and e.start_s - blocks[-1][1] <= gap_s:
+            blocks[-1][1] = e.end_s
+        else:
+            blocks.append([e.start_s, e.end_s])
+    longest = sorted(blocks, key=lambda b: b[0] - b[1])[:top]
+    return [(b[0], b[1]) for b in sorted(longest)]
+
+
+def agreed_genders(folder: Path) -> dict[str, str]:
+    """Voz → género, solo si las dos anotadoras pusieron el mismo (mujer u hombre)."""
+    answers: list[dict[str, str]] = []
+    for n in ANNOTATORS:
+        path = _review_file(folder, n)
+        rows = read_rows(ReviewRow, path) if path.is_file() else []
+        answers.append({r.speaker_id: r.gender.value for r in rows if r.gender})
+    first, second = answers
+    return {k: v for k, v in first.items() if v in KNOWN and second.get(k) == v}
+
+
+def apply_confirmed(timeline: AnalysisTimeline, confirmed: dict[str, str]) -> AnalysisTimeline:
+    """Pone el género confirmado por dos anotadoras a las voces que seguían en `desconocido`."""
+    speakers = [
+        s.model_copy(
+            update={
+                "gender": GenderValue(confirmed[s.speaker_id]),
+                "gender_source": GenderSource.PERCEIVED_BY_ANNOTATORS,
+            }
+        )
+        if s.gender == GenderValue.UNKNOWN and s.speaker_id in confirmed
+        else s
+        for s in timeline.speakers
+    ]
+    return timeline.model_copy(update={"speakers": speakers})
 
 
 def metric_card(result: MetricResult) -> dict:
@@ -137,6 +236,12 @@ def timeline_strip(session: Session) -> pd.DataFrame:
             "genero": f["gender"].where(f["type"] == "speech", "mano_levantada"),
         }
     )
+
+
+def video_path(session: Session, data_dir: Path | None = None) -> Path | None:
+    """Vídeo original de la sesión (`<data>/raw/<id>.mp4`), solo si está en este equipo."""
+    path = Path(data_dir or "data") / "raw" / f"{session.session_id}.mp4"
+    return path if path.is_file() else None
 
 
 def video_tables(session: Session) -> tuple[pd.DataFrame, pd.DataFrame] | None:
