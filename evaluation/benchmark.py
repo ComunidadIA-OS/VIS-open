@@ -21,6 +21,7 @@ from pathlib import Path
 from statistics import mean
 
 from decision.engine import DecisionEngine, Turn, get_engine
+from evaluation.cost import Prices, usage_report
 
 CLASSES = ["mujer", "hombre", "desconocido"]
 REQUIRED_COLUMNS = ["turn_id", "text", "label"]
@@ -88,6 +89,7 @@ def evaluate(engine: DecisionEngine, turns: Sequence[tuple[Turn, str]]) -> dict:
         review_rate=round(sum(d.needs_review for d in decisions) / len(turns), 4) if turns else 0.0,
         errors=sum(d.error is not None for d in decisions),
         latency_mean_s=round(mean(latencies), 4) if latencies else None,
+        coste=usage_report(decisions, Prices.from_env()),
     )
     return report
 

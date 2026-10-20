@@ -119,11 +119,17 @@ class LLMEngine(DecisionEngine):
         reply = self._transport(
             f"{self.base_url}/chat/completions", self.build_request(turn), self._headers
         )
+        usage = reply.get("usage") if isinstance(reply, dict) else None
+        usage = usage if isinstance(usage, dict) else {}
+        tokens = {
+            "tokens_in": usage.get("prompt_tokens"),
+            "tokens_out": usage.get("completion_tokens"),
+        }
         try:
             content = reply["choices"][0]["message"]["content"]
             out = LLMOutput.model_validate_json(content)
         except (KeyError, IndexError, TypeError, ValidationError) as exc:
-            return Decision(error=f"respuesta fuera de esquema: {type(exc).__name__}")
+            return Decision(error=f"respuesta fuera de esquema: {type(exc).__name__}", **tokens)
 
         if out.gender != "desconocido":
             haystack = _squash(f"{turn.context_before or ''} {turn.text}")
@@ -131,10 +137,12 @@ class LLMEngine(DecisionEngine):
                 return Decision(
                     error="descartada: la evidencia no es una cita literal del texto",
                     reason=out.reason,
+                    **tokens,
                 )
         return Decision(
             gender=out.gender,
             confidence=out.confidence,
             evidence=out.evidence,
             reason=out.reason,
+            **tokens,
         )
