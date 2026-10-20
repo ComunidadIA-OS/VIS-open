@@ -34,11 +34,11 @@ Para proponer una contribución nueva (una mejora, un modelo abierto, un caso de
 
 - **Género:** nunca se infiere de la cara ni de la voz. Sale de pistas del lenguaje de la transcripción, de un dato declarado o de la revisión humana, y el informe dice cómo se obtuvo; `desconocido` siempre es visible.
 - **Sin reconocimiento facial.**
-- **Datos:** no se suben al repo audio, vídeo, transcripciones reales ni datos personales. Los tests usan solo datos sintéticos. Tratar datos personales reales exige base jurídica y autorización expresa de la Organización (art. 12.3).
+- **Datos:** no se suben al repo audio, vídeo, transcripciones reales ni datos personales. Los tests usan solo datos sintéticos. Tratar datos personales reales exige base jurídica y autorización expresa de la Organización.
 - **Secretos:** nunca en el repo, en issues ni en PRs (tokens de OVHcloud o de Hugging Face, claves, PDF de acceso). Van en `.env`, que está ignorado. Las credenciales no se comparten con personas ajenas al equipo.
 - **Dependencias:** cada una se añade a `THIRD_PARTY_LICENSES.md` con su licencia verificada en la fuente y compatible con la del proyecto. El software preexistente debe identificarse con claridad (art. 17).
 - **Modelos de lenguaje:** el motor de decisión es agnóstico del modelo y se conecta por una API compatible con OpenAI. Se prefieren modelos abiertos (art. 10).
-- **Infraestructura cedida:** se usa solo para el reto, sin minería de criptoactivos, escaneos ni servicios abiertos a terceros (art. 12.3). Las V100S no admiten bf16: se usa float16 o int8 (Anexo I).
+- **Infraestructura cedida:** se usa solo para el reto, sin minería de criptoactivos, escaneos ni servicios abiertos a terceros. Las V100S no admiten bf16: se usa float16 o int8 (Anexo I).
 - **Autoría y derechos:** quien contribuye declara que tiene los derechos sobre lo que aporta y que no infringe derechos de terceros (art. 16).
 
 ## Estilo
