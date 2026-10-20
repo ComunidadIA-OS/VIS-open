@@ -67,6 +67,21 @@ st.markdown(
     "[data-testid='stTab'] p, .stButton p {font-size: clamp(0.9rem, 1.5vw, 1.4rem);}"
     "[data-testid='stMetricValue'] {font-size: clamp(2rem, 4.5vw, 4rem);}"
     "[data-testid='stMetricLabel'] {overflow: visible; white-space: normal;}"
+    ".stApp h1 {font-size: clamp(1.8rem, 4vw, 3.16rem);"
+    " background: linear-gradient(90deg, #7b3fa0, #2f7f8f); -webkit-background-clip: text;"
+    " background-clip: text; -webkit-text-fill-color: transparent;}"
+    ".stApp h2 {font-size: clamp(1.5rem, 3.2vw, 2.6rem); color: #7b3fa0;"
+    " border-left: 6px solid #2f7f8f; padding-left: 0.6rem; margin-top: 1.4rem;"
+    " border-bottom: 1px solid #e5e5ea;}"
+    ".stApp h3 {font-size: clamp(1.2rem, 2.5vw, 2rem); color: #2f7f8f;}"
+    ".st-key-transcript_box p, .st-key-voices_box [data-testid='stExpanderDetails'] p"
+    " {font-size: clamp(0.85rem, 1.2vw, 1.15rem);}"
+    ".st-key-video_box p, .st-key-video_box li,"
+    " .st-key-video_box [data-testid='stCaptionContainer'],"
+    " .st-key-video_box [data-testid='stAlertContainer'] p"
+    " {font-size: clamp(0.85rem, 2vw, 1.7rem);}"
+    "[data-testid='stTable'] td, [data-testid='stTable'] th"
+    " {font-size: clamp(1rem, 1.8vw, 1.5rem);}"
     "</style>",
     unsafe_allow_html=True,
 )
@@ -210,7 +225,7 @@ if screen == "Sesión":
     )
 
     st.subheader("Transcripción")
-    with st.container(height=600):
+    with st.container(height=600, key="transcript_box"):
         for i, t in enumerate(transcript_turns(s)):
             st.button(
                 f"▶ {fmt_time(t['inicio_s'])} · {t['persona']} · {t['genero']}",
@@ -222,13 +237,16 @@ if screen == "Sesión":
             st.write(t["texto"])
     st.subheader("Voces y género")
     voices = voices_table(s)
-    st.dataframe(voices, use_container_width=True)
+    st.table(
+        voices.drop(columns=["evidencia"]).style.hide(axis="index").format(precision=2, na_rep="-")
+    )
     st.caption("Pulsa en una voz para ver su transcripción.")
     by_voice = voice_transcripts(s)
-    for r in voices.itertuples():
-        with st.expander(f"{r.persona} · {r.genero} · {r.minutos} min"):
-            for t in by_voice.get(r.persona, []):
-                st.write(f"**{fmt_time(t['inicio_s'])}** {t['texto']}")
+    with st.container(key="voices_box"):
+        for r in voices.itertuples():
+            with st.expander(f"{r.persona} · {r.genero} · {r.minutos} min"):
+                for t in by_voice.get(r.persona, []):
+                    st.write(f"**{fmt_time(t['inicio_s'])}** {t['texto']}")
     st.subheader("Intervenciones")
     inter = interventions_table(s)
     shown = st.multiselect(
@@ -236,62 +254,71 @@ if screen == "Sesión":
         ["mujer", "hombre", "desconocido", "sin_atribuir"],
         default=["mujer", "hombre", "desconocido", "sin_atribuir"],
     )
-    st.dataframe(inter[inter["genero"].isin(shown)], use_container_width=True)
-    st.header("Análisis de vídeo (MediaPipe, sin caras)")
-    st.write(
-        "MediaPipe devuelve puntos del cuerpo; de ahí salen las personas visibles, el tiempo en "
-        "pantalla y las manos levantadas. No lee caras ni género."
+    rows = inter[inter["genero"].isin(shown)].drop(columns=["evidencia"])
+    per_page = 25
+    pages = max(1, -(-len(rows) // per_page))
+    page = st.number_input(f"Página (de {pages})", min_value=1, max_value=pages, value=1, step=1)
+    st.table(
+        rows.iloc[(page - 1) * per_page : page * per_page]
+        .style.hide(axis="index")
+        .format(precision=2)
     )
-    vt = video_tables(s)
-    if not vt:
-        st.info(
-            "Esta sesión no tiene análisis de vídeo. Se genera en el equipo con "
-            f"`python -m pipeline.video data/raw/{s.session_id}.mp4 "
-            "--model models/pose_landmarker_full.task`."
-        )
-    else:
-        v = s.video
-        st.warning(v["aviso"])
+    with st.container(key="video_box"):
+        st.header("Análisis de vídeo (MediaPipe, sin caras)")
         st.write(
-            f"Personas visibles a la vez: máximo {v['personas_visibles_max']}, "
-            f"mediana {v['personas_visibles_mediana']}. "
-            f"Fotogramas sin nadie: {v['fotogramas_sin_personas_%']} %."
+            "MediaPipe devuelve puntos del cuerpo; de ahí salen las personas visibles, el "
+            "tiempo en pantalla y las manos levantadas. No lee caras ni género."
         )
-        st.subheader("Personas que ve la cámara a lo largo del vídeo")
-        st.altair_chart(
-            big(
-                alt.Chart(video_people_series(s))
-                .mark_area(opacity=0.6, line=True)
-                .encode(x="minuto", y="personas")
-            ),
-            use_container_width=True,
-        )
-        st.subheader("Tiempo en pantalla por género")
-        st.caption("El género sale del audio, no de la imagen.")
-        st.altair_chart(
-            big(
-                alt.Chart(vt[0])
-                .mark_bar()
-                .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
-            ),
-            use_container_width=True,
-        )
-        st.subheader("Pistas con más tiempo en pantalla")
-        st.dataframe(video_tracks_table(s), use_container_width=True)
-        hands = v.get("manos_levantadas", [])
-        st.subheader("Manos levantadas")
-        st.caption("Zona de la imagen y momento; ▶ mueve el vídeo de arriba.")
-        if not hands:
-            st.write("No se han detectado manos levantadas.")
-        hand_cols = st.columns(4)
-        for i, h in enumerate(hands):
-            hand_cols[i % 4].button(
-                f"▶ {fmt_time(h['inicio_s'])} · zona {h['zona']}",
-                key=f"hand_{s.session_id}_{i}",
-                on_click=go_to,
-                args=(h["inicio_s"],),
-                disabled=not video_file,
+        vt = video_tables(s)
+        if not vt:
+            st.info(
+                "Esta sesión no tiene análisis de vídeo. Se genera en el equipo con "
+                f"`python -m pipeline.video data/raw/{s.session_id}.mp4 "
+                "--model models/pose_landmarker_full.task`."
             )
+        else:
+            v = s.video
+            st.warning(v["aviso"])
+            st.write(
+                f"Personas visibles a la vez: máximo {v['personas_visibles_max']}, "
+                f"mediana {v['personas_visibles_mediana']}. "
+                f"Fotogramas sin nadie: {v['fotogramas_sin_personas_%']} %."
+            )
+            st.subheader("Personas que ve la cámara a lo largo del vídeo")
+            st.altair_chart(
+                big(
+                    alt.Chart(video_people_series(s))
+                    .mark_area(opacity=0.6, line=True)
+                    .encode(x="minuto", y="personas")
+                ),
+                use_container_width=True,
+            )
+            st.subheader("Tiempo en pantalla por género")
+            st.caption("El género sale del audio, no de la imagen.")
+            st.altair_chart(
+                big(
+                    alt.Chart(vt[0])
+                    .mark_bar()
+                    .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
+                ),
+                use_container_width=True,
+            )
+            st.subheader("Pistas con más tiempo en pantalla")
+            st.table(video_tracks_table(s).style.hide(axis="index").format(precision=2, na_rep="-"))
+            hands = v.get("manos_levantadas", [])
+            st.subheader("Manos levantadas")
+            st.caption("Zona de la imagen y momento; ▶ mueve el vídeo de arriba.")
+            if not hands:
+                st.write("No se han detectado manos levantadas.")
+            hand_cols = st.columns(4)
+            for i, h in enumerate(hands):
+                hand_cols[i % 4].button(
+                    f"▶ {fmt_time(h['inicio_s'])} · zona {h['zona']}",
+                    key=f"hand_{s.session_id}_{i}",
+                    on_click=go_to,
+                    args=(h["inicio_s"],),
+                    disabled=not video_file,
+                )
     st.download_button(
         "Descargar transcripción (CSV)",
         transcript_csv(s),
@@ -326,4 +353,4 @@ else:
     )
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
     evo = evolution_table(sessions).astype(object).fillna("no concluyente")
-    st.dataframe(evo, use_container_width=True)
+    st.table(evo.style.hide(axis="index").format(precision=2, na_rep="-"))
