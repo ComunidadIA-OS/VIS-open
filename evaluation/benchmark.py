@@ -79,8 +79,14 @@ def f1_report(gold: Sequence[str], pred: Sequence[str]) -> dict:
     }
 
 
-def evaluate(engine: DecisionEngine, turns: Sequence[tuple[Turn, str]]) -> dict:
+def evaluate(
+    engine: DecisionEngine,
+    turns: Sequence[tuple[Turn, str]],
+    decisions_out: list | None = None,
+) -> dict:
     decisions = [engine.decide(t) for t, _ in turns]
+    if decisions_out is not None:
+        decisions_out.extend(decisions)
     gold = [label for _, label in turns]
     report = f1_report(gold, [d.gender for d in decisions])
     latencies = [d.latency_s for d in decisions if d.latency_s is not None]
@@ -95,16 +101,49 @@ def evaluate(engine: DecisionEngine, turns: Sequence[tuple[Turn, str]]) -> dict:
     return report
 
 
+DETAIL_COLUMNS = [
+    "turn_id", "label", "pred", "acierto", "confianza", "error", "reason",
+    "tokens_in", "tokens_out", "latencia_s", "evidence", "context_before", "text",
+]  # fmt: skip
+
+
+def write_detail(path: Path, turns: Sequence[tuple[Turn, str]], decisions: Sequence) -> None:
+    """Una fila por turno con lo que decidió el motor. Lleva el texto de los turnos: no se sube."""
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("w", newline="", encoding="utf-8") as fh:
+        writer = csv.DictWriter(fh, fieldnames=DETAIL_COLUMNS)
+        writer.writeheader()
+        for (turn, label), d in zip(turns, decisions, strict=True):
+            writer.writerow(
+                {
+                    "turn_id": turn.turn_id, "label": label, "pred": d.gender,
+                    "acierto": int(d.gender == label), "confianza": d.confidence,
+                    "error": d.error or "", "reason": d.reason or "",
+                    "tokens_in": d.tokens_in, "tokens_out": d.tokens_out,
+                    "latencia_s": d.latency_s, "evidence": d.evidence or "",
+                    "context_before": turn.context_before or "", "text": turn.text,
+                }
+            )  # fmt: skip
+
+
 def main(argv: list[str] | None = None) -> None:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("csv", type=Path)
     parser.add_argument("--engines", default="rules")
     parser.add_argument("--out", type=Path)
+    parser.add_argument(
+        "--detalle", type=Path, help="carpeta donde guardar la decisión de cada turno (CSV)"
+    )
     args = parser.parse_args(argv)
     load_dotenv()  # LLM_MODEL, LLM_API_KEY, precios...
 
     turns = read_turns(args.csv)
-    results = [evaluate(get_engine(n.strip()), turns) for n in args.engines.split(",")]
+    results = []
+    for name in args.engines.split(","):
+        decisions: list = []
+        results.append(evaluate(get_engine(name.strip()), turns, decisions))
+        if args.detalle:
+            write_detail(args.detalle / f"detalle_{name.strip()}.csv", turns, decisions)
     for r in results:
         per = ", ".join(f"{c} {v['f1']:.2f}" for c, v in r["per_class"].items())
         print(

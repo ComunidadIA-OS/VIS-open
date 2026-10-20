@@ -9,6 +9,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 ### Añadido
 
 - 20 oct 2026: `evaluation.benchmark` lee el `.env` (antes fallaba con «falta LLM_MODEL»).
+- 20 oct 2026: `evaluation.benchmark --detalle <carpeta>` guarda la decisión de cada turno (CSV) para analizar los errores de cada motor. Con los turnos sintéticos, Qwen3.5-9B por API: F1 0,76, sin confundir nunca mujer con hombre, 18 de 69 hombres a «desconocido», 0,0055 € por 120 turnos.
 - 20 oct 2026: `LLM_EXTRA_BODY` (JSON, sin `tools`, `messages`, `model` ni `response_format`) y `LLM_MAX_TOKENS` para el motor LLM, para quitar el razonamiento de Qwen 3 (en la prueba con Qwen3.5-9B: 1.121 tokens de salida y 39 s para una respuesta de ~30 tokens).
 - 20 oct 2026: `python -m decision.llm_check` lista los modelos de la API (OVH AI Endpoints u otra compatible con OpenAI) y hace una llamada de prueba sintética con tokens y coste; `docs/COSTES_API.md` con los modelos Qwen candidatos y sus precios del catálogo público (20 oct).
 - 20 oct 2026: la seudonimización estricta también redacta un apellido suelto que sea una frase entera («Uriarte.») salvo palabras comunes (lista `common` de `decision/cues/es.toml`); detectado en V004 (1 h 19 min, 12 voces, 8 con género por pistas del lenguaje) procesado en la GPU de OVH en 7 min 22 s.
