@@ -35,6 +35,10 @@ Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluat
 6. **Tabla de intervenciones**: código anónimo de la persona (Persona 1, Persona 2…), minuto de inicio, duración, género y la evidencia del género (la frase y el minuto, con el nombre sustituido por el código, por ejemplo «tiene la palabra la señora [Persona 3]»). Las voces sin pista aparecen como `desconocido`. Nunca se muestran nombres.
 7. **Aviso de método**, siempre visible: «El género se asigna solo por pistas del lenguaje de la sesión, nunca por la cara ni la voz. Los resultados son orientativos y requieren revisión humana.»
 
+## Human in the loop: confirmar el género de las voces
+
+Término a usar tal cual en la presentación y el vídeo. En la pantalla de sesión, si el vídeo original está en `data/raw/` (solo en el equipo local), aparece el reproductor y el bloque «Human in the loop». Para cada voz que el lenguaje dejó en `desconocido` se ven sus tramos («Persona 1: de 0:00 a 0:20») con el vídeo en ese punto. Cada anotadora decide mujer, hombre o desconocido y su seguridad; se guarda en `review_anotadora_1.csv` y `review_anotadora_2.csv`. El género solo pasa a las cifras cuando **las dos coinciden** (procedencia `anotacion_percibida`); si no, sigue `desconocido`. El sistema nunca lo decide por la cara ni por la voz: lo decide una persona.
+
 ## Informe descargable
 
 Un botón **«Descargar informe»** en la pantalla 1 genera un fichero con el contenido de esa sesión:

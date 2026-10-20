@@ -91,3 +91,76 @@ def test_video_tables_none_without_video_and_shown_with_it(tmp_path, sessions):
     )
     screen, hands = video_tables(load_sessions(tmp_path)[0])
     assert list(screen["minutos"]) == [1.0, 2.0] and hands.empty
+
+
+def test_video_path_only_when_the_file_is_local(tmp_path, sessions):
+    from dashboard.data import video_path
+
+    s = sessions[0]
+    assert video_path(s, tmp_path) is None
+    (tmp_path / "raw").mkdir()
+    (tmp_path / "raw" / f"{s.session_id}.mp4").write_bytes(b"x")
+    assert video_path(s, tmp_path) == tmp_path / "raw" / f"{s.session_id}.mp4"
+
+
+def _review_folder(tmp_path):
+    from contracts import ReviewRow, write_rows
+
+    folder = tmp_path / "processed" / "V9"
+    folder.mkdir(parents=True)
+    rows = [
+        ReviewRow(video_id="V9", speaker_id="SPEAKER_00", total_seconds=10),
+        ReviewRow(video_id="V9", speaker_id="SPEAKER_01", total_seconds=20),
+    ]
+    write_rows(rows, ReviewRow, folder / "review_genero.csv")
+    return folder
+
+
+def test_two_annotators_must_agree_and_confirmed_gender_is_applied(tmp_path):
+    from contracts import AnalysisTimeline, Speaker
+    from dashboard.data import agreed_genders, apply_confirmed, save_review
+
+    folder = _review_folder(tmp_path)
+    save_review(folder, 1, "SPEAKER_00", "mujer", "alta", "")
+    assert agreed_genders(folder) == {}  # solo una anotadora
+    save_review(folder, 2, "SPEAKER_00", "mujer", "media", "")
+    save_review(folder, 1, "SPEAKER_01", "hombre", "alta", "")
+    save_review(folder, 2, "SPEAKER_01", "mujer", "alta", "")  # no coinciden
+    assert agreed_genders(folder) == {"SPEAKER_00": "mujer"}
+    tl = AnalysisTimeline(
+        video_id="V9",
+        duration_s=30,
+        speakers=[Speaker(speaker_id="SPEAKER_00"), Speaker(speaker_id="SPEAKER_01")],
+    )
+    out = apply_confirmed(tl, {"SPEAKER_00": "mujer"})
+    assert [s.gender.value for s in out.speakers] == ["mujer", "desconocido"]
+    assert out.speakers[0].gender_source.value == "anotacion_percibida"
+
+
+def test_save_review_rejects_unknown_voice(tmp_path):
+    import pytest as _pytest
+
+    from dashboard.data import save_review
+
+    with _pytest.raises(ValueError):
+        save_review(_review_folder(tmp_path), 1, "SPEAKER_99", "mujer", "alta", "")
+
+
+def test_voice_blocks_and_time_format():
+    from contracts import AnalysisEvent, AnalysisTimeline, Speaker
+    from dashboard.data import fmt_time, voice_blocks
+
+    def ev(i, a, b):
+        return AnalysisEvent(
+            event_id=f"e{i}", type="speech", start_s=a, end_s=b, speaker_id="SPEAKER_00",
+            text="x", provenance="ai_inferred",
+        )  # fmt: skip
+
+    tl = AnalysisTimeline(
+        video_id="V",
+        duration_s=300,
+        speakers=[Speaker(speaker_id="SPEAKER_00")],
+        events=[ev(0, 0, 10), ev(1, 11, 20), ev(2, 100, 105), ev(3, 200, 230)],
+    )
+    assert voice_blocks(tl, "SPEAKER_00", top=2) == [(0, 20), (200, 230)]
+    assert fmt_time(178) == "2:58" and fmt_time(5) == "0:05"
