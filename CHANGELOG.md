@@ -45,6 +45,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Cambiado
 
+- 20 oct 2026 (documentación): en `docs/PLAN_DE_TRABAJO.md`, la consulta a la Organización sobre la base legal y los formularios de consentimiento pasan a opcionales; la referencia al «art. 12.3 de los términos» queda por verificar. Las fuentes se citan en las presentaciones.
 - 19 oct 2026 (documentación): plan de la entrega ajustado a las bases y a 2 h por persona y día laborable (`docs/PLAN_DE_TRABAJO.md`); alcance de 3 sesiones y métricas M01, M02, M03, M04, M13, M14 y M09; ajuste ligero de Qwen; especificación del panel (`docs/PANEL.md`); README con componentes de terceros y hoja de ruta; actualizados `MEMORY.md`, `CLAUDE.md`, `docs/MODEL_CARD.md` y `docs/DATASET_CARD.md`.
 - 16 de octubre de 2026 (decisiones de Sabrina, en documentación; código pendiente): fuente única, sesiones del Congreso sin alterar; alcance "Observatorio MVP" (6 a 10 sesiones, descarga automática de prueba, dashboard de evolución); género por pistas del lenguaje con revisión humana solo si hay duda; nuevas métricas de equidad (M17 a M19); avisos en sala, informe y alta de fuente.
 
