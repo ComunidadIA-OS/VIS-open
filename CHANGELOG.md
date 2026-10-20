@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: el panel usa letra más grande en títulos de métricas y notas, y las etiquetas de las tarjetas ya no se cortan.
 - 20 oct 2026: `evaluation/prepare_annotation.py` (hoja de 150 turnos para anotar, sin el género del sistema, más clave interna), `evaluation/informe.py` (informe de audio, vídeo y consumo en tokens y euros) y el texto de cada intervención en la tabla del panel.
 - 20 oct 2026: el panel enseña el vídeo sin caras (tiempo en pantalla por género según el audio y manos levantadas por zona) si existe `video.json`, siempre con el aviso del límite de conteo.
 - 20 oct 2026: `evaluation/asr_diar.py` calcula WER y DER contra una referencia a mano (DER con asignación óptima de hablantes y habla solapada, sin collar); con tests calculados a mano. Falta la referencia anotada de un tramo real.

@@ -32,6 +32,14 @@ COLORS = alt.Scale(
 )
 
 st.set_page_config(page_title="VIS Open", layout="wide")
+st.markdown(
+    "<style>"
+    "[data-testid='stCaptionContainer'], [data-testid='stMetricLabel'] p {font-size: 1.05rem;}"
+    "[data-testid='stMetricValue'] {font-size: 2.4rem;}"
+    "[data-testid='stMetricLabel'] {overflow: visible; white-space: normal;}"
+    "</style>",
+    unsafe_allow_html=True,
+)
 sessions = load_sessions(Path(os.environ.get("DATA_DIR") or "data"))
 screen = st.sidebar.radio("Pantalla", ["Sesión", "Evolución"])
 st.sidebar.info(METHOD_NOTICE)
