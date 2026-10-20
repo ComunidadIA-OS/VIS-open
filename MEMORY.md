@@ -34,7 +34,7 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Hecho: AI Endpoints de OVH conectado con Qwen3.5-9B; con `reasoning_effort: none` baja a 63 tokens de salida y 3,6 s por llamada (0,000044 € por llamada).
 - Pendiente de otras personas: tres sesiones de años distintos, definiciones formales de las métricas (también M09), revisión de la regla de género, anotación de 150 turnos y de un tramo de vídeo (Ivette); revisión del repositorio el 29 oct (Veru).
 - Pendiente: probar el vídeo en OVH, M09, ajuste ligero de Qwen (28 oct), WER y DER, publicar el repositorio (29 oct) y el vídeo de 5 minutos.
-- Presentaciones: citar la fuente de cada sesión (Congreso de los Diputados, órgano, fecha, «vídeo sin alterar» y fecha de última consulta), el aviso legal del Congreso y las licencias de terceros. La consulta legal a la Organización y los formularios de consentimiento son opcionales; el «art. 12.3 de los términos» está por verificar.
+- Presentaciones: citar la fuente de cada sesión (Congreso de los Diputados, órgano, fecha, «vídeo sin alterar» y fecha de última consulta), el aviso legal del Congreso y las licencias de terceros. La consulta legal a la Organización y los formularios de consentimiento son opcionales.
 
 ## Reglas de trabajo
 - El género nunca se infiere de la cara ni de la voz; `desconocido` siempre visible.
