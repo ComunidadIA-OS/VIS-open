@@ -22,6 +22,7 @@ from statistics import mean
 
 from decision.engine import DecisionEngine, Turn, get_engine
 from evaluation.cost import Prices, usage_report
+from pipeline.envfile import load_dotenv
 
 CLASSES = ["mujer", "hombre", "desconocido"]
 REQUIRED_COLUMNS = ["turn_id", "text", "label"]
@@ -100,6 +101,7 @@ def main(argv: list[str] | None = None) -> None:
     parser.add_argument("--engines", default="rules")
     parser.add_argument("--out", type=Path)
     args = parser.parse_args(argv)
+    load_dotenv()  # LLM_MODEL, LLM_API_KEY, precios...
 
     turns = read_turns(args.csv)
     results = [evaluate(get_engine(n.strip()), turns) for n in args.engines.split(",")]
