@@ -66,3 +66,28 @@ def test_app_loads_without_errors(tmp_path, monkeypatch):
     assert any("SINTÉTICO" in w.value for w in at.warning)
     at.sidebar.radio[0].set_value("Evolución").run()
     assert not at.exception
+
+
+def test_video_tables_none_without_video_and_shown_with_it(tmp_path, sessions):
+    import json
+
+    from dashboard.data import video_tables
+
+    assert video_tables(sessions[0]) is None
+    folder = tmp_path / "processed" / "V9"
+    folder.mkdir(parents=True)
+    tl = (Path(__file__).parent.parent / "evaluation/synthetic/muestras").glob("*.timeline.json")
+    (folder / "timeline.json").write_text(next(iter(tl)).read_text("utf-8"), encoding="utf-8")
+    (folder / "video.json").write_text(
+        json.dumps(
+            {
+                "aviso": "x",
+                "tiempo_en_pantalla_por_genero_s": {"mujer": 60.0, "hombre": 120.0},
+                "tiempo_en_pantalla_por_genero_%": {"mujer": 33.3, "hombre": 66.7},
+                "manos_levantadas_por_zona": {},
+            }
+        ),
+        encoding="utf-8",
+    )
+    screen, hands = video_tables(load_sessions(tmp_path)[0])
+    assert list(screen["minutos"]) == [1.0, 2.0] and hands.empty

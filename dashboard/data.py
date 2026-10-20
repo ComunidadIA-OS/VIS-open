@@ -36,6 +36,7 @@ class Session:
     timeline: AnalysisTimeline
     source: dict | None = None
     summary: dict | None = None
+    video: dict | None = None
     synthetic: bool = False
     metrics: dict[str, MetricResult] = field(default_factory=dict)
 
@@ -56,6 +57,7 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
                 tl,
                 _read_json(folder / "source.json"),
                 _read_json(folder / "resumen.json"),
+                video=_read_json(folder / "video.json"),
             )
         )
     if not sessions:
@@ -134,6 +136,31 @@ def timeline_strip(session: Session) -> pd.DataFrame:
             "genero": f["gender"].where(f["type"] == "speech", "mano_levantada"),
         }
     )
+
+
+def video_tables(session: Session) -> tuple[pd.DataFrame, pd.DataFrame] | None:
+    """(tiempo en pantalla por género, manos levantadas por zona) del módulo de vídeo, o None.
+
+    Es lo que ve la cámara, no quién hay en la sala; el aviso del módulo debe mostrarse a su lado.
+    """
+    v = session.video
+    if not v:
+        return None
+    screen = pd.DataFrame(
+        {
+            "genero": list(v["tiempo_en_pantalla_por_genero_s"]),
+            "minutos": [round(x / 60, 2) for x in v["tiempo_en_pantalla_por_genero_s"].values()],
+            "porcentaje": list(v["tiempo_en_pantalla_por_genero_%"].values()),
+        }
+    )
+    hands = pd.DataFrame(
+        {
+            "zona": list(v["manos_levantadas_por_zona"]),
+            "manos": list(v["manos_levantadas_por_zona"].values()),
+        },
+        columns=["zona", "manos"],
+    )
+    return screen, hands
 
 
 def evolution_table(sessions: list[Session]) -> pd.DataFrame:

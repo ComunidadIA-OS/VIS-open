@@ -11,6 +11,8 @@ Principio (charla de visión del reto): **evaluar sobre nuestro propio contenido
 | Género por lenguaje | ¿El género asignado es correcto? | F1 por clase (mujer, hombre, desconocido), matriz de confusión y % a revisión | `evaluation/benchmark.py` (`docs/MOTORES_DECISION.md`) | Ivette y Veru anotan 150 turnos (30 ambiguos) |
 | Métricas | ¿Coinciden con el Diario de Sesiones? | Diferencia en número y orden de intervenciones y en género | a mano, con hoja de cálculo | Ivette |
 | Vídeo: personas visibles | ¿Se cuentan bien? | Error medio (MAE), sesgo a contar de menos, recall y precisión | `evaluation/video_eval.py` | Ivette anota `personas.csv` |
+| Transcripción | ¿Se transcribe bien lo que se dice? | WER (sustituciones, borrados, inserciones) | `evaluation/asr_diar.py wer` | Un tramo de 5 min transcrito a mano, comprobado con el Diario de Sesiones |
+| Diarización | ¿Se separa bien quién habla? | DER (voz perdida, falsa alarma, confusión), sin margen de tolerancia | `evaluation/asr_diar.py der` | Turnos `speaker_id,start_s,end_s` del mismo tramo |
 | Vídeo: manos levantadas | ¿Se detectan las manos? | Precisión, recall y F1 por solape en el tiempo y la zona | `evaluation/video_eval.py` | Ivette anota `manos.csv` |
 | Vídeo: género de las pistas (por audio) | ¿El audio asigna bien el género a quien sale en pantalla? | % etiquetadas, acierto sobre las etiquetadas y **cuántas mujeres y hombres quedan sin etiquetar** | `evaluation/video_eval.py` | Ivette anota `pistas.csv` |
 

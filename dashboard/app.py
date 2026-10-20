@@ -23,6 +23,7 @@ from dashboard.data import (
     metric_card,
     report_html,
     timeline_strip,
+    video_tables,
 )
 
 COLORS = alt.Scale(
@@ -73,6 +74,20 @@ if screen == "Sesión":
         .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS)),
         use_container_width=True,
     )
+    vt = video_tables(s)
+    if vt:
+        st.subheader("Vídeo (sin caras)")
+        st.warning(s.video["aviso"])
+        left, right = st.columns(2)
+        left.caption("Tiempo en pantalla por género (el género sale del audio)")
+        left.altair_chart(
+            alt.Chart(vt[0])
+            .mark_bar()
+            .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS)),
+            use_container_width=True,
+        )
+        right.caption("Manos levantadas por zona de la imagen")
+        right.dataframe(vt[1], use_container_width=True)
     st.subheader("Intervenciones")
     st.dataframe(interventions_table(s), use_container_width=True)
     st.download_button(
