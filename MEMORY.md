@@ -28,11 +28,21 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Sin LangChain; `DecisionEngine` propio, `RulesEngine` por defecto.
 - Licencia del repo: Apache-2.0 (aprobada).
 
-## Estado (19 oct 2026)
-- M1, M2 y los bloques A a G de M3 están unidos en `main`. `pipeline.run` encadena transcripción, diarización, género por lenguaje y `resumen.json`.
-- Pendiente: prueba real en la GPU de OVH, métricas definitivas, panel, M09 y ajuste del modelo.
+## Estado (20 oct 2026)
+- Hecho: el pipeline completo funciona en el notebook de OVH del equipo (2 GPU V100S, `sm_70` correcto, `docs/PRUEBA_GPU.md`). Una sesión de 1 h 19 min se analiza en 7 min 22 s y separa 12 voces; 8 reciben género por pistas del lenguaje.
+- Hecho: seudonimización («Persona N», modo estricto), métricas M01–M04 y M13 en borrador, panel Streamlit, módulo de vídeo sin cara (`pipeline/video.py`, falta probarlo con el modelo de pose), evaluación (`docs/EVALUACION.md`) y costes (`docs/COSTES_API.md`).
+- Hecho: AI Endpoints de OVH conectado con Qwen3.5-9B; con `reasoning_effort: none` baja a 63 tokens de salida y 3,6 s por llamada (0,000044 € por llamada).
+- Pendiente de otras personas: tres sesiones de años distintos, definiciones formales de las métricas (también M09), revisión de la regla de género, anotación de 150 turnos y de un tramo de vídeo (Ivette); revisión del repositorio el 29 oct (Veru).
+- Pendiente: probar el vídeo en OVH, M09, ajuste ligero de Qwen (28 oct), WER y DER, publicar el repositorio (29 oct) y el vídeo de 5 minutos.
+- Presentaciones: citar la fuente de cada sesión (Congreso de los Diputados, órgano, fecha, «vídeo sin alterar» y fecha de última consulta), el aviso legal del Congreso y las licencias de terceros. La consulta legal a la Organización y los formularios de consentimiento son opcionales; el «art. 12.3 de los términos» está por verificar.
+
+## Reglas de trabajo
+- El género nunca se infiere de la cara ni de la voz; `desconocido` siempre visible.
+- Ningún secreto (tokens, `.env`) ni dato real (vídeos, audios, transcripciones) en el repositorio ni en carpetas que lea la organización.
+- Un cambio por rama y por PR; los conflictos de `CHANGELOG.md` se resuelven aceptando ambos cambios.
+- Los CSV no se abren con doble clic en Excel (rompe las tildes y las columnas).
 
 ## Pendiente
-- Verificar en la fuente las licencias de OpenCV, MediaPipe, Streamlit y Qwen.
+- Verificar en la fuente las licencias del modelo de pose de MediaPipe y de Qwen.
 - Confirmar si el Congreso permite la descarga automática (evolución futura).
 - Confirmar la licencia del corpus Àgora (evolución futura).
