@@ -9,6 +9,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 ### Añadido
 
 - 20 oct 2026: `evaluation/asr_diar.py` calcula WER y DER contra una referencia a mano (DER con asignación óptima de hablantes y habla solapada, sin collar); con tests calculados a mano. Falta la referencia anotada de un tramo real.
+- 20 oct 2026: licencia (Apache-2.0) y límites del modelo de pose de MediaPipe, verificados en su ficha, en `THIRD_PARTY_LICENSES.md` y `docs/EVALUACION.md`; resultado del benchmark de género tras el prompt simétrico (F1 macro 0,90).
 - 20 oct 2026: el prompt del motor LLM da ejemplos simétricos para mujer y hombre. En el benchmark sintético, Qwen3.5-9B acertaba todas las mujeres pero dejaba hasta 22 de 69 hombres en «desconocido» aunque el contexto dijera «el señor…» (el único ejemplo del prompt era femenino); además el resultado varía entre ejecuciones.
 - 20 oct 2026: `evaluation.benchmark` lee el `.env` (antes fallaba con «falta LLM_MODEL»).
 - 20 oct 2026: medida real con Qwen3.5-9B en OVH AI Endpoints: `reasoning_effort: none` baja de 1.121 a 63 tokens de salida y de 38,9 a 3,6 s por llamada (`docs/COSTES_API.md`).
@@ -48,7 +49,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 ### Cambiado
 
 - 20 oct 2026 (documentación): `MEMORY.md` con el estado a 20 oct, las reglas de trabajo y cómo citar las fuentes en las presentaciones.
-- 20 oct 2026 (documentación): en `docs/PLAN_DE_TRABAJO.md`, la consulta a la Organización sobre la base legal y los formularios de consentimiento pasan a opcionales; la referencia al «art. 12.3 de los términos» queda por verificar. Las fuentes se citan en las presentaciones.
+- 20 oct 2026 (documentación): en `docs/PLAN_DE_TRABAJO.md`, la consulta a la Organización sobre la base legal y los formularios de consentimiento pasan a opcionales; se elimina de la documentación la referencia a un artículo concreto de los términos, que no estaba verificada. Las fuentes se citan en las presentaciones.
 - 19 oct 2026 (documentación): plan de la entrega ajustado a las bases y a 2 h por persona y día laborable (`docs/PLAN_DE_TRABAJO.md`); alcance de 3 sesiones y métricas M01, M02, M03, M04, M13, M14 y M09; ajuste ligero de Qwen; especificación del panel (`docs/PANEL.md`); README con componentes de terceros y hoja de ruta; actualizados `MEMORY.md`, `CLAUDE.md`, `docs/MODEL_CARD.md` y `docs/DATASET_CARD.md`.
 - 16 de octubre de 2026 (decisiones de Sabrina, en documentación; código pendiente): fuente única, sesiones del Congreso sin alterar; alcance "Observatorio MVP" (6 a 10 sesiones, descarga automática de prueba, dashboard de evolución); género por pistas del lenguaje con revisión humana solo si hay duda; nuevas métricas de equidad (M17 a M19); avisos en sala, informe y alta de fuente.
 

@@ -46,6 +46,7 @@ Modelos (se descargan en tiempo de ejecución, no se incluyen en el repo):
 | pyannote/segmentation-3.0 | usado por 3.1 | MIT | restringido |
 | pyannote/wespeaker-voxceleb-resnet34-LM | embeddings de voz usados por 3.1 | CC-BY-4.0 (permite uso comercial; exige atribución) | libre |
 | pyannote/speaker-diarization-community-1 | alternativa (mejor DER), no usada por defecto | CC-BY-4.0 | restringido |
+| MediaPipe `pose_landmarker_full.task` (float16, 9 398 198 bytes, sha256 `4eaa5eb7…ec4ad`) | pose del cuerpo: personas visibles y manos levantadas | Apache-2.0 (ficha del modelo, verificada el 20 oct 2026). Límites de la ficha: modelo pensado para **una persona**, a menos de ~4 m; no apto para varias personas ni para reconocer identidad | libre (`POSE_MODEL`; `AUTO_DOWNLOAD=false`) |
 
 La telemetría de pyannote.audio 4 se desactiva (`PYANNOTE_METRICS_ENABLED=0`).
 
@@ -53,7 +54,7 @@ Dependencias transitivas del extra (ctranslate2, transformers, nltk, omegaconf, 
 
 ## Pendientes de verificar (previstas, aún no instaladas)
 
-modelo de pose de MediaPipe (`.task`: licencia y ficha por verificar antes de usarlo), Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
+Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
 
 Imágenes Docker (rama `docker-gpu`, no distribuidas en el repo): `python:3.12-slim-bookworm` (Python: PSF; Debian: licencias por paquete) y las bibliotecas NVIDIA CUDA/cuDNN/cuBLAS que PyTorch instala como ruedas `nvidia-*`. **Pendiente de verificar en la fuente**: las ruedas `nvidia-*` llevan la licencia de NVIDIA (no OSI) y se descargan en tiempo de construcción, no se redistribuyen en el repo; Sabrina debe dar el visto bueno a esta dependencia.
 
