@@ -20,7 +20,7 @@ El repositorio **no contiene datos reales**: ni audio, ni vídeo, ni transcripci
 | Correos electrónicos | No | Ni en el repo ni en el pipeline. |
 | Mensajes de texto (chats, SMS, redes) | No | |
 | Noticias o textos web | No | No se raspan ni se usan como datos. |
-| Datos personales reales de terceros | No | Solo con base jurídica y autorización de la Organización (art. 12.3). |
+| Datos personales reales de terceros | No | Solo con base jurídica y autorización de la Organización. |
 | Audio y vídeo de sesiones del Congreso | Sí, fuera del repo | Cargos públicos en un acto público; resultados solo agregados. |
 | Transcripciones | Sí, derivadas | Generadas a partir del audio; no se publican. |
 | Etiquetas de género atribuido, rol y gestos (pistas del lenguaje y revisión humana) | Sí, derivadas | Se publican solo agregadas. |
@@ -58,7 +58,7 @@ Decisión del 16 oct: la IA asigna el género por pistas del lenguaje y una pers
 
 ## Consideraciones éticas y legales
 
-- Las voces y las imágenes son datos personales. No se tratan datos personales reales sin base jurídica y autorización expresa de la Organización (términos y condiciones, art. 12.3).
+- Las voces y las imágenes son datos personales. No se tratan datos personales reales sin base jurídica y autorización expresa de la Organización.
 - No se publican grabaciones, fragmentos ni transcripciones reales.
 - El plan de puesta en producción exige consentimiento o base legal, información a las personas grabadas y evaluación RGPD y AI Act (informe pendiente, hito M7).
 - Los resultados se presentan agregados y con sus márgenes de error.
