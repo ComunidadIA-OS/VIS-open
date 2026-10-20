@@ -6,7 +6,9 @@ Si falta una métrica (M09, M14), se informa como «no disponible todavía».
 
 from __future__ import annotations
 
+import csv
 import html
+import io
 import json
 import re
 from dataclasses import dataclass, field
@@ -192,6 +194,32 @@ def transcript_turns(session: Session, max_words: int = 60, gap_s: float = 3.0) 
     return turns
 
 
+def voice_transcripts(session: Session) -> dict[str, list[dict]]:
+    """Transcripción seudonimizada agrupada por voz («Persona N»), en orden de aparición."""
+    out: dict[str, list[dict]] = {}
+    for t in transcript_turns(session):
+        out.setdefault(t["persona"], []).append(t)
+    return out
+
+
+def transcript_csv(session: Session) -> str:
+    """Transcripción completa en CSV (UTF-8): inicio, persona, género y texto."""
+    buf = io.StringIO()
+    writer = csv.writer(buf, lineterminator="\n")
+    writer.writerow(["inicio_s", "inicio", "persona", "genero", "texto"])
+    for t in transcript_turns(session):
+        writer.writerow(
+            [
+                round(t["inicio_s"], 2),
+                fmt_time(t["inicio_s"]),
+                t["persona"],
+                t["genero"],
+                t["texto"],
+            ]
+        )
+    return buf.getvalue()
+
+
 def agreed_genders(folder: Path) -> dict[str, str]:
     """Voz → género, solo si dos anotadoras con ID de conexión distinto pusieron el mismo."""
     answers: list[dict[str, tuple[str, str]]] = []
@@ -223,6 +251,18 @@ def apply_confirmed(timeline: AnalysisTimeline, confirmed: dict[str, str]) -> An
         for s in timeline.speakers
     ]
     return timeline.model_copy(update={"speakers": speakers})
+
+
+def inconclusive_reason(session: Session) -> str:
+    """Por qué hay métricas «no concluyentes» (vacío si todas lo son por otra cosa o ninguna)."""
+    reasons = sorted({r.reason for r in session.metrics.values() if not r.conclusive and r.reason})
+    if not reasons:
+        return ""
+    return (
+        f"Por qué «no concluyente»: {'; '.join(reasons)}. Hace falta una muestra mínima "
+        "(umbral provisional, lo fija Ivette); se alcanza confirmando las voces en "
+        "Human in the loop."
+    )
 
 
 def metric_card(result: MetricResult) -> dict:
@@ -350,6 +390,36 @@ def video_tables(session: Session) -> tuple[pd.DataFrame, pd.DataFrame] | None:
     return screen, hands
 
 
+def video_people_series(session: Session, bin_s: float = 30.0) -> pd.DataFrame:
+    """Personas que MediaPipe ve a lo largo del vídeo (media por tramo de `bin_s` segundos)."""
+    frames = (session.video or {}).get("personas_por_fotograma", [])
+    cols = ["minuto", "personas"]
+    if not frames:
+        return pd.DataFrame(columns=cols)
+    df = pd.DataFrame(frames, columns=["t", "n"])
+    df["minuto"] = (df["t"] // bin_s) * bin_s / 60
+    out = df.groupby("minuto", as_index=False)["n"].mean().round(2)
+    return out.rename(columns={"n": "personas"})[cols]
+
+
+def video_tracks_table(session: Session, top: int = 12) -> pd.DataFrame:
+    """Las pistas (personas seguidas) con más tiempo en pantalla: tamaño, centralidad y género."""
+    tracks = (session.video or {}).get("pistas", [])
+    cols = ["pista", "minutos_en_pantalla", "tamano_medio", "centralidad", "genero_por_audio"]
+    rows = [
+        {
+            "pista": t["pista"],
+            "minutos_en_pantalla": round(t["tiempo_en_pantalla_s"] / 60, 2),
+            "tamano_medio": t["tamano_medio"],
+            "centralidad": t["centralidad_media"],
+            "genero_por_audio": t["genero_por_audio"],
+        }
+        for t in tracks
+    ]
+    df = pd.DataFrame(rows, columns=cols)
+    return df.sort_values("minutos_en_pantalla", ascending=False).head(top).reset_index(drop=True)
+
+
 def evolution_table(sessions: list[Session]) -> pd.DataFrame:
     """Una fila por sesión (ordenada por fecha si hay ficha, si no por id)."""
     rows = []
@@ -419,10 +489,16 @@ def _timeline_svg(session: Session) -> str:
     """Línea de tiempo: una barra por género (color) con eje en minutos, sin dependencias."""
     strip = timeline_strip(session).sort_values("inicio_min")
     end = max(float(session.timeline.duration_s) / 60, 0.01)
-    rects = []
+    spans: list[list] = []
     for r in strip.itertuples():
-        color = GENDER_COLORS.get(r.genero, "#e08a00")
-        x, w = 100 * r.inicio_min / end, max(100 * (r.fin_min - r.inicio_min) / end, 0.1)
+        if spans and spans[-1][2] == r.genero and r.inicio_min - spans[-1][1] < 0.05:
+            spans[-1][1] = max(spans[-1][1], r.fin_min)
+        else:
+            spans.append([r.inicio_min, r.fin_min, r.genero])
+    rects = []
+    for start, stop, genero in spans:
+        color = GENDER_COLORS.get(genero, "#e08a00")
+        x, w = 100 * start / end, max(100 * (stop - start) / end, 0.1)
         rects.append(f"<rect x='{x:.3f}' y='0' width='{w:.3f}' height='40' fill='{color}'/>")
     step = max(1, int(end // 8))
     ticks = "".join(f"<span>{m} min</span>" for m in range(0, int(end) + 1, step))
@@ -433,7 +509,7 @@ def _timeline_svg(session: Session) -> str:
     )
 
 
-def report_html(session: Session) -> str:
+def report_html(session: Session, transcript_link: str | None = None) -> str:
     """Informe descargable de una sesión (HTML autónomo; se imprime a PDF desde el navegador)."""
     e = html.escape
     src = session.source or {}
@@ -456,6 +532,8 @@ def report_html(session: Session) -> str:
     pending = "".join(
         f"<li>{e(k)} {e(v)}: no disponible todavía</li>" for k, v in PENDING_METRICS.items()
     )
+    why = inconclusive_reason(session)
+    why_html = f"<div class='warn'>{e(why)}</div>" if why else ""
     summary = (
         f"Sesión de {tl.duration_s / 60:.0f} minutos con {len(voices)} voces, de las que "
         f"{known} tienen género asignado"
@@ -467,12 +545,21 @@ def report_html(session: Session) -> str:
         f"<td>{r.minutos}</td><td>{r.intervenciones}</td></tr>"
         for r in voices.itertuples()
     )
-    inter = interventions_table(session)
-    interventions = inter.drop(columns=["evidencia"]).to_html(index=False, border=0)
-    transcript = "".join(
-        f"<p><b>{fmt_time(t['inicio_s'])} · {e(t['persona'])} · {e(t['genero'])}</b><br>"
-        f"{e(t['texto'])}</p>"
-        for t in transcript_turns(session)
+    link = transcript_link or f"transcripcion_{session.session_id}.csv"
+    by_voice = voice_transcripts(session)
+    voice_details = "".join(
+        f"<details><summary><b>{e(r.persona)}</b> · {e(r.genero)} · {r.minutos} min</summary>"
+        + "".join(
+            f"<p><b>{fmt_time(t['inicio_s'])}</b> {e(t['texto'])}</p>"
+            for t in by_voice.get(r.persona, [])[:15]
+        )
+        + (
+            f"<p class='mut'>… {len(by_voice[r.persona]) - 15} fragmentos más en el CSV.</p>"
+            if len(by_voice.get(r.persona, [])) > 15
+            else ""
+        )
+        + "</details>"
+        for r in voices.itertuples()
     )
     video = ""
     if video_tables(session):
@@ -481,7 +568,9 @@ def report_html(session: Session) -> str:
         screen = pd.DataFrame({"gender": list(pct), "porcentaje": list(pct.values())})
         hands = v.get("manos_levantadas_por_zona", {})
         video = (
-            "<h2>Análisis de vídeo (sin caras)</h2>"
+            "<h2>Análisis de vídeo (MediaPipe, sin caras)</h2>"
+            "<p>MediaPipe devuelve puntos del cuerpo; de ahí salen las personas visibles, el "
+            "tiempo en pantalla y las manos levantadas. No lee caras ni género.</p>"
             f"<div class='warn'>{e(v['aviso'])}</div>"
             f"<p>Personas visibles a la vez: máximo {v['personas_visibles_max']}, mediana "
             f"{v['personas_visibles_mediana']}; fotogramas sin nadie: "
@@ -500,6 +589,8 @@ def report_html(session: Session) -> str:
                 or "ninguno"
             )
             + ".</p>"
+            + "<p>Pistas con más tiempo en pantalla:</p>"
+            + video_tracks_table(session).to_html(index=False, border=0)
         )
     return (
         "<!doctype html><html lang='es'><meta charset='utf-8'>"
@@ -507,16 +598,18 @@ def report_html(session: Session) -> str:
         f"<title>Informe {e(session.session_id)}</title><style>{REPORT_CSS}</style>"
         f"<h1>Informe de la sesión {e(session.session_id)}</h1><p class='sub'>{ficha}</p>"
         f"<h2>Resumen</h2><div class='note'>{e(summary)}</div>"
-        f"<h2>Métricas</h2><div class='grid'>{cards}</div><ul>{pending}</ul>"
-        f"<h2>Tiempo de palabra por género</h2>{_gender_bar(gt)}"
+        f"<h2>Métricas</h2><div class='grid'>{cards}</div>{why_html}<ul>{pending}</ul>"
+        "<h2>Análisis de audio (transcripción y voces)</h2>"
+        f"<h3>Tiempo de palabra por género</h3>{_gender_bar(gt)}"
         f"{gt.to_html(index=False, border=0)}"
-        f"<h2>Línea de tiempo</h2>{_timeline_svg(session)}"
-        "<h2>Voces</h2><table><tr><th>Persona</th><th>Género</th><th>Origen</th>"
+        f"<h3>Línea de tiempo</h3>{_timeline_svg(session)}"
+        "<h3>Voces</h3><table><tr><th>Persona</th><th>Género</th><th>Origen</th>"
         f"<th>Minutos</th><th>Intervenciones</th></tr>{voices_rows}</table>"
+        "<p class='mut'>Pulsa en una voz para ver su transcripción.</p>"
+        f"{voice_details}"
+        "<h3>Transcripción completa</h3><p>La transcripción seudonimizada completa está en un "
+        f"CSV: <a href='{e(link)}'>{e(link)}</a>.</p>"
         f"{video}"
-        f"<h2>Intervenciones</h2>{interventions}"
-        f"<h2>Transcripción</h2><details><summary>Ver la transcripción seudonimizada</summary>"
-        f"{transcript}</details>"
         f"<h2>Método y límites</h2><p>{e(METHOD_NOTICE)}</p>"
         "<ul><li>El género sale solo del texto o de la confirmación de dos anotadoras "
         "(Human in the loop); nunca de la cara ni del sonido.</li>"
@@ -524,3 +617,16 @@ def report_html(session: Session) -> str:
         "<li>Métricas en borrador pendientes de validación.</li></ul>"
         "<footer>VIS Open · cifras calculadas por código · sin nombres, sin caras.</footer></html>"
     )
+
+
+def export_session(session: Session, out_dir: Path, link_base: str | None = None) -> list[Path]:
+    """Guarda `informe_<id>.html` y `transcripcion_<id>.csv`; el informe enlaza al CSV."""
+    out_dir = Path(out_dir)
+    out_dir.mkdir(parents=True, exist_ok=True)
+    csv_name = f"transcripcion_{session.session_id}.csv"
+    link = f"{link_base.rstrip('/')}/{csv_name}" if link_base else csv_name
+    report = out_dir / f"informe_{session.session_id}.html"
+    report.write_text(report_html(session, link), encoding="utf-8")
+    table = out_dir / csv_name
+    table.write_text(transcript_csv(session), encoding="utf-8")
+    return [report, table]

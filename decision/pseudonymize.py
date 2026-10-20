@@ -85,8 +85,8 @@ def _strict_spans(text: str) -> list[tuple[int, int, str]]:
     spans: list[tuple[int, int, str]] = []
     held: re.Match | None = None  # candidata al inicio de frase, pendiente de la siguiente
     for m in _CAP_TOKEN.finditer(text):
-        if _plain(m.group()).strip() in keep:
-            held = None
+        if _plain(m.group()).strip() in keep or (m.group().isupper() and len(m.group()) >= 2):
+            held = None  # lista de excepciones o siglas (IVA, PIB, UE): no son nombres
             continue
         if _SENTENCE_START.search(text[: m.start()]):
             alone = text[m.end() : m.end() + 1] in ("", ".", "?", "!")

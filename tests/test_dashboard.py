@@ -227,3 +227,29 @@ def test_report_has_summary_timeline_voices_and_prudent_reading(sessions):
     assert "podría cambiar" in _reading({"mujer": 20.0, "hombre": 50.0, "desconocido": 30.0})
     assert "no cambiaría" in _reading({"mujer": 10.0, "hombre": 80.0, "desconocido": 10.0})
     assert "+" in _reading({"mujer": 50.0, "hombre": 50.0})
+
+
+def test_voice_transcripts_csv_and_export_link_to_the_csv(sessions, tmp_path):
+    import csv as _csv
+
+    from dashboard.data import export_session, transcript_csv, voice_transcripts
+
+    s = sessions[0]
+    by_voice = voice_transcripts(s)
+    assert by_voice and all(k.startswith("Persona ") or k == "sin atribuir" for k in by_voice)
+    rows = list(_csv.DictReader(transcript_csv(s).splitlines()))
+    assert rows and list(rows[0]) == ["inicio_s", "inicio", "persona", "genero", "texto"]
+    report, table = export_session(s, tmp_path, link_base="https://almacen.example/privado/")
+    assert table.name == f"transcripcion_{s.session_id}.csv" and table.is_file()
+    html_text = report.read_text(encoding="utf-8")
+    assert f"https://almacen.example/privado/transcripcion_{s.session_id}.csv" in html_text
+    assert "<details>" in html_text  # cada voz se despliega
+
+
+def test_inconclusive_metrics_explain_why(sessions):
+    from dashboard.data import inconclusive_reason
+
+    by = {s.session_id: s for s in sessions}
+    assert "muestra insuficiente" in inconclusive_reason(by["SINTETICO_muestra_insuficiente"])
+    assert "Por qué" in report_html(by["SINTETICO_muestra_insuficiente"])
+    assert inconclusive_reason(by["SINTETICO_pocas_mujeres"]) == ""

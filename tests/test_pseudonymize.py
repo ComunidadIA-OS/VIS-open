@@ -152,3 +152,10 @@ def test_standalone_surname_as_a_whole_sentence_is_redacted_but_common_words_are
     assert "Uriarte" not in out.events[0].text and out.events[0].text.startswith("Persona")
     t1 = out.events[1].text
     assert "Alcaraz" not in t1 and "Gracias, presidenta. Gracias. Presidente." in t1
+
+
+def test_strict_mode_keeps_acronyms_but_still_hides_surnames():
+    from decision.pseudonymize import find_names
+
+    text = "Habló con Alcaraz sobre el IVA, el PIB y la OPEP."
+    assert [n for _, _, n in find_names(text, True)] == ["Alcaraz"]

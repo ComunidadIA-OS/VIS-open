@@ -22,16 +22,21 @@ from dashboard.data import (
     evolution_table,
     fmt_time,
     gender_time_table,
+    inconclusive_reason,
     interventions_table,
     load_sessions,
     metric_card,
     report_html,
     save_review,
     timeline_strip,
+    transcript_csv,
     transcript_turns,
     video_path,
+    video_people_series,
     video_tables,
+    video_tracks_table,
     voice_blocks,
+    voice_transcripts,
     voices_table,
     voices_to_review,
 )
@@ -178,9 +183,12 @@ if screen == "Sesión":
     cards = [metric_card(r) for r in s.metrics.values()]
     for col, card in zip(st.columns(len(cards)), cards, strict=True):
         col.metric(card["titulo"].split(" (")[0], card["valor"])
+    if why := inconclusive_reason(s):
+        st.warning(why)
     for key, label in PENDING_METRICS.items():
         st.caption(f"{key} {label}: no disponible todavía")
 
+    st.header("Análisis de audio (transcripción y voces)")
     st.subheader("Tiempo de palabra por género")
     gt = gender_time_table(s)
     st.altair_chart(
@@ -201,7 +209,39 @@ if screen == "Sesión":
         use_container_width=True,
     )
 
-    st.subheader("Análisis de vídeo (sin caras)")
+    st.subheader("Transcripción")
+    with st.container(height=600):
+        for i, t in enumerate(transcript_turns(s)):
+            st.button(
+                f"▶ {fmt_time(t['inicio_s'])} · {t['persona']} · {t['genero']}",
+                key=f"go_{s.session_id}_{i}",
+                on_click=go_to,
+                args=(t["inicio_s"],),
+                disabled=not video_file,
+            )
+            st.write(t["texto"])
+    st.subheader("Voces y género")
+    voices = voices_table(s)
+    st.dataframe(voices, use_container_width=True)
+    st.caption("Pulsa en una voz para ver su transcripción.")
+    by_voice = voice_transcripts(s)
+    for r in voices.itertuples():
+        with st.expander(f"{r.persona} · {r.genero} · {r.minutos} min"):
+            for t in by_voice.get(r.persona, []):
+                st.write(f"**{fmt_time(t['inicio_s'])}** {t['texto']}")
+    st.subheader("Intervenciones")
+    inter = interventions_table(s)
+    shown = st.multiselect(
+        "Género a mostrar",
+        ["mujer", "hombre", "desconocido", "sin_atribuir"],
+        default=["mujer", "hombre", "desconocido", "sin_atribuir"],
+    )
+    st.dataframe(inter[inter["genero"].isin(shown)], use_container_width=True)
+    st.header("Análisis de vídeo (MediaPipe, sin caras)")
+    st.write(
+        "MediaPipe devuelve puntos del cuerpo; de ahí salen las personas visibles, el tiempo en "
+        "pantalla y las manos levantadas. No lee caras ni género."
+    )
     vt = video_tables(s)
     if not vt:
         st.info(
@@ -217,7 +257,17 @@ if screen == "Sesión":
             f"mediana {v['personas_visibles_mediana']}. "
             f"Fotogramas sin nadie: {v['fotogramas_sin_personas_%']} %."
         )
-        st.caption("Tiempo en pantalla por género (el género sale del audio, no de la imagen)")
+        st.subheader("Personas que ve la cámara a lo largo del vídeo")
+        st.altair_chart(
+            big(
+                alt.Chart(video_people_series(s))
+                .mark_area(opacity=0.6, line=True)
+                .encode(x="minuto", y="personas")
+            ),
+            use_container_width=True,
+        )
+        st.subheader("Tiempo en pantalla por género")
+        st.caption("El género sale del audio, no de la imagen.")
         st.altair_chart(
             big(
                 alt.Chart(vt[0])
@@ -226,8 +276,11 @@ if screen == "Sesión":
             ),
             use_container_width=True,
         )
+        st.subheader("Pistas con más tiempo en pantalla")
+        st.dataframe(video_tracks_table(s), use_container_width=True)
         hands = v.get("manos_levantadas", [])
-        st.caption("Manos levantadas (zona de la imagen y momento; ▶ mueve el vídeo de arriba)")
+        st.subheader("Manos levantadas")
+        st.caption("Zona de la imagen y momento; ▶ mueve el vídeo de arriba.")
         if not hands:
             st.write("No se han detectado manos levantadas.")
         hand_cols = st.columns(4)
@@ -239,28 +292,12 @@ if screen == "Sesión":
                 args=(h["inicio_s"],),
                 disabled=not video_file,
             )
-
-    st.subheader("Transcripción")
-    with st.container(height=600):
-        for i, t in enumerate(transcript_turns(s)):
-            st.button(
-                f"▶ {fmt_time(t['inicio_s'])} · {t['persona']} · {t['genero']}",
-                key=f"go_{s.session_id}_{i}",
-                on_click=go_to,
-                args=(t["inicio_s"],),
-                disabled=not video_file,
-            )
-            st.write(t["texto"])
-    st.subheader("Voces y género")
-    st.dataframe(voices_table(s), use_container_width=True)
-    st.subheader("Intervenciones")
-    inter = interventions_table(s)
-    shown = st.multiselect(
-        "Género a mostrar",
-        ["mujer", "hombre", "desconocido", "sin_atribuir"],
-        default=["mujer", "hombre", "desconocido", "sin_atribuir"],
+    st.download_button(
+        "Descargar transcripción (CSV)",
+        transcript_csv(s),
+        file_name=f"transcripcion_{s.session_id}.csv",
+        mime="text/csv",
     )
-    st.dataframe(inter[inter["genero"].isin(shown)], use_container_width=True)
     st.download_button(
         "Descargar informe",
         report_html(s),
