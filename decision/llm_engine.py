@@ -24,6 +24,10 @@ from pydantic import BaseModel, ConfigDict, Field, ValidationError
 from decision.engine import Decision, DecisionEngine, GenderLabel, Turn
 
 DEFAULT_BASE_URL = "http://localhost:8080/v1"
+# El motor no tiene herramientas ni deja que la configuración cambie el mensaje o el esquema.
+FORBIDDEN_EXTRA_KEYS = frozenset(
+    {"tools", "tool_choice", "functions", "function_call", "messages", "model", "response_format"}
+)
 FORBIDDEN_MODEL = re.compile(r"nimble[-_ ]?v3", re.IGNORECASE)
 
 SYSTEM_PROMPT = """Eres un clasificador lingüístico. Recibirás un texto de transcripción entre \
@@ -75,7 +79,15 @@ class LLMEngine(DecisionEngine):
         model: str,
         api_key: str = "",
         transport: Transport = urllib_transport,
+        extra_body: Mapping[str, Any] | None = None,
+        max_tokens: int | None = None,
     ) -> None:
+        extra_body = dict(extra_body or {})
+        blocked = FORBIDDEN_EXTRA_KEYS & extra_body.keys()
+        if blocked:
+            raise ValueError(f"LLM_EXTRA_BODY no puede incluir {sorted(blocked)}")
+        self.extra_body = extra_body
+        self.max_tokens = max_tokens
         if not model.strip():
             raise ValueError("falta LLM_MODEL")
         if FORBIDDEN_MODEL.search(model):
@@ -88,16 +100,26 @@ class LLMEngine(DecisionEngine):
     @classmethod
     def from_env(cls, env: Mapping[str, str] | None = None) -> LLMEngine:
         env = os.environ if env is None else env
+        raw_extra = (env.get("LLM_EXTRA_BODY") or "").strip()
+        try:
+            extra = json.loads(raw_extra) if raw_extra else {}
+            max_tokens = int(env["LLM_MAX_TOKENS"]) if env.get("LLM_MAX_TOKENS") else None
+        except ValueError as exc:
+            raise ValueError("LLM_EXTRA_BODY debe ser JSON y LLM_MAX_TOKENS un entero") from exc
+        if not isinstance(extra, dict):
+            raise ValueError("LLM_EXTRA_BODY debe ser un objeto JSON")
         return cls(
             base_url=env.get("LLM_BASE_URL") or DEFAULT_BASE_URL,
             model=env.get("LLM_MODEL", ""),
             api_key=env.get("LLM_API_KEY", ""),
+            extra_body=extra,
+            max_tokens=max_tokens,
         )
 
     def build_request(self, turn: Turn) -> dict[str, Any]:
         nonce = secrets.token_hex(8)  # el texto hostil no puede adivinar la marca de cierre
         data = f"[CONTEXTO]\n{turn.context_before or ''}\n[TURNO]\n{turn.text}"
-        return {
+        request: dict[str, Any] = {
             "model": self.model,
             "temperature": 0,
             "messages": [
@@ -114,6 +136,10 @@ class LLMEngine(DecisionEngine):
             },
             # Sin `tools` ni `tool_choice`: el modelo no puede actuar, solo responder.
         }
+        if self.max_tokens:
+            request["max_tokens"] = self.max_tokens
+        request.update(self.extra_body)  # ya validado: no puede tocar mensajes ni herramientas
+        return request
 
     def _decide(self, turn: Turn) -> Decision:
         reply = self._transport(

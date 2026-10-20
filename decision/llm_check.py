@@ -54,12 +54,19 @@ def main() -> None:
     if not model:
         print("Pon en .env LLM_MODEL=<uno de la lista> y vuelve a ejecutar.")
         return
+    engine = LLMEngine.from_env()
+    print(
+        "parámetros extra:",
+        sorted(engine.extra_body) or "ninguno",
+        "| max_tokens:",
+        engine.max_tokens,
+    )
     turn = Turn(
         turn_id="prueba",
         context_before="Tiene la palabra la señora Persona 2.",  # sintético
         text="Gracias, presidenta. Buenos días, señorías.",
     )
-    d = LLMEngine(base, model, key).decide(turn)
+    d = engine.decide(turn)
     print("decisión:", d.gender, d.confidence, "| error:", d.error, "| latencia_s:", d.latency_s)
     print("coste:", json.dumps(usage_report([d], Prices.from_env()), ensure_ascii=False))
 
