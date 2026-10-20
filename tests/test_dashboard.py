@@ -121,11 +121,11 @@ def test_two_annotators_must_agree_and_confirmed_gender_is_applied(tmp_path):
     from dashboard.data import agreed_genders, apply_confirmed, save_review
 
     folder = _review_folder(tmp_path)
-    save_review(folder, 1, "SPEAKER_00", "mujer", "alta", "")
+    save_review(folder, 1, "SPEAKER_00", "mujer", "alta", "", "ID-1")
     assert agreed_genders(folder) == {}  # solo una anotadora
-    save_review(folder, 2, "SPEAKER_00", "mujer", "media", "")
-    save_review(folder, 1, "SPEAKER_01", "hombre", "alta", "")
-    save_review(folder, 2, "SPEAKER_01", "mujer", "alta", "")  # no coinciden
+    save_review(folder, 2, "SPEAKER_00", "mujer", "media", "", "ID-2")
+    save_review(folder, 1, "SPEAKER_01", "hombre", "alta", "", "ID-1")
+    save_review(folder, 2, "SPEAKER_01", "mujer", "alta", "", "ID-2")  # no coinciden
     assert agreed_genders(folder) == {"SPEAKER_00": "mujer"}
     tl = AnalysisTimeline(
         video_id="V9",
@@ -143,7 +143,7 @@ def test_save_review_rejects_unknown_voice(tmp_path):
     from dashboard.data import save_review
 
     with _pytest.raises(ValueError):
-        save_review(_review_folder(tmp_path), 1, "SPEAKER_99", "mujer", "alta", "")
+        save_review(_review_folder(tmp_path), 1, "SPEAKER_99", "mujer", "alta", "", "ID-1")
 
 
 def test_voice_blocks_and_time_format():
@@ -181,3 +181,17 @@ def test_transcript_turns_merge_same_voice_and_use_codes(sessions):
     assert turns and set(turns[0]) == {"inicio_s", "speaker_id", "persona", "genero", "texto"}
     assert all(t["persona"].startswith("Persona ") or t["persona"] == "sin atribuir" for t in turns)
     assert len(turns) <= sum(1 for e in sessions[0].timeline.events if e.text)
+
+
+def test_same_person_cannot_confirm_twice_and_bad_connection_id_is_refused(tmp_path):
+    import pytest as _pytest
+
+    from dashboard.data import agreed_genders, save_review, valid_connection_id
+
+    folder = _review_folder(tmp_path)
+    save_review(folder, 1, "SPEAKER_00", "mujer", "alta", "", "ID-1")
+    save_review(folder, 2, "SPEAKER_00", "mujer", "alta", "", "ID-1")  # mismo ID en los dos
+    assert agreed_genders(folder) == {}
+    assert not valid_connection_id("Ana García") and valid_connection_id("ID-2")
+    with _pytest.raises(ValueError):
+        save_review(folder, 1, "SPEAKER_00", "mujer", "alta", "", "ana@correo.es")

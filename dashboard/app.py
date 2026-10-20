@@ -13,6 +13,7 @@ from pathlib import Path
 import altair as alt
 import streamlit as st
 
+from dashboard.auth import auth_enabled, check_login
 from dashboard.data import (
     METHOD_NOTICE,
     PENDING_METRICS,
@@ -28,6 +29,7 @@ from dashboard.data import (
     save_review,
     timeline_strip,
     transcript_turns,
+    valid_connection_id,
     video_path,
     video_tables,
     voice_blocks,
@@ -64,9 +66,40 @@ st.markdown(
     unsafe_allow_html=True,
 )
 DATA_DIR = Path(os.environ.get("DATA_DIR") or "data")
+
+
+def login_gate() -> str | None:
+    """Pide usuario, contraseña y código del autenticador si hay usuarios dados de alta."""
+    if not auth_enabled(DATA_DIR):
+        return None
+    if "user" not in st.session_state:
+        st.title("VIS Open")
+        with st.form("login"):
+            user_id = st.text_input("ID de usuario")
+            password = st.text_input("Contraseña", type="password")
+            code = st.text_input("Código de 6 cifras del autenticador")
+            if st.form_submit_button("Entrar"):
+                ok, why = check_login(DATA_DIR, user_id.strip(), password, code)
+                if ok:
+                    st.session_state["user"] = user_id.strip()
+                    st.rerun()
+                st.error(why)
+        st.stop()
+    return st.session_state["user"]
+
+
+current_user = login_gate()
 sessions = load_sessions(DATA_DIR)
 screen = st.sidebar.radio("Pantalla", ["Sesión", "Evolución"])
 st.sidebar.info(METHOD_NOTICE)
+if current_user:
+    st.sidebar.write(f"Conectada: {current_user}")
+    if st.sidebar.button("Salir"):
+        del st.session_state["user"]
+        st.rerun()
+    connection_id = current_user
+else:
+    connection_id = st.sidebar.text_input("ID de conexión (código, sin nombre)")
 
 if not sessions:
     st.warning("No hay sesiones procesadas.")
@@ -138,6 +171,11 @@ if screen == "Sesión":
             who = st.radio(
                 "Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}"
             )
+            if not valid_connection_id(connection_id):
+                st.warning(
+                    "Escribe tu ID de conexión en la barra lateral (2 a 20 letras o números, "
+                    "sin nombres) para poder guardar."
+                )
             codes = speaker_codes(s.timeline)
             with st.container(height=520):
                 for row in pending:
@@ -167,6 +205,7 @@ if screen == "Sesión":
                                 gender,
                                 confidence,
                                 notes,
+                                connection_id,
                             )
                             st.success("Guardado. Recarga la página para ver el efecto.")
 
