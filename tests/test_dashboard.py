@@ -280,7 +280,9 @@ def test_tracks_table_ends_with_totals_by_gender(tmp_path):
             {
                 "aviso": "x", "pistas": pistas,
                 "tiempo_en_pantalla_por_genero_s": {"hombre": 120, "mujer": 60, "desconocido": 0},
-                "tiempo_en_pantalla_por_genero_%": {"hombre": 66.7, "mujer": 33.3, "desconocido": 0},
+                "tiempo_en_pantalla_por_genero_%": {
+                    "hombre": 66.7, "mujer": 33.3, "desconocido": 0,
+                },
             }
         ),
         encoding="utf-8",
