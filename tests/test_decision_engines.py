@@ -208,3 +208,29 @@ def test_engine_failure_is_counted_not_raised():
     r = evaluate(Broken(), [(Turn(turn_id="1", text="x"), "mujer")])
     assert r["errors"] == 1 and r["review_rate"] == 1.0 and r["per_class"]["mujer"]["recall"] == 0.0
     assert isinstance(Decision(), Decision)
+
+
+def test_extra_body_and_max_tokens_go_into_the_request_but_cannot_add_tools():
+    e = LLMEngine(
+        "http://x/v1", "qwen3", extra_body={"chat_template_kwargs": {"enable_thinking": False}},
+        max_tokens=200,
+    )  # fmt: skip
+    req = e.build_request(Turn(turn_id="1", text="hola"))
+    assert req["chat_template_kwargs"] == {"enable_thinking": False} and req["max_tokens"] == 200
+    assert "tools" not in req and req["response_format"]["json_schema"]["strict"] is True
+    for bad in ("tools", "messages", "response_format", "model"):
+        with pytest.raises(ValueError):
+            LLMEngine("http://x/v1", "qwen3", extra_body={bad: 1})
+
+
+def test_extra_body_from_env_and_invalid_values():
+    env = {
+        "LLM_MODEL": "qwen3",
+        "LLM_EXTRA_BODY": '{"chat_template_kwargs": {"enable_thinking": false}}',
+        "LLM_MAX_TOKENS": "150",
+    }
+    e = LLMEngine.from_env(env)
+    assert e.max_tokens == 150 and "chat_template_kwargs" in e.extra_body
+    for bad in ({"LLM_EXTRA_BODY": "no json"}, {"LLM_EXTRA_BODY": "[1]"}, {"LLM_MAX_TOKENS": "x"}):
+        with pytest.raises(ValueError):
+            LLMEngine.from_env({"LLM_MODEL": "qwen3", **bad})
