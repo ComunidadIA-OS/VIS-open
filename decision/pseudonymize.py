@@ -63,6 +63,13 @@ def _keep_words(language: str = "es") -> frozenset[str]:
     )
 
 
+@lru_cache
+def _common_words(language: str = "es") -> frozenset[str]:
+    with (CUES_DIR / f"{language}.toml").open("rb") as fh:
+        words = tomllib.load(fh).get("pseudonymize", {}).get("common", [])
+    return frozenset(t for w in words for t in _plain(w).split())
+
+
 _CAP_TOKEN = re.compile(_CAP)
 _SENTENCE_START = re.compile(r"(?:^|[.?!¿¡:;«\"(–—-])\s*$")
 
@@ -70,10 +77,11 @@ _SENTENCE_START = re.compile(r"(?:^|[.?!¿¡:;«\"(–—-])\s*$")
 def _strict_spans(text: str) -> list[tuple[int, int, str]]:
     """Palabras con mayúscula a mitad de frase que no están en la lista de excepciones.
 
-    Una palabra con mayúscula al inicio de frase solo cuenta si va seguida de otra candidata
-    («Agustio Itamillasquer presenta»): una sola, no se distingue de una frase normal.
+    A inicio de frase, una palabra cuenta si va seguida de otra candidata («Agustio Itamillasquer
+    presenta») o si es la frase entera («Uriarte.») y no es una palabra común («Gracias.»).
     """
     keep = _keep_words()
+    common = _common_words()
     spans: list[tuple[int, int, str]] = []
     held: re.Match | None = None  # candidata al inicio de frase, pendiente de la siguiente
     for m in _CAP_TOKEN.finditer(text):
@@ -81,7 +89,12 @@ def _strict_spans(text: str) -> list[tuple[int, int, str]]:
             held = None
             continue
         if _SENTENCE_START.search(text[: m.start()]):
-            held = m
+            alone = text[m.end() : m.end() + 1] in ("", ".", "?", "!")
+            if alone and _plain(m.group()).strip() not in common:
+                spans.append((m.start(), m.end(), m.group()))
+                held = None
+            else:
+                held = m
             continue
         if held is not None and text[held.end() : m.start()] == " ":
             spans.append((held.start(), m.end(), text[held.start() : m.end()]))

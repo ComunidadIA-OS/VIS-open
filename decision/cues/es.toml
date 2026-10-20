@@ -78,3 +78,14 @@ keep = [
   "DANA", "Oriente", "Medio", "Valenciana", "Mazón", "Plan", "Integral", "Respuesta", "Crisis",
   "Señorías", "Señoría", "Dios", "Navidad", "Europeo", "Banco", "Central", "Mundial", "Ibex",
 ]
+
+# Palabras que, solas como frase («Gracias.», «Presidente.»), NO se redactan. Cualquier otra
+# palabra suelta con mayúscula como frase entera se trata como un apellido y se sustituye.
+common = [
+  "Gracias", "Muchas", "Muchísimas", "Bueno", "Bien", "Vale", "Claro", "Perfecto", "Adelante",
+  "Entonces", "También", "Además", "Después", "Antes", "Ahora", "Hoy", "Aquí", "Allí", "Sí", "No",
+  "Pues", "Pero", "Porque", "Cuando", "Mientras", "Señorías", "Señoría", "Presidente", "Presidenta",
+  "Silencio", "Votación", "Gracias", "Hola", "Buenos", "Buenas", "Días", "Tardes", "Noches", "Ruego",
+  "Termino", "Concluyo", "Finalizo", "Acabo", "Perdón", "Disculpe", "Atención", "Orden", "Cierro",
+  "Fin", "Final", "Nada", "Todo", "Todos", "Todas", "Nunca", "Siempre", "Quizás", "Gobierno",
+]

@@ -139,3 +139,16 @@ def test_pseudonymizing_twice_is_stable():
     once, _ = pseudonymize_timeline(tl)
     twice, _ = pseudonymize_timeline(once)
     assert [e.text for e in once.events] == [e.text for e in twice.events]
+
+
+def test_standalone_surname_as_a_whole_sentence_is_redacted_but_common_words_are_not():
+    tl = make(
+        [
+            ("SPEAKER_00", "Uriarte."),
+            ("SPEAKER_01", "Alcaraz. Gracias, presidenta. Gracias. Presidente."),
+        ]
+    )
+    out, _ = pseudonymize_timeline(tl)
+    assert "Uriarte" not in out.events[0].text and out.events[0].text.startswith("Persona")
+    t1 = out.events[1].text
+    assert "Alcaraz" not in t1 and "Gracias, presidenta. Gracias. Presidente." in t1
