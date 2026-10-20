@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: medida real con Qwen3.5-9B en OVH AI Endpoints: `reasoning_effort: none` baja de 1.121 a 63 tokens de salida y de 38,9 a 3,6 s por llamada (`docs/COSTES_API.md`).
 - 20 oct 2026: `evaluation.benchmark --detalle <carpeta>` guarda la decisión de cada turno (CSV) para analizar los errores de cada motor. Con los turnos sintéticos, Qwen3.5-9B por API: F1 0,76, sin confundir nunca mujer con hombre, 18 de 69 hombres a «desconocido», 0,0055 € por 120 turnos.
 - 20 oct 2026: `LLM_EXTRA_BODY` (JSON, sin `tools`, `messages`, `model` ni `response_format`) y `LLM_MAX_TOKENS` para el motor LLM, para quitar el razonamiento de Qwen 3 (en la prueba con Qwen3.5-9B: 1.121 tokens de salida y 39 s para una respuesta de ~30 tokens).
 - 20 oct 2026: `python -m decision.llm_check` lista los modelos de la API (OVH AI Endpoints u otra compatible con OpenAI) y hace una llamada de prueba sintética con tokens y coste; `docs/COSTES_API.md` con los modelos Qwen candidatos y sus precios del catálogo público (20 oct).
