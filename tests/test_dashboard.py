@@ -164,3 +164,20 @@ def test_voice_blocks_and_time_format():
     )
     assert voice_blocks(tl, "SPEAKER_00", top=2) == [(0, 20), (200, 230)]
     assert fmt_time(178) == "2:58" and fmt_time(5) == "0:05"
+
+
+def test_evolution_gender_table_has_every_session_even_without_conclusive_metrics(sessions):
+    from dashboard.data import evolution_gender_table
+
+    t = evolution_gender_table(sessions)
+    assert set(t["sesion"]) == {s.session_id for s in sessions}
+    assert list(t.columns) == ["sesion", "gender", "porcentaje"]
+
+
+def test_transcript_turns_merge_same_voice_and_use_codes(sessions):
+    from dashboard.data import transcript_turns
+
+    turns = transcript_turns(sessions[0])
+    assert turns and set(turns[0]) == {"inicio_s", "speaker_id", "persona", "genero", "texto"}
+    assert all(t["persona"].startswith("Persona ") or t["persona"] == "sin atribuir" for t in turns)
+    assert len(turns) <= sum(1 for e in sessions[0].timeline.events if e.text)

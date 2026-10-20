@@ -142,6 +142,39 @@ def voice_blocks(
     return [(b[0], b[1]) for b in sorted(longest)]
 
 
+def transcript_turns(session: Session, max_words: int = 60, gap_s: float = 3.0) -> list[dict]:
+    """Transcripción seudonimizada en trozos legibles: inicio, persona (código), género y texto."""
+    codes = speaker_codes(session.timeline)
+    gender = {sp.speaker_id: sp.gender.value for sp in session.timeline.speakers}
+    events = sorted(
+        (e for e in session.timeline.events if e.type == EventType.SPEECH and e.text),
+        key=lambda e: e.start_s,
+    )
+    turns: list[dict] = []
+    last_end = 0.0
+    for e in events:
+        prev = turns[-1] if turns else None
+        if (
+            prev
+            and prev["speaker_id"] == e.speaker_id
+            and e.start_s - last_end <= gap_s
+            and len(prev["texto"].split()) < max_words
+        ):
+            prev["texto"] += " " + e.text.strip()
+        else:
+            turns.append(
+                {
+                    "inicio_s": e.start_s,
+                    "speaker_id": e.speaker_id,
+                    "persona": codes.get(e.speaker_id, "sin atribuir"),
+                    "genero": gender.get(e.speaker_id, "sin_atribuir"),
+                    "texto": e.text.strip(),
+                }
+            )
+        last_end = e.end_s
+    return turns
+
+
 def agreed_genders(folder: Path) -> dict[str, str]:
     """Voz → género, solo si las dos anotadoras pusieron el mismo (mujer u hombre)."""
     answers: list[dict[str, str]] = []
@@ -280,6 +313,12 @@ def evolution_table(sessions: list[Session]) -> pd.DataFrame:
         row["M14"] = row["M09"] = None  # aún no disponibles
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["fecha", "sesion"], ignore_index=True)
+
+
+def evolution_gender_table(sessions: list[Session]) -> pd.DataFrame:
+    """% de tiempo de palabra por género y sesión (existe aunque la métrica no sea concluyente)."""
+    frames = [gender_time_table(s).assign(sesion=s.session_id) for s in sessions]
+    return pd.concat(frames, ignore_index=True)[["sesion", "gender", "porcentaje"]]
 
 
 def report_html(session: Session) -> str:
