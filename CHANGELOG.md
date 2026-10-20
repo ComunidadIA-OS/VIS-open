@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: el panel enseña el vídeo sin caras (tiempo en pantalla por género según el audio y manos levantadas por zona) si existe `video.json`, siempre con el aviso del límite de conteo.
 - 20 oct 2026: `evaluation/asr_diar.py` calcula WER y DER contra una referencia a mano (DER con asignación óptima de hablantes y habla solapada, sin collar); con tests calculados a mano. Falta la referencia anotada de un tramo real.
 - 20 oct 2026: el prompt del motor LLM da ejemplos simétricos para mujer y hombre. En el benchmark sintético, Qwen3.5-9B acertaba todas las mujeres pero dejaba hasta 22 de 69 hombres en «desconocido» aunque el contexto dijera «el señor…» (el único ejemplo del prompt era femenino); además el resultado varía entre ejecuciones.
 - 20 oct 2026: `evaluation.benchmark` lee el `.env` (antes fallaba con «falta LLM_MODEL»).
