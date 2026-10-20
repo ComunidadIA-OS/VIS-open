@@ -208,3 +208,52 @@ def test_floor_grant_when_diarization_merged_chair_and_speaker_is_only_a_suggest
     gender, a = gender_of(tl, "SPEAKER_00")
     assert gender == U and a.needs_review and a.suggestion == W
     assert a.evidence[0].method == "floor_grant_same_voice" and a.evidence[0].confidence < 0.7
+
+
+def test_floor_grant_splits_a_merged_voice_and_assigns_the_gender_after_it(monkeypatch):
+    from decision import split_on_floor_grant
+
+    monkeypatch.setattr("decision.gender_cues.MIN_SPLIT_S", 5.0)  # turnos de prueba de 4 s
+
+    tl = make(
+        [
+            ("SPEAKER_00", "Tiene la palabra la señora Persona 2."),
+            ("SPEAKER_00", "Muchas gracias, presidente. Buenos días."),
+            ("SPEAKER_00", "Hoy hablamos de vivienda."),
+            ("SPEAKER_00", "Tiene la palabra el señor Persona 3."),
+            ("SPEAKER_00", "Gracias. Voy a hablar de energía."),
+            ("SPEAKER_00", "Y también de empleo."),
+        ]
+    )
+    out = split_on_floor_grant(tl, load_rules())
+    assert [e.speaker_id for e in out.events] == [
+        "SPEAKER_00", "SPEAKER_01", "SPEAKER_01", "SPEAKER_00", "SPEAKER_02", "SPEAKER_02",
+    ]  # fmt: skip
+    assert [s.speaker_id for s in out.speakers] == ["SPEAKER_00", "SPEAKER_01", "SPEAKER_02"]
+    assert next(s for s in out.speakers if s.speaker_id == "SPEAKER_01").total_speech_s == 8
+    gender = {a.speaker_id: a.gender for a in assign_genders(out, load_rules())}
+    assert gender == {"SPEAKER_00": U, "SPEAKER_01": W, "SPEAKER_02": M}
+
+
+def test_split_leaves_alone_a_timeline_whose_voices_are_already_separate():
+    from decision import split_on_floor_grant
+
+    tl = make(
+        [
+            ("SPEAKER_00", "Tiene la palabra la señora Persona 2."),
+            ("SPEAKER_01", "Gracias presidente."),
+        ]
+    )
+    assert split_on_floor_grant(tl, load_rules()) is tl
+
+
+def test_a_short_stretch_after_a_floor_phrase_is_not_split_off():
+    from decision import split_on_floor_grant
+
+    tl = make(
+        [
+            ("SPEAKER_00", "Tiene la palabra el señor Persona 2."),
+            ("SPEAKER_00", "Gracias."),
+        ]
+    )  # 4 s tras la frase: menos que MIN_SPLIT_S, es ruido
+    assert split_on_floor_grant(tl, load_rules()) is tl

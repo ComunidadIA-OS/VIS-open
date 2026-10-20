@@ -17,6 +17,10 @@ El género de una voz sale del **texto de la transcripción** y siempre con evid
 
 Las referencias a terceros («la señora ministra dijo…») no cuentan como pista. Cargos sin forma propia (portavoz, ponente) toman el género del artículo.
 
+## Dar la palabra vale para todos los vídeos
+
+Regla de Sabrina: «doy la palabra a la señora / al señor = mujer / hombre»: lo que sigue a «tiene la palabra la señora X» (o «el señor X») es de esa persona. Si la diarización ya separó las voces, se usa la voz siguiente (`floor_grant`, 0,85). Si la dejó fusionada con quien da la palabra, `split_on_floor_grant` (`decision/gender_cues.py`) pasa los eventos siguientes, hasta la próxima vez que se da la palabra, a una voz nueva, siempre que sumen al menos 15 s; después se aplica la misma pista. Límites: unos segundos de la Presidencia justo después de la frase (p. ej. leer el título) pueden quedar en la voz nueva, y un clip que empieza a mitad de una intervención no tiene esa frase y sigue en `desconocido`. Pendiente del visto bueno de Ivette. Efecto medido (20 oct 2026): V001 pasa de 0 % a 98,7 % del tiempo con género (mujer); V002–V004 no cambian.
+
 ## Reglas de decisión
 
 1. Sin pistas → `desconocido` + revisión (motivo «sin pistas en el lenguaje»).

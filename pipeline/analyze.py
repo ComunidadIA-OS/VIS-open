@@ -13,8 +13,9 @@ from decision import (
     assign_genders,
     build_gender_review_rows,
     load_rules,
+    split_on_floor_grant,
 )
-from decision.pseudonymize import pseudonymize_timeline
+from decision.pseudonymize import pseudonymize_timeline, speaker_codes
 from metrics import sample_of, speech_time_by_gender, timeline_to_frame
 
 NOTICE = (
@@ -29,7 +30,10 @@ def analyze_timeline(
 ) -> tuple[AnalysisTimeline, list[ReviewRow], dict]:
     """Devuelve (línea de tiempo sin nombres y con género, filas de revisión, resumen)."""
     timeline, codes = pseudonymize_timeline(timeline)  # primero: ningún nombre llega a la salida
-    assignments = assign_genders(timeline, rules or load_rules("es"))
+    rules = rules or load_rules("es")
+    timeline = split_on_floor_grant(timeline, rules)
+    codes = speaker_codes(timeline)
+    assignments = assign_genders(timeline, rules)
     enriched = apply_assignments(timeline, assignments)
     review = build_gender_review_rows(timeline, assignments, annotator_id)
     frame = timeline_to_frame(enriched)
