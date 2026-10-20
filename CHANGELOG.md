@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: Human in the loop con una muestra corta por voz (9 s, cortada de verdad con FFmpeg en `data/clips/`), con el texto que dice y un botón «Otra muestra»; la instrucción aclara que se valida la voz que se oye, no las otras personas de la imagen.
 - 20 oct 2026: la tabla de pistas de vídeo termina con el total por género (hombre, mujer, desconocido: minutos y %) en el panel y el PDF, y cada pista lleva su % del tiempo; la línea de tiempo es más alta y gruesa.
 - 20 oct 2026: panel con títulos un 15 % más grandes y coloreados (morado y verde azulado, como los gráficos), tablas en HTML más grandes (voces, pistas, evolución, intervenciones con páginas de 25), transcripción con texto más pequeño y análisis de vídeo con texto un 15 % más pequeño.
 - 20 oct 2026: el informe descargable es un PDF (ReportLab, BSD) con resumen, métricas, audio, vídeo y método; ya no hay informe en HTML. `python -m dashboard.export` guarda el PDF y la transcripción en CSV de cada sesión.

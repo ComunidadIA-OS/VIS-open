@@ -291,3 +291,29 @@ def test_tracks_table_ends_with_totals_by_gender(tmp_path):
     assert list(t["pista"]) == ["1", "2", "Total hombre", "Total mujer", "Total desconocido"]
     assert list(t["porcentaje"]) == [66.7, 33.3, 66.7, 33.3, 0.0]
     assert list(t["minutos_en_pantalla"])[-3:] == [2.0, 1.0, 0.0]
+
+
+def test_make_clip_cuts_only_the_requested_seconds(tmp_path):
+    import shutil
+    import subprocess
+
+    import pytest as _pytest
+
+    from dashboard.data import make_clip
+
+    if shutil.which("ffmpeg") is None or shutil.which("ffprobe") is None:
+        _pytest.skip("hace falta FFmpeg")
+    src = tmp_path / "src.mp4"
+    subprocess.run(  # vídeo de prueba de 6 s generado por FFmpeg, no es un vídeo real
+        ["ffmpeg", "-y", "-loglevel", "error", "-f", "lavfi", "-i", "testsrc=size=160x90:rate=10",
+         "-t", "6", "-pix_fmt", "yuv420p", str(src)],
+        check=True,
+    )  # fmt: skip
+    clip = make_clip(src, 2.0, 5.0, tmp_path / "clips", "S_SPEAKER_00")
+    assert clip is not None and clip.name == "S_SPEAKER_00_2_5.mp4"
+    out = subprocess.run(
+        ["ffprobe", "-v", "error", "-show_entries", "format=duration", "-of", "csv=p=0", str(clip)],
+        capture_output=True, text=True, check=True,
+    )  # fmt: skip
+    assert 2.5 < float(out.stdout) < 3.5
+    assert make_clip(src, 3.0, 3.0, tmp_path / "clips", "x") is None
