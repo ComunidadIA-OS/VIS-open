@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: prueba de humo en el notebook de OVH (2×V100S): `volta_sm70_supported: true`, transcripción `large-v3` en float16 y separación de voces correctas. WhisperX pasa al extra opcional `[align]` (fija torch 2.8 y rompería el PyTorch del notebook); el Dockerfile lo instala con `[pipeline,align]`. `docs/PRUEBA_GPU.md` documenta la vía del notebook.
 - 19 oct 2026: seudonimización en modo estricto (cualquier palabra con mayúscula a mitad de frase fuera de una lista de excepciones se sustituye), `pipeline.reanalyze` para repetir el análisis sin volver a transcribir, y pista débil `floor_grant_same_voice` (< 0,7, solo sugerencia en la revisión) cuando la diarización junta a la Presidencia con quien habla. `docs/SEUDONIMIZACION.md`. Dos skills del proyecto en `.claude/skills/` (`procesar-sesion`, `revisar-antes-de-publicar`).
 - 19 oct 2026: esqueleto del panel en `dashboard/` (Streamlit): pantalla de sesión (tarjetas M01–M04 y M13, gráficos, línea de tiempo, tabla de intervenciones sin nombres, informe HTML descargable) y pantalla de evolución, con datos sintéticos o `data/processed/`. `streamlit run dashboard/app.py`. M09 y M14 aparecen como «no disponible todavía». 5 pruebas, incluida la carga de la app.
 - 19 oct 2026: `metrics/borrador.py` con M01, M02, M03, M04 y M13 en BORRADOR (definiciones de una línea del README; mínimos de muestra provisionales), pendientes de la definición formal de Ivette. 7 pruebas con casos hechos a mano.

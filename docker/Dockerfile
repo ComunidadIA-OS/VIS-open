@@ -15,7 +15,7 @@ COPY pipeline ./pipeline
 FROM base AS cpu
 ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cpu
 ENV WHISPER_DEVICE=cpu
-RUN pip install --extra-index-url ${TORCH_INDEX_URL} -c constraints.txt ".[pipeline]"
+RUN pip install --extra-index-url ${TORCH_INDEX_URL} -c constraints.txt ".[pipeline,align]"
 CMD ["python", "-m", "pipeline.smoke"]
 
 # --- GPU: V100S (Volta, sm_70, sin bf16): float16 o int8 ---
@@ -23,7 +23,7 @@ FROM base AS gpu
 # Cambia el índice si la rueda de torch deja de incluir sm_70; el smoke test lo comprueba.
 ARG TORCH_INDEX_URL=https://download.pytorch.org/whl/cu126
 ENV WHISPER_DEVICE=cuda WHISPER_COMPUTE_TYPE=float16
-RUN pip install --extra-index-url ${TORCH_INDEX_URL} -c constraints.txt ".[pipeline]"
+RUN pip install --extra-index-url ${TORCH_INDEX_URL} -c constraints.txt ".[pipeline,align]"
 # ctranslate2 (faster-whisper) busca cuDNN/cuBLAS de CUDA 12 en esta ruta (vienen con torch).
 ENV LD_LIBRARY_PATH=/usr/local/lib/python3.12/site-packages/nvidia/cudnn/lib:/usr/local/lib/python3.12/site-packages/nvidia/cublas/lib
 CMD ["python", "-m", "pipeline.smoke"]
