@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: «dar la palabra» vale para todos los vídeos: si la diarización fusionó a quien da la palabra con quien la recibe, `split_on_floor_grant` separa la voz nueva (mín. 15 s) y la pista habitual le da el género. V001 pasa de 0 % a 98,7 % del tiempo con género. Pendiente del visto bueno de Ivette.
 - 20 oct 2026: `docs/PRODUCCION.md` (acceso con 2FA, datos compartidos, automatización: fuera de la entrega) y notas para la presentación en `MEMORY.md`.
 - 20 oct 2026: pestaña «Análisis de vídeo» junto al vídeo (personas visibles, tiempo en pantalla por género según el audio y manos levantadas con ▶ al momento); si la sesión no tiene análisis, explica cómo generarlo.
 - 20 oct 2026: acceso al panel con usuario, contraseña y segundo factor TOTP (`dashboard/auth.py`, solo biblioteca estándar), bloqueo tras 5 fallos y registro de accesos; el ID de conexión se guarda en cada revisión y dos confirmaciones del mismo ID no valen.

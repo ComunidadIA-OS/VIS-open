@@ -44,6 +44,8 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Límites del vídeo: modelo de pose de una sola persona (Apache-2.0), cuenta de menos en planos amplios.
 - Todo open source y en local. Para producción (`docs/PRODUCCION.md`): usuario, contraseña y 2FA, base de datos compartida (Supabase autoalojado u otra), automatización de sesiones nuevas.
 
+- Regla de género confirmada por Sabrina (20 oct): «dar la palabra a la señora/el señor = mujer/hombre» vale para todos los vídeos, incluso con voces fusionadas por la diarización (`split_on_floor_grant`); pendiente del visto bueno de Ivette.
+
 ## Reglas de trabajo
 - El género nunca se infiere de la cara ni de la voz; `desconocido` siempre visible.
 - Ningún secreto (tokens, `.env`) ni dato real (vídeos, audios, transcripciones) en el repositorio ni en carpetas que lea la organización.
