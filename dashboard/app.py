@@ -127,6 +127,11 @@ if screen == "Sesión":
     def go_to(seconds: float) -> None:
         st.session_state[minute_key] = min(seconds / 60, max_minute)
 
+    pending = [
+        r
+        for r in voices_to_review(DATA_DIR / "processed" / s.session_id)
+        if r.speaker_id not in s.confirmed
+    ]
     left, right = st.columns([3, 2])
     with left:
         if video_file:
@@ -137,16 +142,46 @@ if screen == "Sesión":
             st.caption("Vídeo original del Congreso, sin alterar. Solo se ve en este equipo.")
         else:
             st.info("El vídeo original no está en este equipo (`data/raw/`): solo se ve el texto.")
-
-    pending = [
-        r
-        for r in voices_to_review(DATA_DIR / "processed" / s.session_id)
-        if r.speaker_id not in s.confirmed
-    ]
-    with right:
-        tab_text, tab_hitl, tab_video = st.tabs(
-            ["Transcripción", f"Human in the loop ({len(pending)})", "Análisis de vídeo"]
+        st.subheader(f"Human in the loop ({len(pending)} voces sin confirmar)")
+        if not pending:
+            st.success("Todas las voces de esta sesión ya tienen género.")
+        st.write(
+            "Human in the loop: mira y escucha cada tramo. Pon mujer u hombre solo si lo "
+            "tienes claro; si no, desconocido. El género cuenta cuando **las dos anotadoras** "
+            "coinciden."
         )
+        who = st.radio("Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}")
+        codes = speaker_codes(s.timeline)
+        with st.container(height=520):
+            for row in pending:
+                code = codes.get(row.speaker_id, row.speaker_id)
+                st.subheader(code)
+                for k, (start, end) in enumerate(voice_blocks(s.timeline, row.speaker_id)):
+                    st.button(
+                        f"▶ {code}: de {fmt_time(start)} a {fmt_time(end)}",
+                        key=f"blk_{s.session_id}_{row.speaker_id}_{k}",
+                        on_click=go_to,
+                        args=(start,),
+                        disabled=not video_file,
+                    )
+                with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
+                    gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
+                    confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
+                    notes = st.text_input("Notas (opcional, sin nombres)")
+                    if st.form_submit_button("Guardar"):
+                        save_review(
+                            DATA_DIR / "processed" / s.session_id,
+                            who,
+                            row.speaker_id,
+                            gender,
+                            confidence,
+                            notes,
+                            current_user or f"anotadora_{who}",
+                        )
+                        st.success("Guardado. Recarga la página para ver el efecto.")
+
+    with right:
+        tab_text, tab_video = st.tabs(["Transcripción", "Análisis de vídeo"])
         with tab_text:
             with st.container(height=620):
                 for i, t in enumerate(transcript_turns(s)):
@@ -158,48 +193,6 @@ if screen == "Sesión":
                         disabled=not video_file,
                     )
                     st.write(t["texto"])
-        with tab_hitl:
-            st.write(
-                "Human in the loop: mira y escucha cada tramo. Pon mujer u hombre solo si lo "
-                "tienes claro; si no, desconocido. El género cuenta cuando **las dos anotadoras** "
-                "coinciden."
-            )
-            who = st.radio(
-                "Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}"
-            )
-            codes = speaker_codes(s.timeline)
-            with st.container(height=520):
-                for row in pending:
-                    code = codes.get(row.speaker_id, row.speaker_id)
-                    st.subheader(code)
-                    for k, (start, end) in enumerate(voice_blocks(s.timeline, row.speaker_id)):
-                        st.button(
-                            f"▶ {code}: de {fmt_time(start)} a {fmt_time(end)}",
-                            key=f"blk_{s.session_id}_{row.speaker_id}_{k}",
-                            on_click=go_to,
-                            args=(start,),
-                            disabled=not video_file,
-                        )
-                    with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
-                        gender = st.radio(
-                            "Género", ["mujer", "hombre", "desconocido"], horizontal=True
-                        )
-                        confidence = st.radio(
-                            "Seguridad", ["alta", "media", "baja"], horizontal=True
-                        )
-                        notes = st.text_input("Notas (opcional, sin nombres)")
-                        if st.form_submit_button("Guardar"):
-                            save_review(
-                                DATA_DIR / "processed" / s.session_id,
-                                who,
-                                row.speaker_id,
-                                gender,
-                                confidence,
-                                notes,
-                                current_user or f"anotadora_{who}",
-                            )
-                            st.success("Guardado. Recarga la página para ver el efecto.")
-
         with tab_video:
             vt = video_tables(s)
             if not vt:
