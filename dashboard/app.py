@@ -29,10 +29,10 @@ from dashboard.data import (
     save_review,
     timeline_strip,
     transcript_turns,
-    valid_connection_id,
     video_path,
     video_tables,
     voice_blocks,
+    voices_table,
     voices_to_review,
 )
 from decision.pseudonymize import speaker_codes
@@ -97,9 +97,6 @@ if current_user:
     if st.sidebar.button("Salir"):
         del st.session_state["user"]
         st.rerun()
-    connection_id = current_user
-else:
-    connection_id = st.sidebar.text_input("ID de conexión (código, sin nombre)")
 
 if not sessions:
     st.warning("No hay sesiones procesadas.")
@@ -118,11 +115,6 @@ if screen == "Sesión":
         if src.get("url_origen"):
             st.markdown(f"[Fuente]({src['url_origen']})")
     st.info(METHOD_NOTICE)
-    if not s.metrics["M02"].conclusive:
-        st.warning(
-            "Esta sesión aún no tiene género asignado (voces sin pista en el texto o muestra "
-            "pequeña). Confirma las voces en la pestaña «Human in the loop»."
-        )
 
     video_file = video_path(s, DATA_DIR)
     minute_key = f"minuto_{s.session_id}"
@@ -131,124 +123,58 @@ if screen == "Sesión":
     def go_to(seconds: float) -> None:
         st.session_state[minute_key] = min(seconds / 60, max_minute)
 
-    left, right = st.columns([3, 2])
-    with left:
-        if video_file:
-            minute = st.number_input(
-                "Ir al minuto", min_value=0.0, max_value=max_minute, step=1.0, key=minute_key
-            )
-            st.video(video_file, start_time=int(minute * 60))
-            st.caption("Vídeo original del Congreso, sin alterar. Solo se ve en este equipo.")
-        else:
-            st.info("El vídeo original no está en este equipo (`data/raw/`): solo se ve el texto.")
+    # 1. El vídeo completo.
+    if video_file:
+        minute = st.number_input(
+            "Ir al minuto", min_value=0.0, max_value=max_minute, step=1.0, key=minute_key
+        )
+        st.video(video_file, start_time=int(minute * 60))
+        st.caption("Vídeo original del Congreso, sin alterar. Solo se ve en este equipo.")
+    else:
+        st.info("El vídeo original no está en este equipo (`data/raw/`): solo se ve el texto.")
 
+    # 2. Human in the loop: los tramos de las voces que quedaron «desconocido».
     pending = [
         r
         for r in voices_to_review(DATA_DIR / "processed" / s.session_id)
         if r.speaker_id not in s.confirmed
     ]
-    with right:
-        tab_text, tab_hitl, tab_video = st.tabs(
-            ["Transcripción", f"Human in the loop ({len(pending)})", "Análisis de vídeo"]
+    st.header(f"Human in the loop ({len(pending)} voces sin confirmar)")
+    if not pending:
+        st.success("Todas las voces de esta sesión ya tienen género.")
+    else:
+        st.write(
+            "Mira y escucha cada tramo. Pon mujer u hombre solo si lo tienes claro; si no, "
+            "desconocido. El género cuenta cuando **las dos anotadoras** coinciden."
         )
-        with tab_text:
-            with st.container(height=620):
-                for i, t in enumerate(transcript_turns(s)):
-                    st.button(
-                        f"▶ {fmt_time(t['inicio_s'])} · {t['persona']} · {t['genero']}",
-                        key=f"go_{s.session_id}_{i}",
-                        on_click=go_to,
-                        args=(t["inicio_s"],),
-                        disabled=not video_file,
-                    )
-                    st.write(t["texto"])
-        with tab_hitl:
-            st.write(
-                "Human in the loop: mira y escucha cada tramo. Pon mujer u hombre solo si lo "
-                "tienes claro; si no, desconocido. El género cuenta cuando **las dos anotadoras** "
-                "coinciden."
-            )
-            who = st.radio(
-                "Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}"
-            )
-            if not valid_connection_id(connection_id):
-                st.warning(
-                    "Escribe tu ID de conexión en la barra lateral (2 a 20 letras o números, "
-                    "sin nombres) para poder guardar."
+    who = st.radio("Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}")
+    codes = speaker_codes(s.timeline)
+    for row in pending:
+        code = codes.get(row.speaker_id, row.speaker_id)
+        st.subheader(code)
+        blocks = voice_blocks(s.timeline, row.speaker_id)
+        for col, (start, end) in zip(st.columns(len(blocks) or 1), blocks, strict=False):
+            col.write(f"{code}: de {fmt_time(start)} a {fmt_time(end)}")
+            if video_file:
+                col.video(video_file, start_time=int(start), end_time=int(min(end, start + 30)))
+        with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
+            gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
+            confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
+            notes = st.text_input("Notas (opcional, sin nombres)")
+            if st.form_submit_button("Guardar"):
+                save_review(
+                    DATA_DIR / "processed" / s.session_id,
+                    who,
+                    row.speaker_id,
+                    gender,
+                    confidence,
+                    notes,
+                    current_user or f"anotadora_{who}",
                 )
-            codes = speaker_codes(s.timeline)
-            with st.container(height=520):
-                for row in pending:
-                    code = codes.get(row.speaker_id, row.speaker_id)
-                    st.subheader(code)
-                    for k, (start, end) in enumerate(voice_blocks(s.timeline, row.speaker_id)):
-                        st.button(
-                            f"▶ {code}: de {fmt_time(start)} a {fmt_time(end)}",
-                            key=f"blk_{s.session_id}_{row.speaker_id}_{k}",
-                            on_click=go_to,
-                            args=(start,),
-                            disabled=not video_file,
-                        )
-                    with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
-                        gender = st.radio(
-                            "Género", ["mujer", "hombre", "desconocido"], horizontal=True
-                        )
-                        confidence = st.radio(
-                            "Seguridad", ["alta", "media", "baja"], horizontal=True
-                        )
-                        notes = st.text_input("Notas (opcional, sin nombres)")
-                        if st.form_submit_button("Guardar"):
-                            save_review(
-                                DATA_DIR / "processed" / s.session_id,
-                                who,
-                                row.speaker_id,
-                                gender,
-                                confidence,
-                                notes,
-                                connection_id,
-                            )
-                            st.success("Guardado. Recarga la página para ver el efecto.")
+                st.success("Guardado. Recarga la página para ver el efecto en las cifras.")
 
-        with tab_video:
-            vt = video_tables(s)
-            if not vt:
-                st.info(
-                    "Esta sesión no tiene análisis de vídeo. Se genera en el equipo con "
-                    f"`python -m pipeline.video data/raw/{s.session_id}.mp4 "
-                    "--model models/pose_landmarker_full.task`."
-                )
-            else:
-                v = s.video
-                st.warning(v["aviso"])
-                st.write(
-                    f"Personas visibles a la vez: máximo {v['personas_visibles_max']}, "
-                    f"mediana {v['personas_visibles_mediana']}. "
-                    f"Fotogramas sin nadie: {v['fotogramas_sin_personas_%']} %."
-                )
-                st.caption(
-                    "Tiempo en pantalla por género (el género sale del audio, no de la imagen)"
-                )
-                st.altair_chart(
-                    big(
-                        alt.Chart(vt[0])
-                        .mark_bar()
-                        .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
-                    ),
-                    use_container_width=True,
-                )
-                st.caption("Manos levantadas (zona de la imagen y momento)")
-                hands = v.get("manos_levantadas", [])
-                for i, h in enumerate(hands):
-                    st.button(
-                        f"▶ {fmt_time(h['inicio_s'])} · zona {h['zona']}",
-                        key=f"hand_{s.session_id}_{i}",
-                        on_click=go_to,
-                        args=(h["inicio_s"],),
-                        disabled=not video_file,
-                    )
-                if not hands:
-                    st.write("No se han detectado manos levantadas.")
-
+    # 3. El análisis de la sesión completa.
+    st.header("Análisis de la sesión")
     cards = [metric_card(r) for r in s.metrics.values()]
     for col, card in zip(st.columns(len(cards)), cards, strict=True):
         col.metric(card["titulo"].split(" (")[0], card["valor"])
@@ -274,8 +200,67 @@ if screen == "Sesión":
         ),
         use_container_width=True,
     )
+
+    st.subheader("Análisis de vídeo (sin caras)")
+    vt = video_tables(s)
+    if not vt:
+        st.info(
+            "Esta sesión no tiene análisis de vídeo. Se genera en el equipo con "
+            f"`python -m pipeline.video data/raw/{s.session_id}.mp4 "
+            "--model models/pose_landmarker_full.task`."
+        )
+    else:
+        v = s.video
+        st.warning(v["aviso"])
+        st.write(
+            f"Personas visibles a la vez: máximo {v['personas_visibles_max']}, "
+            f"mediana {v['personas_visibles_mediana']}. "
+            f"Fotogramas sin nadie: {v['fotogramas_sin_personas_%']} %."
+        )
+        st.caption("Tiempo en pantalla por género (el género sale del audio, no de la imagen)")
+        st.altair_chart(
+            big(
+                alt.Chart(vt[0])
+                .mark_bar()
+                .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
+            ),
+            use_container_width=True,
+        )
+        hands = v.get("manos_levantadas", [])
+        st.caption("Manos levantadas (zona de la imagen y momento; ▶ mueve el vídeo de arriba)")
+        if not hands:
+            st.write("No se han detectado manos levantadas.")
+        hand_cols = st.columns(4)
+        for i, h in enumerate(hands):
+            hand_cols[i % 4].button(
+                f"▶ {fmt_time(h['inicio_s'])} · zona {h['zona']}",
+                key=f"hand_{s.session_id}_{i}",
+                on_click=go_to,
+                args=(h["inicio_s"],),
+                disabled=not video_file,
+            )
+
+    st.subheader("Transcripción")
+    with st.container(height=600):
+        for i, t in enumerate(transcript_turns(s)):
+            st.button(
+                f"▶ {fmt_time(t['inicio_s'])} · {t['persona']} · {t['genero']}",
+                key=f"go_{s.session_id}_{i}",
+                on_click=go_to,
+                args=(t["inicio_s"],),
+                disabled=not video_file,
+            )
+            st.write(t["texto"])
+    st.subheader("Voces y género")
+    st.dataframe(voices_table(s), use_container_width=True)
     st.subheader("Intervenciones")
-    st.dataframe(interventions_table(s), use_container_width=True)
+    inter = interventions_table(s)
+    shown = st.multiselect(
+        "Género a mostrar",
+        ["mujer", "hombre", "desconocido", "sin_atribuir"],
+        default=["mujer", "hombre", "desconocido", "sin_atribuir"],
+    )
+    st.dataframe(inter[inter["genero"].isin(shown)], use_container_width=True)
     st.download_button(
         "Descargar informe",
         report_html(s),
