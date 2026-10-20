@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: `docs/PRODUCCION.md` (acceso con 2FA, datos compartidos, automatización: fuera de la entrega) y notas para la presentación en `MEMORY.md`.
 - 20 oct 2026: el panel reproduce el vídeo original (solo si está en `data/raw/`) y añade el bloque «Human in the loop» para confirmar el género de las voces `desconocido` con tramos del vídeo; vale cuando coinciden dos anotadoras. Letra al doble.
 - 20 oct 2026: el panel usa letra más grande en títulos de métricas y notas, y las etiquetas de las tarjetas ya no se cortan.
 - 20 oct 2026: `evaluation/prepare_annotation.py` (hoja de 150 turnos para anotar, sin el género del sistema, más clave interna), `evaluation/informe.py` (informe de audio, vídeo y consumo en tokens y euros) y el texto de cada intervención en la tabla del panel.

@@ -36,6 +36,14 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Pendiente: probar el vídeo en OVH, M09, ajuste ligero de Qwen (28 oct), WER y DER, publicar el repositorio (29 oct) y el vídeo de 5 minutos.
 - Presentaciones: citar la fuente de cada sesión (Congreso de los Diputados, órgano, fecha, «vídeo sin alterar» y fecha de última consulta), el aviso legal del Congreso y las licencias de terceros. La consulta legal a la Organización y los formularios de consentimiento son opcionales.
 
+## Para la presentación (lo que Sabrina pide que aparezca)
+- Término literal «Human in the loop»: el panel pide confirmar a dos anotadoras el género de las voces `desconocido`, viendo el vídeo y la transcripción; solo cuenta si coinciden dos personas (procedencia `anotacion_percibida`).
+- El género nunca sale del sonido ni de la cara: pyannote solo separa voces; el género sale del texto (pistas del lenguaje) o de la confirmación humana. MediaPipe solo da puntos del cuerpo (presencia, tiempo en pantalla, manos); el género en pantalla se hereda de la voz.
+- Panel: vídeo a la izquierda, transcripción (con ▶ a cada minuto) y Human in the loop a la derecha; cambio de vídeo arriba a la derecha; responsive (escritorio y móvil); letra grande para proyectar.
+- Informe de análisis de audio, vídeo y consumo (tokens y euros) con `python -m evaluation.informe`; WER y DER (`evaluation/asr_diar.py`).
+- Límites del vídeo: modelo de pose de una sola persona (Apache-2.0), cuenta de menos en planos amplios.
+- Todo open source y en local. Para producción (`docs/PRODUCCION.md`): usuario, contraseña y 2FA, base de datos compartida (Supabase autoalojado u otra), automatización de sesiones nuevas.
+
 ## Reglas de trabajo
 - El género nunca se infiere de la cara ni de la voz; `desconocido` siempre visible.
 - Ningún secreto (tokens, `.env`) ni dato real (vídeos, audios, transcripciones) en el repositorio ni en carpetas que lea la organización.
