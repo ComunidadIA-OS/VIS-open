@@ -8,9 +8,9 @@ license = { text = "Apache-2.0" }
 dependencies = ["pydantic>=2.6", "pandas>=2.2"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff", "streamlit>=1.40"]
+dev = ["pytest>=8", "ruff", "streamlit>=1.40", "reportlab>=4"]
 video = ["mediapipe>=0.10", "opencv-python-headless>=4.9"]
-dashboard = ["streamlit>=1.40"]
+dashboard = ["streamlit>=1.40", "reportlab>=4"]
 # Dependencias pesadas del pipeline (torch llega como dependencia transitiva).
 # Se instalan en la VM de OVH; los tests se saltan si faltan.
 pipeline = [
