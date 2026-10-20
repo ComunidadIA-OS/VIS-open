@@ -118,10 +118,11 @@ def interventions_table(session: Session) -> pd.DataFrame:
                 "duracion_s": round(e.end_s - e.start_s, 1),
                 "genero": s.gender.value if s else "sin_atribuir",
                 "evidencia": f"[min {ev.minute}] {ev.method}: {ev.phrase}" if ev else "",
+                "texto": e.text or "",
             }
         )
     return pd.DataFrame(
-        rows, columns=["persona", "inicio_min", "duracion_s", "genero", "evidencia"]
+        rows, columns=["persona", "inicio_min", "duracion_s", "genero", "evidencia", "texto"]
     )
 
 
