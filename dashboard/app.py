@@ -115,7 +115,9 @@ if screen == "Sesión":
         if r.speaker_id not in s.confirmed
     ]
     with right:
-        tab_text, tab_hitl = st.tabs(["Transcripción", f"Human in the loop ({len(pending)})"])
+        tab_text, tab_hitl, tab_video = st.tabs(
+            ["Transcripción", f"Human in the loop ({len(pending)})", "Análisis de vídeo"]
+        )
         with tab_text:
             with st.container(height=620):
                 for i, t in enumerate(transcript_turns(s)):
@@ -168,6 +170,46 @@ if screen == "Sesión":
                             )
                             st.success("Guardado. Recarga la página para ver el efecto.")
 
+        with tab_video:
+            vt = video_tables(s)
+            if not vt:
+                st.info(
+                    "Esta sesión no tiene análisis de vídeo. Se genera en el equipo con "
+                    f"`python -m pipeline.video data/raw/{s.session_id}.mp4 "
+                    "--model models/pose_landmarker_full.task`."
+                )
+            else:
+                v = s.video
+                st.warning(v["aviso"])
+                st.write(
+                    f"Personas visibles a la vez: máximo {v['personas_visibles_max']}, "
+                    f"mediana {v['personas_visibles_mediana']}. "
+                    f"Fotogramas sin nadie: {v['fotogramas_sin_personas_%']} %."
+                )
+                st.caption(
+                    "Tiempo en pantalla por género (el género sale del audio, no de la imagen)"
+                )
+                st.altair_chart(
+                    big(
+                        alt.Chart(vt[0])
+                        .mark_bar()
+                        .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
+                    ),
+                    use_container_width=True,
+                )
+                st.caption("Manos levantadas (zona de la imagen y momento)")
+                hands = v.get("manos_levantadas", [])
+                for i, h in enumerate(hands):
+                    st.button(
+                        f"▶ {fmt_time(h['inicio_s'])} · zona {h['zona']}",
+                        key=f"hand_{s.session_id}_{i}",
+                        on_click=go_to,
+                        args=(h["inicio_s"],),
+                        disabled=not video_file,
+                    )
+                if not hands:
+                    st.write("No se han detectado manos levantadas.")
+
     cards = [metric_card(r) for r in s.metrics.values()]
     for col, card in zip(st.columns(len(cards)), cards, strict=True):
         col.metric(card["titulo"].split(" (")[0], card["valor"])
@@ -193,22 +235,6 @@ if screen == "Sesión":
         ),
         use_container_width=True,
     )
-    vt = video_tables(s)
-    if vt:
-        st.subheader("Vídeo (sin caras)")
-        st.warning(s.video["aviso"])
-        left, right = st.columns(2)
-        left.caption("Tiempo en pantalla por género (el género sale del audio)")
-        left.altair_chart(
-            big(
-                alt.Chart(vt[0])
-                .mark_bar()
-                .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
-            ),
-            use_container_width=True,
-        )
-        right.caption("Manos levantadas por zona de la imagen")
-        right.dataframe(vt[1], use_container_width=True)
     st.subheader("Intervenciones")
     st.dataframe(interventions_table(s), use_container_width=True)
     st.download_button(

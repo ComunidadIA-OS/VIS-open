@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: pestaña «Análisis de vídeo» junto al vídeo (personas visibles, tiempo en pantalla por género según el audio y manos levantadas con ▶ al momento); si la sesión no tiene análisis, explica cómo generarlo.
 - 20 oct 2026: panel responsive (letra fluida, columnas que se apilan en móvil). En la sesión, vídeo a la izquierda y a la derecha pestañas «Transcripción» (con botón ▶ que lleva el vídeo a ese minuto) y «Human in the loop» (voces desconocidas con sus tramos). La pantalla Evolución muestra el % de género por sesión y los ejes más grandes.
 - 20 oct 2026: el panel reproduce el vídeo original (solo si está en `data/raw/`) y añade el bloque «Human in the loop» para confirmar el género de las voces `desconocido` con tramos del vídeo; vale cuando coinciden dos anotadoras. Letra al doble.
 - 20 oct 2026: el panel usa letra más grande en títulos de métricas y notas, y las etiquetas de las tarjetas ya no se cortan.
