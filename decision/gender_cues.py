@@ -45,6 +45,7 @@ from pipeline.timeline import build_review_rows
 
 CUES_DIR = Path(__file__).parent / "cues"
 PHRASE_MAX_CHARS = 240
+MIN_SPLIT_S = 15.0  # una voz nueva debe sumar al menos esto; menos es ruido (p. ej. una cita)
 METHODS = ("floor_grant", "floor_grant_same_voice", "self_role", "self_agreement", "as_role")
 
 
@@ -247,6 +248,89 @@ def extract_cues(timeline: AnalysisTimeline, rules: CueRules) -> list[Cue]:
             )
             break
     return cues
+
+
+def _floor_gender(event: AnalysisEvent, rules: CueRules) -> GenderValue | None:
+    """Género de a quien se da la palabra en este evento («tiene la palabra la señora X»)."""
+    tokens = _tokens(event.text or "")
+    for phrase in rules.floor_phrases:
+        at = _find(tokens, phrase)
+        if at is None:
+            continue
+        after = tokens[at + len(phrase) : at + len(phrase) + rules.lookahead]
+        gender = _gender_of_window(after, rules)
+        if gender is not None:
+            return gender
+    return None
+
+
+def split_on_floor_grant(
+    timeline: AnalysisTimeline, rules: CueRules | None = None
+) -> AnalysisTimeline:
+    """Separa a quien recibe la palabra cuando la diarización lo juntó con quien la da.
+
+    «Tiene la palabra la señora X» (o «el señor X») marca que lo que sigue es de esa persona. Si la
+    diarización dejó la frase y lo que viene después en la misma voz, los eventos siguientes, hasta
+    la próxima vez que se da la palabra, pasan a una voz nueva (si suman al menos `MIN_SPLIT_S`).
+    Así la regla vale igual con voces separadas o fusionadas. Límite: unos segundos de la
+    Presidencia justo después de la frase (p. ej. leer el título) pueden quedar en la voz nueva.
+    El género lo asigna después `assign_genders` con la pista habitual (`floor_grant`).
+    """
+    rules = rules or load_rules()
+    speech = sorted(
+        (e for e in timeline.events if e.type == EventType.SPEECH and e.text and e.speaker_id),
+        key=lambda e: (e.start_s, e.end_s),
+    )
+    next_id = max((int(sp.speaker_id[-2:]) for sp in timeline.speakers), default=-1) + 1
+    moved: dict[str, str] = {}
+    origin: dict[str, str] = {}
+    i = 0
+    while i < len(speech) - 1 and next_id <= 99:
+        ev, nxt = speech[i], speech[i + 1]
+        if (
+            _floor_gender(ev, rules) is None
+            or nxt.speaker_id != ev.speaker_id
+            or nxt.start_s - ev.end_s > rules.max_gap_s
+            or _floor_gender(nxt, rules) is not None
+        ):
+            i += 1
+            continue
+        j = i + 1
+        while (
+            j < len(speech)
+            and speech[j].speaker_id == ev.speaker_id
+            and _floor_gender(speech[j], rules) is None
+        ):
+            j += 1
+        segment = speech[i + 1 : j]
+        if sum(e.end_s - e.start_s for e in segment) >= MIN_SPLIT_S:
+            new_id = f"SPEAKER_{next_id:02d}"
+            next_id += 1
+            for e in segment:
+                moved[e.event_id] = new_id
+            origin[new_id] = ev.speaker_id  # type: ignore[assignment]
+        i = j
+    if not moved:
+        return timeline
+    events = [
+        e.model_copy(update={"speaker_id": moved[e.event_id]}) if e.event_id in moved else e
+        for e in timeline.events
+    ]
+    seconds: dict[str, float] = defaultdict(float)
+    for e in events:
+        if e.type == EventType.SPEECH and e.speaker_id:
+            seconds[e.speaker_id] += e.end_s - e.start_s
+    speakers = [
+        sp.model_copy(update={"total_speech_s": round(seconds[sp.speaker_id], 3)})
+        if sp.speaker_id in origin.values()
+        else sp
+        for sp in timeline.speakers
+    ]
+    speakers += [
+        timeline.speakers[0].__class__(speaker_id=new, total_speech_s=round(seconds[new], 3))
+        for new in sorted(origin)
+    ]
+    return timeline.model_copy(update={"events": events, "speakers": speakers})
 
 
 @dataclass
