@@ -216,3 +216,14 @@ def test_voices_table_has_one_row_per_voice_with_minutes_and_origin(sessions):
         "persona", "genero", "origen", "minutos", "intervenciones", "evidencia",
     ]  # fmt: skip
     assert t["minutos"].is_monotonic_decreasing
+
+
+def test_report_has_summary_timeline_voices_and_prudent_reading(sessions):
+    h = report_html(sessions[0])
+    for part in ("Resumen", "Línea de tiempo", "<svg", "Voces", "Intervenciones", "Transcripción"):
+        assert part in h
+    from dashboard.data import _reading
+
+    assert "podría cambiar" in _reading({"mujer": 20.0, "hombre": 50.0, "desconocido": 30.0})
+    assert "no cambiaría" in _reading({"mujer": 10.0, "hombre": 80.0, "desconocido": 10.0})
+    assert "+" in _reading({"mujer": 50.0, "hombre": 50.0})
