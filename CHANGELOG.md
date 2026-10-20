@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: análisis de audio y de vídeo (MediaPipe) separados en el panel y el informe; el vídeo muestra personas visibles a lo largo del tiempo y las pistas con más tiempo en pantalla. Voces desplegables con su transcripción; la transcripción completa va a un CSV (`python -m dashboard.export`, con `--link-base` para enlazar a un almacenamiento). Las métricas «no concluyentes» explican por qué. Las siglas (IVA, PIB, UE) ya no se seudonimizan como nombres.
 - 20 oct 2026: el informe descargable es autónomo y más analizado: resumen con lectura prudente de la brecha (qué pasaría según las voces sin género), tarjetas, gráficos de barras, línea de tiempo, tabla de voces, análisis de vídeo con momentos de manos, intervenciones y transcripción seudonimizada. La pantalla de sesión es una sola columna (vídeo, Human in the loop con clips, análisis) y la tabla de Intervenciones se filtra por género.
 - 20 oct 2026: `docs/PRODUCCION.md` (acceso con 2FA, datos compartidos, automatización: fuera de la entrega) y notas para la presentación en `MEMORY.md`.
 - 20 oct 2026: pestaña «Análisis de vídeo» junto al vídeo (personas visibles, tiempo en pantalla por género según el audio y manos levantadas con ▶ al momento); si la sesión no tiene análisis, explica cómo generarlo.

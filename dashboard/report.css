@@ -7,7 +7,7 @@ h2{font-size:21px;margin:34px 0 10px;border-bottom:2px solid var(--line); paddin
 .note{background:#f4f1f8;border-left:4px solid var(--m); padding:10px 14px;border-radius:4px;margin:12px 0}
 .warn{background:#fff8e1;border-left:4px solid #e0a100; padding:10px 14px;border-radius:4px;margin:12px 0}
 .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px}
-.card{border:1px solid var(--line);border-radius:8px;padding:12px 14px}
+.card{border:1px solid var(--line);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:120px}
 .card b{display:block;font-size:26px}
 .card span{color:var(--mut);font-size:13px}
 .bar{display:flex;height:34px;border-radius:6px;overflow:hidden;margin:8px 0}
