@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: el prompt del motor LLM da ejemplos simétricos para mujer y hombre. En el benchmark sintético, Qwen3.5-9B acertaba todas las mujeres pero dejaba hasta 22 de 69 hombres en «desconocido» aunque el contexto dijera «el señor…» (el único ejemplo del prompt era femenino); además el resultado varía entre ejecuciones.
 - 20 oct 2026: `evaluation.benchmark` lee el `.env` (antes fallaba con «falta LLM_MODEL»).
 - 20 oct 2026: medida real con Qwen3.5-9B en OVH AI Endpoints: `reasoning_effort: none` baja de 1.121 a 63 tokens de salida y de 38,9 a 3,6 s por llamada (`docs/COSTES_API.md`).
 - 20 oct 2026: `evaluation.benchmark --detalle <carpeta>` guarda la decisión de cada turno (CSV) para analizar los errores de cada motor. Con los turnos sintéticos, Qwen3.5-9B por API: F1 0,76, sin confundir nunca mujer con hombre, 18 de 69 hombres a «desconocido», 0,0055 € por 120 turnos.

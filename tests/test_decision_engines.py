@@ -250,3 +250,18 @@ def test_benchmark_detail_csv_has_one_row_per_turn(tmp_path):
     write_detail(tmp_path / "d.csv", turns, decisions)
     rows = list(csv.DictReader((tmp_path / "d.csv").open(encoding="utf-8")))
     assert [r["turn_id"] for r in rows] == ["a", "b"] and [r["acierto"] for r in rows] == ["1", "0"]
+
+
+def test_system_prompt_gives_symmetric_examples_for_women_and_men():
+    from decision.llm_engine import SYSTEM_PROMPT
+
+    for pair in (
+        "la señora",
+        "el señor",
+        "estoy agradecida",
+        "estoy agradecido",
+        "soy la diputada",
+        "soy el diputado",
+    ):
+        assert pair in SYSTEM_PROMPT
+    assert "no trates el masculino como genérico" in SYSTEM_PROMPT
