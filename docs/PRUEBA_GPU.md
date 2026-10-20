@@ -1,6 +1,30 @@
 # Prueba en la GPU de OVH (V100S)
 
-Qué comprueba: que la imagen GPU arranca en la V100S, que PyTorch ve la tarjeta (arquitectura Volta, `sm_70`) y cuánto tardan y pesan la transcripción y la diarización con un audio corto. **Nada de esto se ha ejecutado todavía en OVH**: la imagen está escrita pero sin probar en GPU.
+## En el notebook de OVH del equipo (la vía que funciona, 20 oct 2026)
+
+El reto da a cada equipo un notebook JupyterLab con 2 GPU V100S de 32 GB (no es una máquina con Docker). Resultado de la prueba de humo, hecha el 20 oct 2026: **`volta_sm70_supported: true`** (PyTorch 2.12.1+cu126 trae `sm_70`), transcripción con `large-v3` en `float16` y separación de voces con `ok`, sin errores.
+
+Pasos (Python 3.13 de Anaconda, PyTorch ya instalado):
+
+1. Entrar con «Login with token» (mejor en una ventana de incógnito: una sesión vieja del navegador redirige al panel de gestión de OVH y falla). Subir el código con el botón de subir de JupyterLab (zip) a `/workspace/equipo6`.
+2. Instalar **sin WhisperX**, que fija `torch==2.8` y sustituiría el PyTorch del notebook: `pip install -e . "faster-whisper>=1.2" "av<19" "pyannote.audio>=4.0"` y comprobar que `python -c "import torch; print(torch.__version__)"` sigue en 2.12.1.
+3. Variables de la sesión; el token **no** se guarda en ningún fichero ni en el historial (los organizadores pueden leer `/workspace/equipo6`):
+   ```bash
+   read -s -p "HF_TOKEN: " HF_TOKEN; export HF_TOKEN; echo
+   export HF_HOME=/workspace/hf_cache DATA_DIR=/workspace/equipo6/data
+   export WHISPER_DEVICE=cuda WHISPER_COMPUTE_TYPE=float16 WHISPER_ALIGN=0
+   python -m pipeline.smoke
+   cat /workspace/equipo6/data/smoke.json
+   ```
+4. Guardar el trabajo en `/workspace/equipo6` (única carpeta que se conserva y se respalda al parar el notebook). Las librerías de `pip` se pierden al reiniciar: reinstalar con el comando del paso 2.
+
+Notas: con el tono sintético `voices` y `segments` son 0 (esperado); `gpu_peak_mem_mb` solo cuenta lo que reserva PyTorch, no CTranslate2.
+
+---
+
+## Con Docker (máquina propia con GPU)
+
+Qué comprueba: que la imagen GPU arranca en la V100S, que PyTorch ve la tarjeta (arquitectura Volta, `sm_70`) y cuánto tardan y pesan la transcripción y la diarización con un audio corto. **La imagen está escrita pero no se ha probado en una máquina con Docker y GPU.**
 
 Reglas: sin audio real en el repo; el token de OVH y el de Hugging Face van solo en tu `.env` o en el entorno de la VM, nunca en el repo ni en la imagen.
 

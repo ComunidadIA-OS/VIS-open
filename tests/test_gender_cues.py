@@ -201,3 +201,10 @@ def test_rules_come_from_config_and_have_no_proper_names():
 def test_unknown_language_has_no_rules():
     with pytest.raises(FileNotFoundError):
         load_rules("xx")
+
+
+def test_floor_grant_when_diarization_merged_chair_and_speaker_is_only_a_suggestion():
+    tl = make([("SPEAKER_00", "Tiene la palabra la señora Pérez."), ("SPEAKER_00", "Gracias.")])
+    gender, a = gender_of(tl, "SPEAKER_00")
+    assert gender == U and a.needs_review and a.suggestion == W
+    assert a.evidence[0].method == "floor_grant_same_voice" and a.evidence[0].confidence < 0.7

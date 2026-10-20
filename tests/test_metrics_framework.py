@@ -105,9 +105,8 @@ def test_empty_timeline_does_not_crash():
 def test_example_metric_is_registered_and_marked_as_example():
     spec = get_metric("X00_EJEMPLO")
     assert spec.is_example and "EJEMPLO" in spec.name
-    assert all(m.metric_id == "X00_EJEMPLO" for m in list_metrics()), (
-        "el marco no debe traer M01 a M13: son de Ivette"
-    )
+    ids = {m.metric_id for m in list_metrics()}
+    assert ids == {"X00_EJEMPLO", "M01", "M02", "M03", "M04", "M13"}  # M01-M04 y M13 = borrador
 
 
 def test_example_metric_value_and_sample_always_present(mixed):
@@ -142,7 +141,7 @@ def test_all_unknown_is_not_conclusive():
 
 def test_unknown_metric_id():
     with pytest.raises(KeyError):
-        run_metric("M01", timeline_to_frame(timeline([], [])))
+        run_metric("M99", timeline_to_frame(timeline([], [])))
 
 
 def test_new_metric_follows_the_pattern_and_duplicates_are_rejected():

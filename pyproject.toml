@@ -8,23 +8,27 @@ license = { text = "Apache-2.0" }
 dependencies = ["pydantic>=2.6", "pandas>=2.2"]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "ruff"]
+dev = ["pytest>=8", "ruff", "streamlit>=1.40"]
+video = ["mediapipe>=0.10", "opencv-python-headless>=4.9"]
+dashboard = ["streamlit>=1.40"]
 # Dependencias pesadas del pipeline (torch llega como dependencia transitiva).
 # Se instalan en la VM de OVH; los tests se saltan si faltan.
 pipeline = [
     # av 19 quita `metadata_errors`, que faster-whisper 1.2.1 aún usa (TypeError al abrir audio).
     "av<19",
     "faster-whisper>=1.2",
-    "whisperx>=3.8; python_version < '3.14'",
     "pyannote.audio>=4.0",
 ]
+# Alineado de palabras (opcional, WHISPER_ALIGN=1). WhisperX fija torch==2.8: en el notebook de OVH
+# (torch 2.12 ya instalado) no se instala y se usa WHISPER_ALIGN=0.
+align = ["whisperx>=3.8; python_version < '3.14'"]
 
 [build-system]
 requires = ["setuptools>=68"]
 build-backend = "setuptools.build_meta"
 
 [tool.setuptools]
-packages = ["contracts", "pipeline", "sources", "decision", "metrics", "evaluation", "evaluation.synthetic"]
+packages = ["contracts", "pipeline", "sources", "decision", "metrics", "evaluation", "evaluation.synthetic", "dashboard"]
 
 [tool.setuptools.package-data]
 decision = ["cues/*.toml"]

@@ -10,6 +10,7 @@ language = "es"
 floor_grant = 0.85    # «tiene la palabra la señora X» (lo dice otra persona, p. ej. la Presidencia)
 self_role = 0.9       # «soy la diputada…», «soy el portavoz…»
 self_agreement = 0.75 # «estoy agradecida / agradecido…»
+floor_grant_same_voice = 0.6  # la diarización juntó a la Presidencia con quien habla
 as_role = 0.6         # «como diputada…»: puede ser una cita o un tercero, así que se revisa
 
 [floor_grant]
@@ -60,3 +61,31 @@ adjectives = [
 # Introducción de un cargo propio: «soy (la/el) <cargo>» y «como (la/el) <cargo>».
 self_role_verbs = ["soy"]
 as_role_words = ["como"]
+
+[pseudonymize]
+# Palabras con mayúscula a mitad de frase que NO son nombres de persona (instituciones, lugares,
+# partidos...). Cualquier otra palabra con mayúscula a mitad de frase se sustituye por un código:
+# es mejor redactar de más que dejar un nombre. Amplíala si algo útil se redacta sin querer.
+keep = [
+  "España", "Cataluña", "Catalunya", "Galicia", "Euskadi", "Valencia", "Madrid", "Barcelona",
+  "Andalucía", "Europa", "Unión", "Europea", "Gobierno", "Congreso", "Senado", "Estado", "Cortes",
+  "Generales", "Constitución", "Presidencia", "Diputación", "Permanente", "Comisión", "Pleno",
+  "Ministerio", "Comunidad", "Comunidades", "Autónomas", "Autónoma", "Ayuntamiento", "Junta",
+  "Grupo", "Parlamentario", "Parlamentaria", "Mixto", "Popular", "Socialista", "Podemos", "Sumar",
+  "Vox", "Esquerra", "Republicana", "Junts", "Bildu", "Partido", "PP", "PSOE", "PNV", "ERC",
+  "Seguridad", "Social", "Hacienda", "Economía", "Sanidad", "Educación", "Justicia", "Interior",
+  "Real", "Decreto", "Decreto-ley", "Ley", "Orgánica", "Boletín", "Oficial", "Diario", "Sesiones",
+  "DANA", "Oriente", "Medio", "Valenciana", "Mazón", "Plan", "Integral", "Respuesta", "Crisis",
+  "Señorías", "Señoría", "Dios", "Navidad", "Europeo", "Banco", "Central", "Mundial", "Ibex",
+]
+
+# Palabras que, solas como frase («Gracias.», «Presidente.»), NO se redactan. Cualquier otra
+# palabra suelta con mayúscula como frase entera se trata como un apellido y se sustituye.
+common = [
+  "Gracias", "Muchas", "Muchísimas", "Bueno", "Bien", "Vale", "Claro", "Perfecto", "Adelante",
+  "Entonces", "También", "Además", "Después", "Antes", "Ahora", "Hoy", "Aquí", "Allí", "Sí", "No",
+  "Pues", "Pero", "Porque", "Cuando", "Mientras", "Señorías", "Señoría", "Presidente", "Presidenta",
+  "Silencio", "Votación", "Gracias", "Hola", "Buenos", "Buenas", "Días", "Tardes", "Noches", "Ruego",
+  "Termino", "Concluyo", "Finalizo", "Acabo", "Perdón", "Disculpe", "Atención", "Orden", "Cierro",
+  "Fin", "Final", "Nada", "Todo", "Todos", "Todas", "Nunca", "Siempre", "Quizás", "Gobierno",
+]

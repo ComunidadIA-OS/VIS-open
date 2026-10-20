@@ -8,6 +8,7 @@ from decision.gender_cues import (
     extract_cues,
     load_rules,
 )
+from decision.pseudonymize import pseudonymize_timeline
 
 __all__ = [
     "Decision",
@@ -22,4 +23,5 @@ __all__ = [
     "build_gender_review_rows",
     "extract_cues",
     "load_rules",
+    "pseudonymize_timeline",
 ]

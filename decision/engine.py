@@ -49,6 +49,8 @@ class Decision(BaseModel):
     engine: str = ""
     error: str | None = None
     latency_s: float | None = None
+    tokens_in: int | None = None  # tokens de entrada facturables (solo motores con API)
+    tokens_out: int | None = None
 
     @property
     def needs_review(self) -> bool:
