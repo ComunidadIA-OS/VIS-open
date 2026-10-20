@@ -38,7 +38,7 @@ from dashboard.data import (
     timeline_strip,
     video_people_series,
     video_tables,
-    video_tracks_table,
+    video_tracks_with_totals,
     voices_table,
 )
 
@@ -346,7 +346,7 @@ def report_pdf(
         moments = ", ".join(
             f"{fmt_time(h['inicio_s'])} (zona {h['zona']})" for h in v.get("manos_levantadas", [])
         )
-        tracks = video_tracks_table(session)
+        tracks = video_tracks_with_totals(session)
         story += [
             Paragraph("Análisis de vídeo (MediaPipe, sin caras)", st["h2"]),
             Paragraph(
@@ -385,13 +385,23 @@ def report_pdf(
                 [
                     Paragraph("Pistas con más tiempo en pantalla", st["h3"]),
                     _grid(
-                        [["Pista", "Min. en pantalla", "Tamaño", "Centralidad", "Género (audio)"]]
+                        [
+                            [
+                                "Pista",
+                                "Min. en pantalla",
+                                "%",
+                                "Tamaño",
+                                "Centralidad",
+                                "Género (audio)",
+                            ]
+                        ]
                         + [
                             [
                                 str(r.pista),
                                 f"{r.minutos_en_pantalla:.2f}",
-                                f"{r.tamano_medio:.2f}",
-                                f"{r.centralidad:.2f}",
+                                f"{r.porcentaje:.1f}",
+                                "" if pd.isna(r.tamano_medio) else f"{r.tamano_medio:.2f}",
+                                "" if pd.isna(r.centralidad) else f"{r.centralidad:.2f}",
                                 r.genero_por_audio,
                             ]
                             for r in tracks.itertuples()

@@ -256,3 +256,36 @@ def test_inconclusive_metrics_explain_why(sessions):
         by["SINTETICO_muestra_insuficiente"], compress=False
     )
     assert inconclusive_reason(by["SINTETICO_pocas_mujeres"]) == ""
+
+
+def test_tracks_table_ends_with_totals_by_gender(tmp_path):
+    import json
+
+    from dashboard.data import video_tracks_with_totals
+
+    folder = tmp_path / "processed" / "V9"
+    folder.mkdir(parents=True)
+    tl = next(
+        (Path(__file__).parent.parent / "evaluation/synthetic/muestras").glob("*.timeline.json")
+    )
+    (folder / "timeline.json").write_text(tl.read_text("utf-8"), encoding="utf-8")
+    pistas = [
+        {"pista": 1, "tiempo_en_pantalla_s": 120.0, "tamano_medio": 0.2, "centralidad_media": 0.9,
+         "genero_por_audio": "hombre", "votos_audio": {}},
+        {"pista": 2, "tiempo_en_pantalla_s": 60.0, "tamano_medio": 0.3, "centralidad_media": 0.8,
+         "genero_por_audio": "mujer", "votos_audio": {}},
+    ]  # fmt: skip
+    (folder / "video.json").write_text(
+        json.dumps(
+            {
+                "aviso": "x", "pistas": pistas,
+                "tiempo_en_pantalla_por_genero_s": {"hombre": 120, "mujer": 60, "desconocido": 0},
+                "tiempo_en_pantalla_por_genero_%": {"hombre": 66.7, "mujer": 33.3, "desconocido": 0},
+            }
+        ),
+        encoding="utf-8",
+    )  # fmt: skip
+    t = video_tracks_with_totals(load_sessions(tmp_path)[0])
+    assert list(t["pista"]) == ["1", "2", "Total hombre", "Total mujer", "Total desconocido"]
+    assert list(t["porcentaje"]) == [66.7, 33.3, 66.7, 33.3, 0.0]
+    assert list(t["minutos_en_pantalla"])[-3:] == [2.0, 1.0, 0.0]
