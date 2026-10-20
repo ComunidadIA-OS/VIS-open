@@ -30,6 +30,8 @@ Extra opcional `[pipeline]`: no se instala en CI ni en los portátiles; se usa e
 | pyannote.audio | 4.0.7 | diarización | MIT | https://github.com/pyannote/pyannote-audio/blob/main/LICENSE |
 | torch | 2.x (dep. de whisperx/pyannote) | runtime de modelos | BSD-3-Clause (archivo LICENSE); PyPI declara Apache-2.0 AND BSD-2/3-Clause AND MIT AND BSL-1.0 | https://github.com/pytorch/pytorch/blob/main/LICENSE |
 | av (PyAV) | 18.1.0 (fijado `<19`) | decodificación de audio de faster-whisper | BSD-3-Clause (campo `License-Expression` del paquete instalado) | https://pypi.org/project/av/ |
+| mediapipe | 1.1.1 | personas visibles y manos levantadas (extra `[video]`) | Apache-2.0 (campo `License` y clasificador del paquete instalado) | https://pypi.org/project/mediapipe/ |
+| opencv-python-headless | 5.0.0.93 | lectura de fotogramas (extra `[video]`) | Apache-2.0 (campo `License` y clasificador del paquete instalado; la rueda incluye FFmpeg, LGPL) | https://pypi.org/project/opencv-python-headless/ |
 | FFmpeg | binario externo, no se distribuye | extracción de audio | LGPL-2.1+ (GPL-2+ solo si se compila con `--enable-gpl`) | https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md |
 
 Modelos (se descargan en tiempo de ejecución, no se incluyen en el repo):
@@ -49,7 +51,7 @@ Dependencias transitivas del extra (ctranslate2, transformers, nltk, omegaconf, 
 
 ## Pendientes de verificar (previstas, aún no instaladas)
 
-OpenCV, MediaPipe, Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
+modelo de pose de MediaPipe (`.task`: licencia y ficha por verificar antes de usarlo), Streamlit, llama.cpp / llama-server, Qwen3 (pesos), nimble / Laya (revisar; nunca nimble-v3), Docker.
 
 Imágenes Docker (rama `docker-gpu`, no distribuidas en el repo): `python:3.12-slim-bookworm` (Python: PSF; Debian: licencias por paquete) y las bibliotecas NVIDIA CUDA/cuDNN/cuBLAS que PyTorch instala como ruedas `nvidia-*`. **Pendiente de verificar en la fuente**: las ruedas `nvidia-*` llevan la licencia de NVIDIA (no OSI) y se descargan en tiempo de construcción, no se redistribuyen en el repo; Sabrina debe dar el visto bueno a esta dependencia.
 

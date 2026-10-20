@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: `pipeline/video.py` (prototipo): personas visibles y manos levantadas por zona con MediaPipe Pose Landmarker, una pasada a 2 fotogramas por segundo, sin caras, sin identificar y sin guardar imágenes; `python -m pipeline.video data/raw/V001.mp4 --model <modelo.task>` escribe `video.json`. Extra `[video]`. El modelo `.task` no se incluye.
 - 19 oct 2026: la diarización lee el WAV con la librería estándar (`load_waveform`) y se lo pasa a pyannote como forma de onda, para no depender de torchcodec, que en Windows exige las DLL «shared» de FFmpeg. Probado en CPU: transcripción y diarización con un tono sintético.
 - 19 oct 2026: `pyannote/speaker-diarization-3.1` necesita aceptar también las condiciones de `pyannote/speaker-diarization-community-1` (restringido).
 - 19 oct 2026: `pipeline/envfile.py`: `pipeline.run` y `pipeline.smoke` leen el fichero `.env` (antes solo leían variables de entorno, así que `HF_TOKEN` y el resto del `.env` se ignoraban). Lo ya definido en el entorno manda.

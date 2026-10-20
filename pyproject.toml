@@ -9,6 +9,7 @@ dependencies = ["pydantic>=2.6", "pandas>=2.2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "ruff"]
+video = ["mediapipe>=0.10", "opencv-python-headless>=4.9"]
 # Dependencias pesadas del pipeline (torch llega como dependencia transitiva).
 # Se instalan en la VM de OVH; los tests se saltan si faltan.
 pipeline = [
