@@ -25,6 +25,27 @@ LLM_PRICE_DATE=             # AAAA-MM-DD del tarifario consultado
 
 Sin precios, el informe da solo los tokens y avisa de que faltan.
 
+### Modelos candidatos en OVH AI Endpoints (catálogo público, consultado el 2026-10-20)
+
+URL de la API (compatible con OpenAI): `https://oai.endpoints.kepler.ai.cloud.ovh.net/v1`. El identificador exacto de cada modelo se obtiene con `python -m decision.llm_check` (lista `GET /models`). Precios por millón de tokens (entrada / salida); **hay que volver a comprobarlos el día de la medición**:
+
+| Modelo | Entrada | Salida | Licencia |
+|---|---|---|---|
+| Qwen3.5-9B | 0,1 € | 0,15 € | Apache 2.0 |
+| Qwen3.6-27B / Qwen3.8-27B | 0,4 € | 2,7 € | Apache 2.0 |
+| Qwen3.5-397B-A17B | 0,6 € | 3,6 € | Apache 2.0 |
+| gpt-oss-120b | 0,08 € | 0,4 € | Apache 2.0 |
+
+Los modelos Qwen son Apache 2.0, compatibles con nuestra licencia. El más barato que alcance la calidad pedida en el benchmark es el que se elige.
+
+### Comprobar la conexión
+
+```bash
+python -m decision.llm_check        # lista modelos; con LLM_MODEL puesto, hace 1 llamada de prueba sintética
+```
+
+La clave se lee del `.env` y no se imprime.
+
 ## Cómo se evalúa (con los 150 turnos anotados)
 
 ```bash
