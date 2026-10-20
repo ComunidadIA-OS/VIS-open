@@ -38,6 +38,18 @@ URL de la API (compatible con OpenAI): `https://oai.endpoints.kepler.ai.cloud.ov
 
 Los modelos Qwen son Apache 2.0, compatibles con nuestra licencia. El más barato que alcance la calidad pedida en el benchmark es el que se elige.
 
+### Medición real con Qwen3.5-9B (20 oct 2026, un turno sintético)
+
+Los Qwen 3.x «razonan» antes de responder y eso se factura. OVH admite el parámetro `reasoning_effort` (valores `none`, `minimal`, `low`, `medium`, `high`, `xhigh`, `max`; según el OpenAPI de cada modelo en `https://oai.endpoints.kepler.ai.cloud.ovh.net/doc/<modelo>/openapi.json`). No admite `chat_template_kwargs` (da 400). Se activa con `LLM_EXTRA_BODY={"reasoning_effort":"none"}`:
+
+| | Por defecto | `reasoning_effort: none` |
+|---|---|---|
+| Tokens de entrada / salida | 344 / 1.121 | 350 / 63 |
+| Latencia | 38,9 s | 3,6 s |
+| Coste por llamada | 0,000203 € | 0,000044 € |
+
+Para nuestras tareas (clasificar con pistas explícitas y citar evidencia) el razonamiento no hace falta: se usa `none`.
+
 ### Comprobar la conexión
 
 ```bash
