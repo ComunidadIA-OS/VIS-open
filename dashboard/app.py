@@ -33,7 +33,7 @@ from dashboard.data import (
     video_path,
     video_people_series,
     video_tables,
-    video_tracks_table,
+    video_tracks_with_totals,
     voice_blocks,
     voice_transcripts,
     voices_table,
@@ -218,8 +218,9 @@ if screen == "Sesión":
     st.altair_chart(
         big(
             alt.Chart(timeline_strip(s))
-            .mark_bar(height=30)
+            .mark_bar(height=80)
             .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS))
+            .properties(height=130)
         ),
         use_container_width=True,
     )
@@ -304,7 +305,9 @@ if screen == "Sesión":
                 use_container_width=True,
             )
             st.subheader("Pistas con más tiempo en pantalla")
-            st.table(video_tracks_table(s).style.hide(axis="index").format(precision=2, na_rep="-"))
+            st.table(
+                video_tracks_with_totals(s).style.hide(axis="index").format(precision=2, na_rep="-")
+            )
             hands = v.get("manos_levantadas", [])
             st.subheader("Manos levantadas")
             st.caption("Zona de la imagen y momento; ▶ mueve el vídeo de arriba.")

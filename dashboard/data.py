@@ -419,6 +419,29 @@ def video_tracks_table(session: Session, top: int = 12) -> pd.DataFrame:
     return df.sort_values("minutos_en_pantalla", ascending=False).head(top).reset_index(drop=True)
 
 
+def video_tracks_with_totals(session: Session, top: int = 12) -> pd.DataFrame:
+    """Pistas con más tiempo en pantalla y, al final, el total por género de todas las pistas."""
+    tracks = video_tracks_table(session, top)
+    v = session.video or {}
+    total_s = sum(t["tiempo_en_pantalla_s"] for t in v.get("pistas", [])) or 1.0
+    tracks.insert(2, "porcentaje", (tracks["minutos_en_pantalla"] * 60 / total_s * 100).round(1))
+    seconds = v.get("tiempo_en_pantalla_por_genero_s", {})
+    percent = v.get("tiempo_en_pantalla_por_genero_%", {})
+    totals = pd.DataFrame(
+        [
+            {
+                "pista": f"Total {g}",
+                "minutos_en_pantalla": round(seconds.get(g, 0.0) / 60, 2),
+                "porcentaje": percent.get(g, 0.0),
+                "genero_por_audio": g,
+            }
+            for g in ("hombre", "mujer", "desconocido")
+        ],
+        columns=list(tracks.columns),
+    )
+    return pd.concat([tracks.astype({"pista": str}), totals], ignore_index=True)
+
+
 def evolution_table(sessions: list[Session]) -> pd.DataFrame:
     """Una fila por sesión (ordenada por fecha si hay ficha, si no por id)."""
     rows = []
