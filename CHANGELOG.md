@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 20 oct 2026: evaluación de costes de la API: `Decision.tokens_in/tokens_out` (campos opcionales, del `usage` de la respuesta), `evaluation/cost.py` (precios por variables de entorno, sin valores en el código; coste por turno y por sesión; previsión) y coste junto al F1 en `evaluation.benchmark`. `docs/COSTES_API.md`.
 - 19 oct 2026: la diarización lee el WAV con la librería estándar (`load_waveform`) y se lo pasa a pyannote como forma de onda, para no depender de torchcodec, que en Windows exige las DLL «shared» de FFmpeg. Probado en CPU: transcripción y diarización con un tono sintético.
 - 19 oct 2026: `pyannote/speaker-diarization-3.1` necesita aceptar también las condiciones de `pyannote/speaker-diarization-community-1` (restringido).
 - 19 oct 2026: `pipeline/envfile.py`: `pipeline.run` y `pipeline.smoke` leen el fichero `.env` (antes solo leían variables de entorno, así que `HF_TOKEN` y el resto del `.env` se ignoraban). Lo ya definido en el entorno manda.
