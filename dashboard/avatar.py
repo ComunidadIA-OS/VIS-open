@@ -41,43 +41,63 @@ float n(vec3 x){vec3 i=floor(x),f=fract(x);f=f*f*(3.-2.*f);
 float fbm(vec3 p){float a=.5,s=0.;
  for(int i=0;i<5;i++){s+=a*n(p);p=p*2.03+vec3(1.7,9.2,3.1);a*=.5;}
  return s;}
+vec2 ribbon(vec3 p,vec3 nrm,float t,float e){
+ float d=dot(p,nrm)+.2*(fbm(p*1.5+nrm*2.+t*.4)-.5);
+ float w=(.02+.045*fbm(p*1.1+nrm*3.-t*.3))*(1.+.4*e);
+ return vec2(exp(-d*d/(w*w*.08)),exp(-d*d/(w*w*2.2)));
+}
+float tendrils(float ang,float rc,float N,float spin,float t,float seed){
+ vec3 c=vec3(cos(ang)*1.4,sin(ang)*1.4,rc*2.8-t*.2+seed);
+ float ph=ang*N+5.*fbm(c)+rc*3.2*sin(seed+t*.15)+spin;
+ return pow(abs(sin(ph)),16.);
+}
 void main(){
- vec2 uv=(gl_FragCoord.xy-.5*uRes)*1.3/(.5*uRes.y);
- float ang=atan(uv.y,uv.x);
- float rr=length(uv)*(1.+(.005+.022*uE)*sin(3.*ang+uT*1.3)+(.004+.016*uE)*sin(5.*ang-uT*.9));
- float halo=exp(-3.4*max(rr-1.,0.))*(.18+.3*uE)*smoothstep(1.28,1.04,rr);
- vec3 col=vec3(.35,.72,1.)*halo;float a=halo;
+ vec2 uv=(gl_FragCoord.xy-.5*uRes)*1.1/(.5*uRes.y);
+ float rr=length(uv),ang=atan(uv.y,uv.x);
+ vec3 col=vec3(0.);float a=0.;
+ float bloom=exp(-pow(max(rr-1.,0.)*16.,2.))*(.3+.3*uE);
+ col+=vec3(.2,.32,.95)*bloom*.55;a+=bloom*.5;
  if(rr<1.){
-  float z=sqrt(1.-rr*rr);vec3 p=vec3(uv/max(length(uv),.001)*rr,z);
-  float c=cos(uT*.3),s=sin(uT*.3);p.xz=mat2(c,-s,s,c)*p.xz;
-  float ca=cos(uT*.32),sa=sin(uT*.32),cb=.94,sb=.34; // la esfera gira
-  vec3 r3=vec3(p.x*ca+p.z*sa,p.y,-p.x*sa+p.z*ca);
-  r3=vec3(r3.x,r3.y*cb-r3.z*sb,r3.y*sb+r3.z*cb);
-  vec3 q=r3*1.25;
-  vec3 w=vec3(fbm(q+uT*.12),fbm(q+vec3(5.2,1.3,2.8)-uT*.1),fbm(q+vec3(8.3,2.8,4.1)+uT*.08));
-  float f=fbm(q+(1.8+1.2*uE)*w);
-  float ridge=1.-abs(2.*f-1.);
-  float g=fbm(q*.7+w*1.5+vec3(uT*.07,-uT*.05,3.)); // el color fluye por el espacio
-  vec3 cB=vec3(.18,.42,1.),cC=vec3(.25,.9,1.),cT=vec3(.1,.78,.82),cV=vec3(.55,.45,1.);
-  vec3 hue=mix(mix(cB,cC,smoothstep(.3,.55,g)),cT,smoothstep(.5,.7,g));
-  hue=mix(hue,cV,smoothstep(.62,.85,fbm(q*.6-w+uT*.04))*.7);
-  vec3 k=vec3(.0,.04,.14)+hue*.12*(.5+f); // nebulosa tenue de fondo
-  k+=hue*.55*smoothstep(.35,.9,ridge)*(.7+.5*uE);
-  k+=mix(hue,vec3(1.),.45)*pow(ridge,6.)*(1.+1.2*uE);
-  k+=vec3(.85,.95,1.)*smoothstep(.96,1.,n(r3*30.))*(.25+.5*uE); // estrellas que giran
-  k+=vec3(.2,.6,.9)*exp(-9.*rr*rr)*(.12+.3*uE);
-  k+=vec3(.2,.7,.95)*pow(1.-z,3.)*(.7+.5*uE);
-  float dir=dot(normalize(uv+.0001),normalize(vec2(-.6,.8)));
-  k+=vec3(.9,.97,1.)*smoothstep(.05,0.,abs(rr-.93))*smoothstep(-.3,.8,dir)*.55;
-  k+=vec3(.6,.9,1.)*smoothstep(.04,0.,abs(rr-.9))*smoothstep(.3,-.9,dir)*.25;
-  float m=smoothstep(1.,.985,rr);
-  float ak=m*(.86+.1*pow(1.-z,2.)); // un poco transparente
-  col=col*(1.-ak)+k*ak;a=a*(1.-ak)+ak;
+  float z=sqrt(1.-rr*rr);
+  // cristal oscuro, con borde que brilla en azul y un toque violeta
+  vec3 body=mix(vec3(.015,.045,.15),vec3(.01,.02,.08),rr);
+  float vio=smoothstep(-.2,.9,dot(normalize(uv+.0001),normalize(vec2(.6,-.7))));
+  body+=mix(vec3(.2,.34,1.),vec3(.5,.28,1.),vio)*pow(1.-z,4.)*.7;
+  col+=body;a=.95;
+  // hilos radiales finos que fluyen desde el centro
+  float rc=rr;
+  float spin=uT*.35;
+  float tl=tendrils(ang,rc,22.,spin,uT,0.)*.8+tendrils(ang,rc,37.,-spin*.7,uT,3.1)*.5;
+  float fade=exp(-rc*1.6)*smoothstep(.97,.55,rc)*smoothstep(.015,.14,rc);
+  col+=mix(vec3(.35,.55,1.),vec3(.85,.93,1.),exp(-rc*3.))*tl*fade*(.55+.5*uE);
+  // velos de seda
+  for(int s=0;s<2;s++){
+   vec3 p=vec3(uv,s==0?z:-z);
+   float sp=uT*.2,cs=cos(sp),sn=sin(sp);
+   p=vec3(p.x*cs+p.z*sn,p.y,-p.x*sn+p.z*cs);
+   for(int i=0;i<2;i++){
+    float fi=float(i);
+    vec3 nrm=normalize(vec3(sin(uT*(.19+.07*fi)+fi*2.1),cos(uT*(.15+.05*fi)+fi*1.3),
+                            sin(uT*(.11+.06*fi)+fi*3.7)));
+    vec2 b=ribbon(p,nrm,uT,uE);
+    vec3 hue=i==0?vec3(.28,.34,1.):vec3(.55,.35,1.);
+    col+=hue*b.y*(.1+.1*uE)*(s==0?1.:.6)+vec3(.6,.72,1.)*b.x*(.32+.25*uE)*(s==0?1.:.5);
+   }
+  }
+  // partículas en el borde
+  float grain=smoothstep(.985,1.,n(vec3(uv*85.,uT*.4)))*smoothstep(.78,.97,rr);
+  col+=vec3(.7,.85,1.)*grain*.8;
+  // chispa central
+  col+=vec3(.85,.92,1.)*exp(-600.*rr*rr)*(.8+.6*uE)+vec3(.35,.55,1.)*exp(-16.*rr*rr)*(.25+.3*uE);
+  // brillos del cristal
+  float dir=dot(normalize(uv+.0001),normalize(vec2(-.6,.75)));
+  col+=vec3(.9,.95,1.)*smoothstep(.05,0.,abs(rr-.9))*smoothstep(.1,.85,dir)*.6;
+  col+=vec3(.55,.4,1.)*smoothstep(.05,0.,abs(rr-.9))*smoothstep(-.1,-.9,dir)*.35;
+  col=min(col,vec3(a));
  }
- float rc=length(uv);
- float star=exp(-260.*rc*rc)*(.5+.7*uE)+exp(-abs(uv.y)*150.)*exp(-abs(uv.x)*4.)*(.08+.3*uE);
- col+=vec3(.8,.95,1.)*star;a=clamp(max(a,star*.9),0.,1.);
- gl_FragColor=vec4(min(col,vec3(1.)),a);
+ float ring=exp(-pow((rr-.995)*40.,2.))*.9;
+ col+=vec3(.5,.62,1.)*ring;a=max(a,ring);
+ gl_FragColor=vec4(min(col,vec3(a)),a); // color premultiplicado
 }
 </script>
 <script>
