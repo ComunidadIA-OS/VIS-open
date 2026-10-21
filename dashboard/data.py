@@ -329,7 +329,13 @@ def apply_confirmed(timeline: AnalysisTimeline, confirmed: dict[str, str]) -> An
 
 def inconclusive_reason(session: Session) -> str:
     """Por qué hay métricas «no concluyentes» (vacío si todas lo son por otra cosa o ninguna)."""
-    reasons = sorted({r.reason for r in session.metrics.values() if not r.conclusive and r.reason})
+    reasons = sorted(
+        {
+            r.reason.removeprefix("no concluyente: ")
+            for r in session.metrics.values()
+            if not r.conclusive and r.reason
+        }
+    )
     if not reasons:
         return ""
     return (
