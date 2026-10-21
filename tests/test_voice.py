@@ -231,3 +231,34 @@ def test_echo_and_one_shot_save():
     cmd = voice.parse_command("es mujer con nivel medio, confirmo", IDS, "gender")
     assert (cmd.action, cmd.gender, cmd.topic) == ("val_gender", "mujer", "save")
     assert voice.parse_command("es mujer", IDS, "gender").topic is None
+
+
+def test_whisper_noise_is_dropped():
+    junk = "¿Qué es lo que se hace? " * 6
+    assert voice.looks_hallucinated(junk)
+    assert voice.looks_hallucinated("Gracias por ver el vídeo.")
+    assert not voice.looks_hallucinated("dame el resumen de la sesión cuatro")
+
+    def fake(req):
+        segs = [
+            {"text": " dame el resumen", "no_speech_prob": 0.02, "avg_logprob": -0.2,
+             "compression_ratio": 0.9},
+            {"text": " suscríbete", "no_speech_prob": 0.9, "avg_logprob": -1.8,
+             "compression_ratio": 1.0},
+        ]  # fmt: skip
+        return json.dumps({"text": "x", "segments": segs}).encode()
+
+    env = {"LLM_BASE_URL": "https://x/v1"}
+    assert voice.transcribe(b"RIFF" + b"0" * 100, env, fake) == "dame el resumen"
+
+
+def test_annotator_with_number_word():
+    cmd = voice.parse_command("¿puedes ponerme como anotadora número dos?", IDS)
+    assert (cmd.action, cmd.person) == ("set_annotator", 2)
+
+
+def test_junk_phrases_and_subtitles_section():
+    assert voice.looks_hallucinated("¿Qué es lo que se hace?")
+    assert voice.looks_hallucinated("¿Verdad? ¿Verdad?")
+    cmd = voice.parse_command("descarga los subtítulos", IDS)
+    assert (cmd.action, cmd.section) == ("go_section", "sec-video")

@@ -8,18 +8,39 @@ export function rms(chunk) {
   return Math.sqrt(s / Math.max(1, chunk.length))
 }
 
+// Fracción de la energía por debajo de ~3 kHz y cresta (pico/energía): la voz tiene casi todo su
+// cuerpo en graves y es sostenida; un golpe de tecla o un clic es agudo e impulsivo.
+function voiceShape(chunk, state, sr) {
+  const a = 1 - Math.exp((-2 * Math.PI * 3000) / sr)
+  let low = 0
+  let total = 0
+  let peak = 0
+  for (let i = 0; i < chunk.length; i++) {
+    const x = chunk[i]
+    state.y1 += a * (x - state.y1)
+    state.y2 += a * (state.y1 - state.y2)
+    low += state.y2 * state.y2
+    total += x * x
+    peak = Math.max(peak, Math.abs(x))
+  }
+  const n = Math.max(1, chunk.length)
+  const r = Math.sqrt(total / n)
+  return { lowRatio: total > 0 ? Math.sqrt(low / total) : 0, crest: r > 0 ? peak / r : 0 }
+}
+
 export function createVad(options) {
   const sr = options.sampleRate
   const cfg = {
     silenceMs: 2000, // silencio que cierra la frase
-    minSpeechMs: 350, // menos voz que esto es un golpe o un clic: se descarta
+    minSpeechMs: 400, // menos voz que esto es un golpe o un clic: se descarta
     maxUtteranceMs: 30000, // tope de una frase
     preRollMs: 400, // se guarda lo anterior al inicio para no perder la primera sílaba
-    startMs: 120, // voz sostenida necesaria para dar por empezada la frase
+    startMs: 250, // voz sostenida necesaria para dar por empezada la frase (una tecla no llega)
     minThreshold: 0.015,
     noiseFactor: 3.5,
     ...options,
   }
+  const filt = { y1: 0, y2: 0 }
   let state = 'wait'
   let noise = 0.008
   let candidate = []
@@ -69,8 +90,10 @@ export function createVad(options) {
     const events = []
     const level = rms(chunk)
     const d = ms(chunk)
+    const shape = voiceShape(chunk, filt, sr)
+    const voiced = level > threshold() && shape.lowRatio > 0.55 && shape.crest < 7
     if (state === 'wait') {
-      if (level > threshold()) {
+      if (voiced) {
         candidate.push(chunk)
         candMs += d
         if (candMs >= cfg.startMs) {
@@ -88,7 +111,7 @@ export function createVad(options) {
       } else {
         candidate = []
         candMs = 0
-        noise = Math.min(0.05, noise * 0.97 + level * 0.03)
+        if (level <= threshold()) noise = Math.min(0.05, noise * 0.97 + level * 0.03)
         preroll.push(chunk)
         preMs += d
         while (preroll.length > 1 && preMs - ms(preroll[0]) >= cfg.preRollMs) preMs -= ms(preroll.shift())
@@ -96,7 +119,7 @@ export function createVad(options) {
     } else {
       buf.push(chunk)
       bufMs += d
-      if (level > threshold() * 0.7) {
+      if (level > threshold() * 0.7 && shape.lowRatio > 0.4) {
         sinceVoiceMs = 0
         voicedMs += d
       } else {

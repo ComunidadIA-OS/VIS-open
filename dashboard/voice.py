@@ -40,6 +40,7 @@ SECTIONS = {  # palabra dicha -> ancla de la sección (ver `dashboard/app.py`)
     "transcripcion": "sec-audio",
     "descargas": "sec-descargas",
     "informe": "sec-descargas",
+    "subtitulos": "sec-video",
     "video": "sec-video",
     "reproductor": "sec-video",
 }
@@ -111,6 +112,39 @@ def is_echo(heard: str, last_reply: str) -> bool:
     """True si lo «oído» es un trozo de la última respuesta: el micrófono captó al asistente."""
     h, r = normalize(clean_text(heard)), normalize(last_reply)
     return len(h.split()) >= 3 and h in r
+
+
+JUNK_EXACT = ("que es lo que se hace", "verdad", "gracias")  # lo que más inventa con ruido
+JUNK_PHRASES = (
+    "gracias por ver",
+    "suscribete",
+    "subtitulos realizados",
+    "subtitulado por",
+    "amara org",
+    "no olvides suscribirte",
+    "hasta la proxima",
+)  # frases que Whisper inventa con ruido o música
+
+
+def _plausible_segment(seg: dict) -> bool:
+    """Descarta lo que Whisper inventa sobre ruido: poca voz, poca confianza o repetición."""
+    if float(seg.get("no_speech_prob", 0) or 0) > 0.6:
+        return False
+    if float(seg.get("avg_logprob", 0) or 0) < -1.0:
+        return False
+    return float(seg.get("compression_ratio", 0) or 0) <= 2.4
+
+
+def looks_hallucinated(text: str) -> bool:
+    """Frase repetida varias veces o muletilla típica de Whisper sobre ruido: no es una orden."""
+    norm = normalize(text)
+    words = set(norm.split())
+    if norm in JUNK_EXACT or (words and words <= {"verdad", "gracias"}):
+        return True
+    if any(p in norm for p in JUNK_PHRASES):
+        return True
+    sentences = [s.strip() for s in re.split(r"[.?!¡¿]+", text.lower()) if s.strip()]
+    return len(sentences) >= 3 and len(set(sentences)) <= len(sentences) // 3
 
 
 def number_in(text: str) -> int | None:
@@ -199,7 +233,7 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
                 )
         if confidence_in(norm):
             return Command("val_conf", confidence=confidence_in(norm))
-    annotator = re.search(r"\banotadora (\w+)", norm)
+    annotator = re.search(r"\banotadora\s+(?:numero\s+)?(\w+)", norm)
     if annotator and number_in(annotator.group(1)) in (1, 2):
         return Command("set_annotator", person=number_in(annotator.group(1)))
     person = re.search(r"\bpersona (\w+)", norm)
@@ -394,7 +428,7 @@ def transcribe(
         "model": model,
         "language": env.get("VOICE_LANG") or "es",
         "prompt": ASR_HINT,  # fijo: ayuda a oír el vocabulario del panel; nunca sale de los datos
-        "response_format": "json",
+        "response_format": "verbose_json",  # trae la probabilidad de que no sea voz
     }
     body = b""
     for name, value in fields.items():
@@ -417,7 +451,14 @@ def transcribe(
     reply = json.loads(transport(req))
     if not isinstance(reply, dict):
         raise ValueError("respuesta inesperada del servicio de voz")
-    return clean_text(str(reply.get("text", "")))
+    segments = reply.get("segments")
+    if isinstance(segments, list) and segments:
+        kept = [s for s in segments if isinstance(s, dict) and _plausible_segment(s)]
+        text = " ".join(str(s.get("text", "")) for s in kept)
+    else:
+        text = str(reply.get("text", ""))
+    text = clean_text(text)
+    return "" if looks_hallucinated(text) else text
 
 
 METHOD = (

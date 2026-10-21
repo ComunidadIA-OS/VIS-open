@@ -315,8 +315,14 @@ def voice_dialog() -> None:
     ss = st.session_state
     if ss.pop("voz_refrescar", False):
         st.rerun()  # dibuja la página de fondo con la orden cumplida y reabre esta ventana
+    cut = ss.pop("voz_play", None)
     components.html(
-        avatar_html(ss.get("voz_respuesta"), ss.get("voz_ancla"), ss.pop("voz_nueva", False)),
+        avatar_html(
+            ss.get("voz_respuesta"),
+            ss.get("voz_ancla"),
+            ss.pop("voz_nueva", False),
+            then_play=bool(cut),  # el corte suena cuando el asistente acaba de hablar
+        ),
         height=220,
     )
     st.audio_input("Pulsa, habla y para", key="voz_audio", on_change=on_voice_audio)
@@ -325,7 +331,6 @@ def voice_dialog() -> None:
     for said, reply in reversed(ss.get("voz_historial", [])[-6:]):
         st.text(f"Tú: {said}")  # texto plano: nunca se interpreta
         st.text(f"Asistente: {reply}")
-    cut = ss.pop("voz_play", None)
     current = ss.get("sesion", sessions[0].session_id)
     clip_src = video_path(next(x for x in sessions if x.session_id == current), DATA_DIR)
     if cut and clip_src:
@@ -337,7 +342,7 @@ def voice_dialog() -> None:
             f"{current}_{cut['speaker_id']}",
         )
         if mp4:
-            st.video(mp4, autoplay=True)
+            st.video(mp4)
 
 
 def voice_button() -> None:
