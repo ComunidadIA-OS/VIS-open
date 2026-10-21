@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: prueba de humo del ajuste de Qwen en OVH: el 4B (9,3 GB) y el 9B (19 GB) caben y entrenan sin NaN en una V100S de 32 GB; resultados en `docs/M09_PREGUNTAS.md`. El ajuste real espera a la anotación de Ivette.
 - 21 oct 2026: pasada de lector de pantalla: página en español (`lang=es`), descripción en español con cifras para cada gráfico, encabezados para todas las secciones y nombres para vídeos y la ventana del asistente.
 - 21 oct 2026: con un vídeo sonando, parar es más fácil: valen «puedes parar el vídeo», «páralo», «detenlo», «pon pausa», «apaga el vídeo»… y, como en ese momento solo cabe parar, también una frase corta mal oída con «para», «pausa», «stop» o «vídeo» («¿por qué para?»). Se guarda más audio antes de empezar a hablar (600 ms) para no perder la primera palabra.
 - 21 oct 2026: «para el vídeo» funciona con el vídeo sonando: al empezar a hablar el vídeo se pausa (Whisper ya no mezcla su audio con tu voz) y solo vuelve a sonar si no pediste pararlo. Lo que se ignora con el vídeo sonando queda apuntado en la conversación.
