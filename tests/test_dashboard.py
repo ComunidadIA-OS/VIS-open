@@ -388,3 +388,19 @@ def test_review_cuts_are_listed_one_after_another_and_one_answer_covers_the_voic
     assert annotator_answers(folder, 1) == {}
     save_review(folder, 1, "SPEAKER_00", "hombre", "alta", "", "anotadora_1")
     assert annotator_answers(folder, 1) == {"SPEAKER_00": "hombre"}  # vale para todos sus cortes
+
+
+def test_every_session_page_has_the_same_sections(tmp_path, monkeypatch):
+    import re
+
+    from streamlit.testing.v1 import AppTest
+
+    monkeypatch.setenv("DATA_DIR", str(tmp_path))  # sin datos reales: sesiones sintéticas
+    app = Path(__file__).parent.parent / "dashboard" / "app.py"
+    layouts = {}
+    for s in load_sessions(tmp_path):
+        at = AppTest.from_file(str(app), default_timeout=120).run()
+        at.selectbox[0].set_value(s.session_id).run()
+        titles = [t.value for t in at.title] + [h.value for h in at.header]
+        layouts[s.session_id] = [re.sub(r"\(\d+ voces.*\)|Sesión .*", "X", t) for t in titles]
+    assert len({tuple(v) for v in layouts.values()}) == 1, layouts

@@ -9,6 +9,8 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 ### Añadido
 
 - 21 oct 2026: Human in the loop con los cortes uno a continuación de otro (hasta 6 por voz, 9 s cada uno), no agrupados; validar una voz en un corte la resuelve para todos sus cortes.
+- 21 oct 2026: el selector de vídeo y sus opciones tienen letra grande; jerarquía de tamaños coherente (título principal > secciones > subtítulos > texto) y espacio uniforme entre secciones.
+- 21 oct 2026: más espacio entre las secciones del panel (títulos, bloques y botones de descarga).
 - 21 oct 2026: tarjetas de métricas con título corto (el nombre completo, al pasar el ratón), en filas de 3 y con los valores alineados; más espacio entre bloques; filtro de género de Intervenciones en horizontal; el aviso «no concluyente» ya no repite el texto.
 - 20 oct 2026: en el panel y el PDF los tiempos van en formato m:ss (inicio y duración de las intervenciones, tiempo de palabra, tiempo en pantalla) y los porcentajes con «%»; el filtro de género de Intervenciones es una lista de casillas a la izquierda; las tablas tienen texto más grande. Análisis de vídeo pasado también por V002 y V003 (datos locales).
 - 20 oct 2026: Human in the loop con una muestra corta por voz (9 s, cortada de verdad con FFmpeg en `data/clips/`), con el texto que dice y un botón «Otra muestra»; la instrucción aclara que se valida la voz que se oye, no las otras personas de la imagen.
