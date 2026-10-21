@@ -181,7 +181,7 @@ def run_voice(cmd, ids: list[str]) -> str:
             voz_conf=cmd.confidence or "media",
             voz_play=mine[0],  # pone en marcha la prueba de sonido
         )
-        return "Reproduzco la prueba de sonido. " + voice.describe_cut(mine[0], 1, len(cuts))
+        return f"Reproduzco la prueba de {mine[0]['code']}. ¿Es mujer, hombre o desconocido?"
     if act in ("val_gender", "val_conf", "val_confirm", "val_cancel", "val_skip", "play_cut"):
         cuts = ss.get("voz_cortes")
         if not cuts:
@@ -199,10 +199,12 @@ def run_voice(cmd, ids: list[str]) -> str:
                 ss["voz_genero"] = cmd.gender
             ss["voz_conf"] = cmd.confidence or ss.get("voz_conf", "media")
             ss["voz_estado"] = "confirm"
-            return (
-                f"Has dicho {ss['voz_genero']} para {cut['code']}, con confianza {ss['voz_conf']}. "
-                "¿Confirmas? Di «confirmo» o «cancela»."
-            )
+            if cmd.topic != "save":  # «es mujer, confirmo» guarda de una vez
+                return (
+                    f"Has dicho {ss['voz_genero']} para {cut['code']}, con confianza "
+                    f"{ss['voz_conf']}. ¿Confirmas? Di «confirmo» o «cancela»."
+                )
+            act = "val_confirm"
         if act == "val_confirm":
             save_review(
                 folder,
@@ -234,6 +236,8 @@ def _process_voice(text: str) -> None:
 
     ss = st.session_state
     ids = [x.session_id for x in sessions]
+    if voice.is_echo(text, ss.get("voz_respuesta", "")):
+        return  # el micrófono recogió la voz del propio asistente
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
     reply = "No te he entendido. Di «ayuda»." if cmd is None else run_voice(cmd, ids)
     ss["voz_respuesta"] = reply

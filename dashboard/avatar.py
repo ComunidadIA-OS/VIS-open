@@ -155,7 +155,9 @@ function frame(now){
   if(!still&&!document.hidden)requestAnimationFrame(frame)}
 if(still){draw(3.,.3)}else{
   requestAnimationFrame(frame);
-  setInterval(()=>{if(state!=='speaking')state=listening()?'listening':'idle'},250)}
+  setInterval(()=>{const l=listening();
+    if(l&&state==='speaking'){window.parent.speechSynthesis.cancel();state='listening'}
+    else if(state!=='speaking')state=l?'listening':'idle'},250)}
 if(speak&&t){
   if(a){setTimeout(()=>{const e=pd.getElementById(a);
     if(e)e.scrollIntoView({behavior:'smooth'})},400)}

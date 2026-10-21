@@ -106,6 +106,12 @@ def numbers_in(text: str) -> list[int]:
     return out
 
 
+def is_echo(heard: str, last_reply: str) -> bool:
+    """True si lo «oído» es un trozo de la última respuesta: el micrófono captó al asistente."""
+    h, r = normalize(clean_text(heard)), normalize(last_reply)
+    return len(h.split()) >= 3 and h in r
+
+
 def number_in(text: str) -> int | None:
     nums = numbers_in(text)
     return nums[0] if nums else None
@@ -186,7 +192,10 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     if state in ("gender", "confirm"):
         for word, gender in GENDER_WORDS:
             if re.search(rf"\b{word}", norm):
-                return Command("val_gender", gender=gender, confidence=confidence_in(norm))
+                save = "save" if has("confirm", "guarda", "guardalo") else None
+                return Command(
+                    "val_gender", gender=gender, confidence=confidence_in(norm), topic=save
+                )
         if confidence_in(norm):
             return Command("val_conf", confidence=confidence_in(norm))
     annotator = re.search(r"\banotadora (\w+)", norm)
@@ -484,12 +493,9 @@ def pending_cuts(session, folder, who: int, redo: bool = False) -> list[dict]:
 def describe_cut(cut: dict, index: int, total: int) -> str:
     from dashboard.data import fmt_time
 
-    text = str(cut["texto"])[:300]
     return (
         f"Corte {index} de {total}, {cut['code']}, de {fmt_time(float(cut['start']))} a "
-        f"{fmt_time(float(cut['stop']))}. En este corte dice: {text}. "
-        "Di «reproduce el corte» para oírlo. Luego dime: mujer, hombre o desconocido. "
-        "Solo tú decides; yo no sugiero el género."
+        f"{fmt_time(float(cut['stop']))}. Dime: mujer, hombre o desconocido."
     )
 
 
