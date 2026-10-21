@@ -33,7 +33,7 @@ Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluat
 4. **Gráfico de barras** del tiempo de palabra por género.
 5. **Línea de tiempo** de la sesión: una franja horizontal coloreada según el género de quien habla en cada momento, con las manos levantadas marcadas.
 6. **Tabla de intervenciones**: código anónimo de la persona (Persona 1, Persona 2…), minuto de inicio, duración, género y la evidencia del género (la frase y el minuto, con el nombre sustituido por el código, por ejemplo «tiene la palabra la señora [Persona 3]»). Las voces sin pista aparecen como `desconocido`. Nunca se muestran nombres.
-7. **Aviso de método**, siempre visible: «El género se asigna solo por pistas del lenguaje de la sesión, nunca por la cara ni la voz. Los resultados son orientativos y requieren revisión humana.»
+7. **Aviso de método**, siempre visible: «El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la cara ni la voz. Los resultados son orientativos y requieren revisión humana.»
 
 ## Subtítulos para personas sordas
 

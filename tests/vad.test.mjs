@@ -127,3 +127,22 @@ assert.equal(wav.length, 44 + 16000 * 2)
 assert.ok(toBase64(wav).length > 1000)
 
 console.log('vad: ok')
+
+// ---- rapidez: el ruido de la sala no alarga la espera tras la frase --------------------------
+{
+  const speech = loadWav('resumen.wav')
+  const room = Float32Array.from({ length: speech.length + 6 * SR }, () => 0.03 * rand())
+  const audio = mix(join(floor(0.01), speech, new Float32Array(6 * SR)), room)
+  const vad = createVad({ sampleRate: SR, silenceMs: 2000 })
+  let endAt = null
+  for (let i = 0; i + CHUNK <= audio.length; i += CHUNK) {
+    for (const e of vad.push(audio.subarray(i, i + CHUNK))) {
+      if (process.env.VAD_DEBUG) console.log(Math.round((i / SR) * 1000), e)
+      if (e.type === 'end') endAt = (i / SR) * 1000
+    }
+  }
+  const speechEnd = (speech.length / SR) * 1000
+  assert.ok(endAt !== null, 'con ruido de sala la frase se cierra')
+  assert.ok(endAt - speechEnd < 2600, `corta ~2 s después de hablar (tardó ${Math.round(endAt - speechEnd)} ms)`)
+  console.log(`corte tras la frase con ruido de sala: ${Math.round(endAt - speechEnd)} ms`)
+}

@@ -36,7 +36,8 @@ PENDING_METRICS = {
     "M09": "Preguntas recibidas (IA)",
 }
 METHOD_NOTICE = (
-    "El género se asigna solo por pistas del lenguaje de la sesión, nunca por la cara ni la voz. "
+    "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
+    "cara ni la voz. "
     "Los resultados son orientativos y requieren revisión humana."
 )
 SOURCE_NOTICE = "Fuente: Congreso de los Diputados, vídeo sin alterar."
