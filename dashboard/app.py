@@ -239,7 +239,7 @@ def voice_dialog() -> None:
         st.rerun()  # dibuja la página de fondo con la orden cumplida y reabre esta ventana
     components.html(
         avatar_html(ss.get("voz_respuesta"), ss.get("voz_ancla"), ss.pop("voz_nueva", False)),
-        height=290,
+        height=220,
     )
     st.audio_input("Pulsa, habla y para", key="voz_audio", on_change=on_voice_audio)
     st.text_input("o escribe la orden", key="voz_texto", on_change=on_voice_text)
