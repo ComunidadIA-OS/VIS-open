@@ -153,7 +153,11 @@ def run_voice(cmd, ids: list[str]) -> str:
     if act in ("play_video", "stop_video"):
         ss["voz_video"] = act == "play_video"
         ss["voz_ancla"] = "sec-video"
-        return "Pongo el vídeo en marcha." if act == "play_video" else "Detengo el vídeo."
+        if act == "stop_video":
+            return "Detengo el vídeo."
+        return (
+            f"Vídeo {current} seleccionado. " if cmd.session else ""
+        ) + "Pongo el vídeo en marcha."
     if act == "repeat":
         return ss.get("voz_respuesta") or voice.HELP
 

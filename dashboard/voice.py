@@ -281,8 +281,13 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     # «pausa» o «stop» solos valen; dentro de una frase larga son parte de lo que se oye
     if re.search(stop, norm) or norm in ("pausa", "stop", "para", "silencio"):
         return Command("stop_video", session)
-    if has("lanza", "lanzar", "reproduce", "reproducir", "pon ", "activa", "inicia", "arranca"):
-        if has("video") and not has("corte") and "minuto" not in norm:
+    play_verbs = (
+        "lanza", "reproduce", "reproducir", "pon ", "poner", "ponme", "activa", "inicia", "arranca",
+        "dale", "play",
+    )  # fmt: skip
+    if has(*play_verbs) and not has("corte") and "minuto" not in norm:
+        # «pon el vídeo 4» (elige y lanza) o «lánzalo» (el vídeo de la sesión elegida)
+        if has("video") or session is not None or len(norm.split()) <= 5:
             return Command("play_video", session)
     if has("cancela", "termina la validacion", "dejar de validar", "para la validacion"):
         return Command("val_cancel")
@@ -383,7 +388,8 @@ def answer(cmd: Command, session, pending: int | None = None) -> str:
         return f"Vídeo {sid} seleccionado. Dura {minutes:.0f} minutos y tiene {len(voices)} voces."
     if cmd.action == "go_section":
         where = SECTION_NAMES.get(cmd.section or "", "la sección")
-        return (f"Vídeo {sid} seleccionado. " if cmd.session else "") + f"Te llevo a {where}."
+        where = "al " + where[3:] if where.startswith("el ") else "a " + where
+        return (f"Vídeo {sid} seleccionado. " if cmd.session else "") + f"Te llevo {where}."
     if cmd.action == "go_minute":
         return (
             "Hecho."

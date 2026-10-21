@@ -163,7 +163,8 @@ const withVideo=(fn,delay)=>{if(!then)return;setTimeout(()=>{
     .find((b)=>b.innerText.includes(then.text)):pd.querySelector(then.sel);
   if(v)fn(v)},delay)};
 const playClip=()=>{
-  if(then&&then.op==='play')withVideo((v)=>v.play().catch(()=>{}),then.delay)
+  if(then&&then.op==='play')withVideo((v)=>v.play().catch(()=>
+    setTimeout(()=>v.play().catch(()=>{}),600)),then.delay)
   else if(then&&then.op==='click')withVideo((b)=>b.click(),then.delay)};
 if(then&&then.op==='pause')withVideo((v)=>v.pause(),0); // parar antes de hablar, para oírse
 if(!(speak&&t))playClip();

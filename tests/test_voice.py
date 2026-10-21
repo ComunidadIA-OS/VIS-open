@@ -317,3 +317,25 @@ def test_more_keyboard_phantoms_are_junk():
     for phrase in ("Y ya está.", "No he dicho nada.", "Ya está"):
         assert voice.looks_hallucinated(phrase)
     assert not voice.looks_hallucinated("sí")  # «sí» y «vale» confirman en la validación
+
+
+@pytest.mark.parametrize(
+    ("text", "session"),
+    [
+        ("hola, ¿puedes poner la vídeo cuatro?", "V004"),
+        ("pon el vídeo 2", "V002"),
+        ("lo puedes lanzar", None),
+        ("lánzalo", None),
+        ("¿puedes lanzar el vídeo por favor?", None),
+    ],
+)
+def test_play_video_selects_and_plays(text, session):
+    cmd = voice.parse_command(text, IDS)
+    assert (cmd.action, cmd.session) == ("play_video", session)
+
+
+def test_play_does_not_steal_other_commands():
+    assert voice.parse_command("pon el vídeo en el minuto 40", IDS).action == "go_minute"
+    assert voice.parse_command("ponme como anotadora 2", IDS).action == "set_annotator"
+    cmd = voice.parse_command("pon en marcha la prueba de sonido de la persona 1", IDS)
+    assert cmd.action == "validate_person"
