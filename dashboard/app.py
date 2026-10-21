@@ -267,6 +267,9 @@ def _process_voice(text: str, during_video: bool = False, handsfree: bool = Fals
     if voice.is_echo(text, ss.get("voz_respuesta", "")):
         return  # el micrófono recogió la voz del propio asistente
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
+    if during_video and (cmd is None or cmd.action not in VIDEO_COMMANDS):
+        if voice.stop_intent(text):  # con el vídeo sonando, Whisper oye mal: basta la intención
+            cmd = voice.Command("stop_video")
     if during_video and (
         cmd is None
         or cmd.action not in VIDEO_COMMANDS

@@ -25,8 +25,21 @@ DEFAULT_ASR_MODEL = "whisper-large-v3-turbo"
 ASR_HINT = (
     "Orden para el panel: sesión cuatro, persona uno, persona dos, anotadora dos, mujer, hombre, "
     "desconocido, confirmo, cancela, confianza media, vídeo, minuto, transcripción, resumen, "
-    "Human in the loop."
+    "Human in the loop, para el vídeo."
 )
+STOP_WORDS = ("para", "parar", "paralo", "pausa", "stop", "deten", "detenlo", "basta", "video")
+PLAY_WORDS = ("lanza", "lanzalo", "reproduce", "pon", "dale", "play")
+
+
+def stop_intent(text: str) -> bool:
+    """Con un vídeo sonando: frase corta que suena a «para el vídeo», aunque Whisper la oiga mal
+    («¿por qué para?», «¡ahora, vídeo!»). Solo se usa en ese momento, cuando no cabe otra orden."""
+    words = normalize(clean_text(text)).split()
+    if not words or len(words) > 6 or any(w in PLAY_WORDS for w in words):
+        return False
+    return any(w in STOP_WORDS for w in words)
+
+
 MAX_AUDIO_BYTES = 4_000_000  # una orden dura segundos; más es un abuso o un error
 MAX_TEXT_CHARS = 200  # una orden es corta; el resto se descarta
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f<>{}`$\\]")
@@ -276,10 +289,17 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
             else None
         )  # fmt: skip
         return Command("download", session, topic=what)
-    verbs = r"(?:para|parar|pausa|pausar|deten|detener|stop)"
-    stop = rf"\b{verbs}\s+(?:el\s+|la\s+|este\s+|ese\s+)?video"
+    verbs = r"(?:para|parar|pausa|pausar|deten|detener|stop|apaga|apagar|quita|quitar|corta|cortar)"
+    stop = rf"\b{verbs}\s+(?:el\s+|la\s+|este\s+|ese\s+)?(?:video|reproduccion)"
+    stop_it = r"\b(?:paralo|pararlo|detenlo|detenerlo|pausalo|pausarlo|apagalo|apagarlo|quitalo)\b"
     # «pausa» o «stop» solos valen; dentro de una frase larga son parte de lo que se oye
-    if re.search(stop, norm) or norm in ("pausa", "stop", "para", "silencio"):
+    short = len(norm.split()) <= 4
+    if (
+        re.search(stop, norm)
+        or re.search(stop_it, norm)
+        or norm in ("pausa", "stop", "para", "silencio")
+        or (short and has("pon pausa", "en pausa", "pausalo"))
+    ):
         return Command("stop_video", session)
     play_verbs = (
         "lanza", "reproduce", "reproducir", "pon ", "poner", "ponme", "activa", "inicia", "arranca",

@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: con un vídeo sonando, parar es más fácil: valen «puedes parar el vídeo», «páralo», «detenlo», «pon pausa», «apaga el vídeo»… y, como en ese momento solo cabe parar, también una frase corta mal oída con «para», «pausa», «stop» o «vídeo» («¿por qué para?»). Se guarda más audio antes de empezar a hablar (600 ms) para no perder la primera palabra.
 - 21 oct 2026: «para el vídeo» funciona con el vídeo sonando: al empezar a hablar el vídeo se pausa (Whisper ya no mezcla su audio con tu voz) y solo vuelve a sonar si no pediste pararlo. Lo que se ignora con el vídeo sonando queda apuntado en la conversación.
 - 21 oct 2026: cortesía en el asistente de voz: «gracias» → «De nada. Aquí estoy si necesitas algo más»; «hola» → «Hola. ¿En qué te ayudo?»; «adiós», «hasta mañana», «hasta luego» se despiden y apagan el modo manos libres.
 - 21 oct 2026: «pon el vídeo 4» elige ese vídeo y lo lanza sin preguntar; «lo puedes lanzar» o «lánzalo» lanzan el vídeo elegido. «Te llevo al vídeo» (antes «a el»).
