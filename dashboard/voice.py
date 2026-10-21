@@ -22,6 +22,10 @@ from collections.abc import Callable, Mapping
 from dataclasses import dataclass
 
 DEFAULT_ASR_MODEL = "whisper-large-v3-turbo"
+ASR_HINT = (
+    "Orden para el panel: sesión cuatro, persona dos, mujer, hombre, desconocido, confirmo, "
+    "cancela, confianza media, vídeo, minuto, transcripción, resumen, Human in the loop."
+)
 MAX_AUDIO_BYTES = 4_000_000  # una orden dura segundos; más es un abuso o un error
 MAX_TEXT_CHARS = 200  # una orden es corta; el resto se descarta
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f<>{}`$\\]")
@@ -52,7 +56,7 @@ _TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta
 ACTIONS = (
     "show_session", "go_section", "go_minute", "women_count", "men_count", "gender_time", "gap",
     "summary", "data_summary", "most_spoken", "pending", "hands", "help", "read_transcript",
-    "explain", "validate_person", "val_conf",
+    "explain", "validate_person", "val_conf", "play_video", "stop_video",
     "validate_start", "val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut", "repeat",
 )  # fmt: skip
 
@@ -125,8 +129,11 @@ def _session_in(norm: str, sessions: list[str]) -> str | None:
         num = int(re.sub(r"\D", "", sid) or -1)
         if re.search(rf"\b{sid.lower()}\b", norm) or re.search(rf"\bv ?0*{num}\b", norm):
             return sid
-    after = re.split(r"\b(?:sesion|video|dashboard|panel)\b", norm, maxsplit=1)
-    n = number_in(after[1]) if len(after) > 1 else None
+    # solo el número que sigue a «sesión», «vídeo»...: «el vídeo de la persona 2» no es la sesión 2
+    pattern = r"\b(?:sesion|video|dashboard|panel)\s+(?:numero\s+)?(\w+)"
+    n = next(
+        (x for m in re.finditer(pattern, norm) if (x := number_in(m.group(1))) is not None), None
+    )
     if n is not None:
         for sid in sessions:
             digits = re.sub(r"\D", "", sid)
@@ -139,6 +146,7 @@ CONFIDENCE_WORDS = (
     ("confianza alta", "alta"), ("seguridad alta", "alta"), ("muy segur", "alta"),
     ("confianza media", "media"), ("seguridad media", "media"),
     ("confianza baja", "baja"), ("seguridad baja", "baja"), ("poco segur", "baja"),
+    ("nivel alto", "alta"), ("nivel medio", "media"), ("nivel bajo", "baja"),
 )  # fmt: skip
 
 
@@ -150,6 +158,8 @@ GENDER_WORDS = (
     ("mujer", "mujer"), ("femenin", "mujer"), ("hombre", "hombre"), ("varon", "hombre"),
     ("masculin", "hombre"), ("desconocid", "desconocido"), ("no se", "desconocido"),
     ("no lo se", "desconocido"), ("dudo", "desconocido"), ("no estoy segur", "desconocido"),
+    ("homme", "hombre"), ("femme", "mujer"),  # Whisper oye a veces francés
+    ("nombre", "hombre"),  # «es un hombre» mal oído; siempre se pide «confirmo» después
 )  # fmt: skip
 
 
@@ -168,13 +178,11 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     )
 
     if state == "confirm":
-        if has("confirmo", "confirmado", "correcto", "adelante", "guarda") or norm in (
-            "si",
-            "vale",
-        ):
-            return Command("val_confirm")
         if has("cancela", "no confirmo", "me equivoque") or norm == "no":
             return Command("val_cancel")
+        # «confirmo», «confirme», «confirmamos»... (Whisper a veces oye «confirme-nous»)
+        if has("confirm", "correcto", "adelante", "guarda") or norm in ("si", "vale"):
+            return Command("val_confirm")
     if state in ("gender", "confirm"):
         for word, gender in GENDER_WORDS:
             if re.search(rf"\b{word}", norm):
@@ -182,10 +190,19 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
         if confidence_in(norm):
             return Command("val_conf", confidence=confidence_in(norm))
     person = re.search(r"\bpersona (\w+)", norm)
-    if person and has("prueba", "muestra", "corte", "valida", "confirmar", "escuchar", "sonido"):
+    asks = (
+        "prueba", "muestra", "corte", "valida", "confirmar", "comprobar", "comprueba", "escuchar",
+        "escucha", "sonido", "video", "activa", "lanza", "reproduce", "pon ",
+    )  # fmt: skip
+    if person and has(*asks):
         n = number_in(person.group(1))
         if n is not None:
-            return Command("validate_person", session, person=n)
+            return Command("validate_person", session, person=n, confidence=confidence_in(norm))
+    if has("para el video", "pausa", "deten el video", "parar el video"):
+        return Command("stop_video", session)
+    if has("lanza", "lanzar", "reproduce", "reproducir", "pon ", "activa", "inicia", "arranca"):
+        if has("video") and not has("corte") and "minuto" not in norm:
+            return Command("play_video", session)
     if has("cancela", "termina la validacion", "dejar de validar", "para la validacion"):
         return Command("val_cancel")
     if has("siguiente", "salta", "pasa al siguiente"):
@@ -353,7 +370,12 @@ def transcribe(
         raise ValueError("falta LLM_BASE_URL en el .env")
     model = env.get("VOICE_ASR_MODEL") or DEFAULT_ASR_MODEL
     boundary = uuid.uuid4().hex
-    fields = {"model": model, "language": "es", "response_format": "json"}
+    fields = {
+        "model": model,
+        "language": env.get("VOICE_LANG") or "es",
+        "prompt": ASR_HINT,  # fijo: ayuda a oír el vocabulario del panel; nunca sale de los datos
+        "response_format": "json",
+    }
     body = b""
     for name, value in fields.items():
         body += (

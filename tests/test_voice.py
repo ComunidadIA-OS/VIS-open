@@ -195,3 +195,22 @@ def test_validate_person_and_confidence():
     assert (cmd.action, cmd.gender, cmd.confidence) == ("val_gender", "mujer", "media")
     assert voice.parse_command("mejor con confianza alta", IDS, "confirm").action == "val_conf"
     assert voice.parse_command("la persona 3 habló mucho", IDS) is None  # sin orden de validar
+
+
+def test_video_commands_and_session_not_taken_from_person():
+    cmd = voice.parse_command("puedes activar el vídeo de la persona 2 con nivel medio", IDS)
+    assert (cmd.action, cmd.person, cmd.confidence, cmd.session) == (
+        "validate_person", 2, "media", None,
+    )  # fmt: skip
+    assert voice.parse_command("¿puedes lanzar el vídeo?", IDS).action == "play_video"
+    assert voice.parse_command("para el vídeo", IDS).action == "stop_video"
+    assert voice.parse_command("la sesión número tres", IDS).session == "V003"
+    assert voice.parse_command("pon el vídeo en el minuto 40", IDS).action == "go_minute"
+
+
+def test_misheard_words_in_validation():
+    assert voice.parse_command("Confirme-nous", IDS, "confirm").action == "val_confirm"
+    assert voice.parse_command("no confirmo", IDS, "confirm").action == "val_cancel"
+    assert voice.parse_command("Est-ce un nombre ?", IDS, "gender").gender == "hombre"
+    assert voice.parse_command("est-ce une femme", IDS, "gender").gender == "mujer"
+    assert voice.parse_command("Est-ce un nombre ?", IDS) is None  # fuera de la validación, nada

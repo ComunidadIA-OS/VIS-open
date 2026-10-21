@@ -137,6 +137,10 @@ def run_voice(cmd, ids: list[str]) -> str:
         except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
             why = str(exc) if isinstance(exc, ValueError) else f"{type(exc).__name__}: {exc}"[:140]
             return f"No he podido resumir la sesión: {why}."
+    if act in ("play_video", "stop_video"):
+        ss["voz_video"] = act == "play_video"
+        ss["voz_ancla"] = "sec-video"
+        return "Pongo el vídeo en marcha." if act == "play_video" else "Detengo el vídeo."
     if act == "repeat":
         return ss.get("voz_respuesta") or voice.HELP
 
@@ -158,7 +162,7 @@ def run_voice(cmd, ids: list[str]) -> str:
             voz_i=0,
             voz_estado="gender",
             voz_ancla="sec-hitl",
-            voz_conf="media",
+            voz_conf=cmd.confidence or "media",
             voz_play=mine[0],  # pone en marcha la prueba de sonido
         )
         return "Reproduzco la prueba de sonido. " + voice.describe_cut(mine[0], 1, len(cuts))
@@ -366,6 +370,7 @@ if screen == "Sesión":
                 video_file,
                 start_time=int(minute * 60),
                 subtitles={SUBTITLE_LABEL: subtitles_vtt(s).encode("utf-8")},
+                autoplay=bool(st.session_state.pop("voz_video", False)),  # orden por voz
             )
             st.caption(
                 "Vídeo original del Congreso, sin alterar. Solo se ve en este equipo. "
