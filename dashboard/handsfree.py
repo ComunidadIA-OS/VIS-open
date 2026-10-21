@@ -53,6 +53,7 @@ const TEXT = {
   hear: 'Te oigo…',
   processing: 'Procesando…',
   speaking: 'El asistente contesta…',
+  video: 'Hay un vídeo sonando: el micrófono descansa',
 }
 
 function beep(ctx, hz, ms) {
@@ -82,6 +83,8 @@ export default function (component) {
   s.setTriggerValue = setTriggerValue
 
   const say = (key) => { s.status.textContent = TEXT[key] }
+  const videoPlaying = () =>
+    [...document.querySelectorAll('video')].some((v) => !v.paused && !v.ended)
   const speaking = () =>
     window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)
 
@@ -140,7 +143,7 @@ export default function (component) {
     proc.onaudioprocess = (e) => {
       const input = new Float32Array(e.inputBuffer.getChannelData(0))
       s.level.style.width = Math.min(100, rms(input) * 400) + '%'
-      if (s.phase !== 'listen' || speaking()) {
+      if (s.phase !== 'listen' || speaking() || videoPlaying()) {
         if (s.vad) s.vad.reset()
         return
       }
@@ -156,6 +159,12 @@ export default function (component) {
     resume()
     s.timer = setInterval(() => {
       const now = Date.now()
+      if (s.phase === 'listen') {
+        if (videoPlaying() && !s.paused) { s.paused = true; say('video') }
+        else if (!videoPlaying() && s.paused) {
+          s.paused = false; say('listen'); beep(s.ctx, 600, 70)
+        }
+      }
       if (s.phase === 'processing') {
         if (s.data.seq > s.sentSeq) { s.phase = 'await'; s.t1 = now }
         else if (now - s.t0 > 25000) resume()

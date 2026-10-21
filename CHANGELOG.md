@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: manos libres más fiable: el micrófono descansa mientras suena un vídeo, ignora teclas y ruido agudo, descarta lo que Whisper inventa sobre ruido, y en la validación el corte suena después de que el asistente hable. «Anotadora número dos» y «descarga los subtítulos» se entienden.
 - 21 oct 2026: modo manos libres del asistente de voz: un clic y el panel escucha solo (detector de voz propio, corte por silencio de 1 a 5 s, pausa mientras contesta, pitidos de aviso, se apaga por voz). Componente de Streamlit v2; prueba del detector con Node.
 - 21 oct 2026: el asistente de voz valida una voz concreta («pon en marcha la prueba de sonido de la persona 3»), reproduce su corte y acepta la confianza hablada («mujer con confianza media»); sigue pidiendo «confirmo» antes de guardar.
 - 21 oct 2026: el botón «Abrir el asistente de voz» es azul, ancho y con icono de micrófono, para que se vea a primera vista.

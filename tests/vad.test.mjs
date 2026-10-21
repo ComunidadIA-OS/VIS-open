@@ -63,3 +63,17 @@ assert.equal(wav.length, 44 + 16000 * 2)
 assert.ok(toBase64(wav).length > 1000)
 
 console.log('vad: ok')
+
+// 8) pulsaciones de teclado (ráfagas de ruido agudo cada 250 ms durante 4 s): no es voz
+{
+  const vad = createVad({ sampleRate: SR })
+  const events = []
+  for (let n = 0; n < (4 * SR) / CHUNK; n++) {
+    const c = new Float32Array(CHUNK)
+    const clicking = n % 6 < 2 // ~85 ms de clic cada ~250 ms
+    for (let i = 0; i < CHUNK; i++) c[i] = (clicking ? 0.5 : 0.004) * (Math.random() * 2 - 1)
+    events.push(...vad.push(c))
+  }
+  assert.ok(!events.some((e) => e.type === 'start'), 'las teclas no inician una frase')
+}
+console.log('vad teclado: ok')
