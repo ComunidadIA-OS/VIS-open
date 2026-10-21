@@ -31,3 +31,7 @@ Cada ejecución escribe `source.json` junto a la salida con fuente, URL, licenci
 ## Descarga automática: desactivada
 
 `AUTO_DOWNLOAD=false` por defecto y **no hay código de red**. `CongresoSource.download()` valida la URL y lanza `DownloadDisabled`; es el punto de entrada para implementarla cuando se compruebe el `robots.txt` de app.congreso.es y la Organización confirme que se permite.
+
+## Analizar solo un tramo del vídeo
+
+Si el manifiesto trae `tramo_inicio` y `tramo_fin` (hh:mm:ss), el análisis de audio (`pipeline.run`) y el de vídeo (`pipeline.video`) usan **solo ese tramo**, por ejemplo el bloque de preguntas de una sesión de control. El vídeo original no se recorta ni se toca (su huella `sha256` sigue siendo la del original). Los tiempos de todas las salidas son los del vídeo entero, así que el panel y los cortes de «Human in the loop» siguen cuadrando con el original; el tramo deja vacío lo que queda fuera. Sin esos campos se analiza el vídeo completo.

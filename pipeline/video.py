@@ -246,8 +246,16 @@ def summarize(
     }
 
 
-def iter_video_frames(video: Path, sample_fps: float = SAMPLE_FPS):
-    """(t_s, fotograma RGB) con `sample_fps` fotogramas por segundo (OpenCV)."""
+def iter_video_frames(
+    video: Path,
+    sample_fps: float = SAMPLE_FPS,
+    start_s: float = 0.0,
+    end_s: float | None = None,
+):
+    """(t_s, fotograma RGB) con `sample_fps` fotogramas por segundo (OpenCV).
+
+    Con `start_s`/`end_s` solo recorre ese tramo; `t_s` sigue siendo el tiempo del vídeo entero.
+    """
     import cv2
 
     cap = cv2.VideoCapture(str(video))
@@ -255,9 +263,13 @@ def iter_video_frames(video: Path, sample_fps: float = SAMPLE_FPS):
         raise RuntimeError(f"no se puede abrir el vídeo {video}")
     fps = cap.get(cv2.CAP_PROP_FPS) or 25.0
     every = max(1, round(fps / sample_fps))
-    i = 0
+    i = round(start_s * fps)
+    if i:
+        cap.set(cv2.CAP_PROP_POS_FRAMES, i)
     try:
         while True:
+            if end_s is not None and i / fps > end_s:
+                break
             ok, frame = cap.read()
             if not ok:
                 break
@@ -320,7 +332,7 @@ def main(argv: list[str] | None = None) -> None:
 
     data_dir = Path(os.environ.get("DATA_DIR") or "data")
     try:
-        require_ready(args.video, args.manifest or data_dir / "manifiesto.csv")
+        row = require_ready(args.video, args.manifest or data_dir / "manifiesto.csv")
     except ManifestError as exc:
         raise SystemExit(str(exc)) from exc
     env_model = os.environ.get("POSE_MODEL")
@@ -333,7 +345,11 @@ def main(argv: list[str] | None = None) -> None:
     if (out_dir / "timeline.json").is_file():  # género por audio, si la sesión ya está analizada
         text = (out_dir / "timeline.json").read_text("utf-8")
         voice = voice_gender_lookup(AnalysisTimeline.model_validate_json(text))
-    results = analyze_frames(iter_video_frames(args.video, args.fps), mediapipe_detector(model))
+    from sources.manifest import tramo_s
+
+    start_s, end_s = tramo_s(row)
+    frames = iter_video_frames(args.video, args.fps, start_s, end_s)
+    results = analyze_frames(frames, mediapipe_detector(model))
     out_dir.mkdir(parents=True, exist_ok=True)
     out = out_dir / "video.json"
     summary = summarize(results, voice_gender_at=voice)

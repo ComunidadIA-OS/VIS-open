@@ -8,6 +8,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from collections.abc import Sequence
+from dataclasses import replace
 from pathlib import Path
 
 from contracts import (
@@ -37,6 +38,16 @@ def assign_speaker(segment: Segment, turns: Sequence[SpeakerTurn]) -> str | None
         totals[t.speaker_id] += _overlap(segment.start_s, segment.end_s, t.start_s, t.end_s)
     best = max(totals.items(), key=lambda kv: kv[1], default=(None, 0.0))
     return best[0] if best[1] > 0 else None
+
+
+def shift_times(segments: Sequence[Segment], turns: Sequence[SpeakerTurn], offset_s: float):
+    """Pasa los tiempos de un tramo (que empiezan en 0) a tiempos del vídeo original."""
+    if not offset_s:
+        return list(segments), list(turns)
+    return (
+        [replace(s, start_s=s.start_s + offset_s, end_s=s.end_s + offset_s) for s in segments],
+        [replace(t, start_s=t.start_s + offset_s, end_s=t.end_s + offset_s) for t in turns],
+    )
 
 
 def build_timeline(

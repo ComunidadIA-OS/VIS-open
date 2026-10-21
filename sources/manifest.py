@@ -95,6 +95,21 @@ def read_manifest(path: Path) -> dict[str, dict[str, str]]:
         return {r["video_id"]: r for r in reader if r.get("video_id")}
 
 
+def parse_hms(value: str) -> float:
+    """«hh:mm:ss» (o «hh:mm:ss.s») a segundos."""
+    h, m, s = value.split(":")
+    return int(h) * 3600 + int(m) * 60 + float(s)
+
+
+def tramo_s(row: Mapping[str, str]) -> tuple[float, float | None]:
+    """(inicio, fin) en segundos del tramo que se analiza; (0, None) = el vídeo entero."""
+    start = parse_hms(row["tramo_inicio"]) if row.get("tramo_inicio") else 0.0
+    end = parse_hms(row["tramo_fin"]) if row.get("tramo_fin") else None
+    if end is not None and end <= start:
+        raise ManifestError("tramo_fin debe ser posterior a tramo_inicio")
+    return start, end
+
+
 def require_ready(video: Path, manifest: Path) -> dict[str, str]:
     """Devuelve la fila del vídeo o lanza ManifestError explicando qué falta.
 
