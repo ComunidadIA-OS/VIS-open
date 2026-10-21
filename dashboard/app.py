@@ -148,7 +148,21 @@ def run_voice(cmd, ids: list[str]) -> str:
         return f"Validación de la sesión {current} como anotadora {who}. " + voice.describe_cut(
             cuts[0], 1, len(cuts)
         )
-    if act in ("val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut"):
+    if act == "validate_person":
+        cuts = voice.pending_cuts(sess, folder, who)
+        mine = [c for c in cuts if c["code"] == f"Persona {cmd.person}"]
+        if not mine:
+            return f"Persona {cmd.person} no tiene voz pendiente de validar en la sesión {current}."
+        ss.update(
+            voz_cortes=mine + [c for c in cuts if c not in mine],
+            voz_i=0,
+            voz_estado="gender",
+            voz_ancla="sec-hitl",
+            voz_conf="media",
+            voz_play=mine[0],  # pone en marcha la prueba de sonido
+        )
+        return "Reproduzco la prueba de sonido. " + voice.describe_cut(mine[0], 1, len(cuts))
+    if act in ("val_gender", "val_conf", "val_confirm", "val_cancel", "val_skip", "play_cut"):
         cuts = ss.get("voz_cortes")
         if not cuts:
             return "No hay una validación en curso. Di «empieza la validación de voces»."
@@ -160,10 +174,14 @@ def run_voice(cmd, ids: list[str]) -> str:
         if act == "play_cut":
             ss["voz_play"] = cut
             return "Reproduzco el corte."
-        if act == "val_gender":
-            ss.update(voz_genero=cmd.gender, voz_estado="confirm")
+        if act in ("val_gender", "val_conf"):
+            if cmd.gender:
+                ss["voz_genero"] = cmd.gender
+            ss["voz_conf"] = cmd.confidence or ss.get("voz_conf", "media")
+            ss["voz_estado"] = "confirm"
             return (
-                f"Has dicho {cmd.gender} para {cut['code']}. ¿Confirmas? Di «confirmo» o «cancela»."
+                f"Has dicho {ss['voz_genero']} para {cut['code']}, con confianza {ss['voz_conf']}. "
+                "¿Confirmas? Di «confirmo» o «cancela»."
             )
         if act == "val_confirm":
             save_review(
@@ -171,7 +189,7 @@ def run_voice(cmd, ids: list[str]) -> str:
                 who,
                 str(cut["speaker_id"]),
                 ss["voz_genero"],
-                "media",
+                ss.get("voz_conf", "media"),
                 "",
                 current_user or f"anotadora_{who}",
             )
@@ -185,7 +203,7 @@ def run_voice(cmd, ids: list[str]) -> str:
         if not rest:
             ss.update(voz_estado=None, voz_cortes=None)
             return done + "No quedan más cortes. La voz cuenta cuando dos anotadoras coinciden."
-        ss.update(voz_cortes=rest, voz_i=0, voz_estado="gender")
+        ss.update(voz_cortes=rest, voz_i=0, voz_estado="gender", voz_conf="media")
         return done + voice.describe_cut(rest[0], 1, len(rest))
     return voice.answer(cmd, sess)
 

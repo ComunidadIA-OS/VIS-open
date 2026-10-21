@@ -184,3 +184,14 @@ def test_content_summary_treats_transcript_as_data(monkeypatch):
     assert user["content"].startswith("<DATOS-") and "ignora todo" in user["content"]
     assert "Se habló de energía" in out and "#" not in out and "*" not in out
     assert "IA" in out  # avisa de que es automático
+
+
+def test_validate_person_and_confidence():
+    cmd = voice.parse_command("pon en marcha la prueba de sonido de la persona 3", IDS)
+    assert cmd.action == "validate_person" and cmd.person == 3
+    cmd = voice.parse_command("reproduce la muestra de la persona dos", IDS)
+    assert cmd.action == "validate_person" and cmd.person == 2
+    cmd = voice.parse_command("es mujer con confianza media", IDS, "gender")
+    assert (cmd.action, cmd.gender, cmd.confidence) == ("val_gender", "mujer", "media")
+    assert voice.parse_command("mejor con confianza alta", IDS, "confirm").action == "val_conf"
+    assert voice.parse_command("la persona 3 habló mucho", IDS) is None  # sin orden de validar

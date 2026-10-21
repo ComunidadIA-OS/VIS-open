@@ -52,7 +52,7 @@ _TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta
 ACTIONS = (
     "show_session", "go_section", "go_minute", "women_count", "men_count", "gender_time", "gap",
     "summary", "data_summary", "most_spoken", "pending", "hands", "help", "read_transcript",
-    "explain",
+    "explain", "validate_person", "val_conf",
     "validate_start", "val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut", "repeat",
 )  # fmt: skip
 
@@ -64,6 +64,8 @@ class Command:
     section: str | None = None
     minute: float | None = None  # minutos (con decimales): 3:59 -> 3,98
     gender: str | None = None  # solo en la validación: lo que DICE la anotadora
+    confidence: str | None = None  # alta | media | baja, si la anotadora la dice
+    person: int | None = None  # «persona 3»
     topic: str | None = None
 
 
@@ -133,6 +135,17 @@ def _session_in(norm: str, sessions: list[str]) -> str | None:
     return None
 
 
+CONFIDENCE_WORDS = (
+    ("confianza alta", "alta"), ("seguridad alta", "alta"), ("muy segur", "alta"),
+    ("confianza media", "media"), ("seguridad media", "media"),
+    ("confianza baja", "baja"), ("seguridad baja", "baja"), ("poco segur", "baja"),
+)  # fmt: skip
+
+
+def confidence_in(norm: str) -> str | None:
+    return next((level for word, level in CONFIDENCE_WORDS if word in norm), None)
+
+
 GENDER_WORDS = (
     ("mujer", "mujer"), ("femenin", "mujer"), ("hombre", "hombre"), ("varon", "hombre"),
     ("masculin", "hombre"), ("desconocid", "desconocido"), ("no se", "desconocido"),
@@ -165,7 +178,14 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     if state in ("gender", "confirm"):
         for word, gender in GENDER_WORDS:
             if re.search(rf"\b{word}", norm):
-                return Command("val_gender", gender=gender)
+                return Command("val_gender", gender=gender, confidence=confidence_in(norm))
+        if confidence_in(norm):
+            return Command("val_conf", confidence=confidence_in(norm))
+    person = re.search(r"\bpersona (\w+)", norm)
+    if person and has("prueba", "muestra", "corte", "valida", "confirmar", "escuchar", "sonido"):
+        n = number_in(person.group(1))
+        if n is not None:
+            return Command("validate_person", session, person=n)
     if has("cancela", "termina la validacion", "dejar de validar", "para la validacion"):
         return Command("val_cancel")
     if has("siguiente", "salta", "pasa al siguiente"):
