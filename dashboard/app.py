@@ -149,6 +149,8 @@ def run_voice(cmd, ids: list[str]) -> str:
         return f"Descargo {names[cmd.topic][0]}."
     if act == "handsfree_off":
         ss["voz_hf_off"] = ss.get("voz_hf_off", 0) + 1
+        if cmd.topic == "bye":
+            return "¡Hasta pronto! Apago el modo manos libres."
         return "Modo manos libres desactivado."
     if act in ("play_video", "stop_video"):
         ss["voz_video"] = act == "play_video"

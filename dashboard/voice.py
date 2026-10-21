@@ -66,7 +66,8 @@ _TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta
 ACTIONS = (
     "show_session", "go_section", "go_minute", "women_count", "men_count", "gender_time", "gap",
     "summary", "data_summary", "most_spoken", "pending", "hands", "help", "read_transcript",
-    "explain", "download", "validate_person", "set_annotator", "handsfree_off", "val_conf",
+    "explain", "courtesy", "download", "validate_person", "set_annotator", "handsfree_off",
+    "val_conf",
     "play_video",
     "stop_video",
     "validate_start", "val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut", "repeat",
@@ -127,7 +128,6 @@ def is_echo(heard: str, last_reply: str) -> bool:
 JUNK_EXACT = (
     "que es lo que se hace",
     "verdad",
-    "gracias",
     "seguimos",
     "y ya esta",
     "ya esta",
@@ -159,7 +159,7 @@ def looks_hallucinated(text: str) -> bool:
     """Frase repetida varias veces o muletilla típica de Whisper sobre ruido: no es una orden."""
     norm = normalize(text)
     words = set(norm.split())
-    if norm in JUNK_EXACT or (words and words <= {"verdad", "gracias"}):
+    if norm in JUNK_EXACT or (words and words <= {"verdad"}):
         return True
     if any(p in norm for p in JUNK_PHRASES):
         return True
@@ -302,8 +302,10 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
             return Command("validate_start", session)
     if (
         has("manos libres") and has("desactiva", "apaga", "para", "termina", "deja", "cierra")
-    ) or has("deja de escuchar", "hasta luego", "adios"):
+    ) or has("deja de escuchar"):
         return Command("handsfree_off")
+    if has("hasta luego", "adios", "hasta manana", "hasta pronto", "nos vemos", "chao", "agur"):
+        return Command("handsfree_off", topic="bye")  # despedirse también apaga la escucha
     if has("que puedo decir", "que puedes hacer", "ayuda"):
         return Command("help")
     if "minuto" in norm and has(
@@ -352,6 +354,10 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
             return Command("go_section", session, section=anchor)
     if session is not None:
         return Command("show_session", session)
+    if has("gracias", "te lo agradezco", "muy amable"):
+        return Command("courtesy", topic="thanks")
+    if set(norm.split()) <= {"hola", "buenos", "buenas", "dias", "tardes", "noches", "que", "tal"}:
+        return Command("courtesy", topic="hello")
     return None
 
 
@@ -438,6 +444,10 @@ def answer(cmd: Command, session, pending: int | None = None) -> str:
             f"{women} de mujer, {men} de hombre y {unknown} sin género. Tiempo de palabra: mujeres "
             f"{pct('mujer')} por ciento y hombres {pct('hombre')} por ciento. {NOTE}"
         )
+    if cmd.action == "courtesy":
+        if cmd.topic == "thanks":
+            return "De nada. Aquí estoy si necesitas algo más."
+        return "Hola. ¿En qué te ayudo?"
     return "No sé hacer eso. " + HELP
 
 

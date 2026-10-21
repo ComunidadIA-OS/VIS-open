@@ -339,3 +339,28 @@ def test_play_does_not_steal_other_commands():
     assert voice.parse_command("ponme como anotadora 2", IDS).action == "set_annotator"
     cmd = voice.parse_command("pon en marcha la prueba de sonido de la persona 1", IDS)
     assert cmd.action == "validate_person"
+
+
+@pytest.mark.parametrize(
+    ("text", "topic"),
+    [
+        ("gracias", "thanks"),
+        ("¡Muchas gracias!", "thanks"),
+        ("hola", "hello"),
+        ("buenos días", "hello"),
+    ],
+)
+def test_courtesy(text, topic):
+    assert not voice.looks_hallucinated(text)
+    cmd = voice.parse_command(text, IDS)
+    assert (cmd.action, cmd.topic) == ("courtesy", topic)
+
+
+def test_command_wins_over_greeting():
+    assert voice.parse_command("hola, ¿puedes poner el vídeo cuatro?", IDS).action == "play_video"
+
+
+@pytest.mark.parametrize("text", ["adiós", "hasta mañana", "hasta luego", "nos vemos"])
+def test_goodbye_turns_handsfree_off(text):
+    cmd = voice.parse_command(text, IDS)
+    assert (cmd.action, cmd.topic) == ("handsfree_off", "bye")
