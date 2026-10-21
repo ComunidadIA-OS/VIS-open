@@ -22,7 +22,7 @@ _PAGE = """<!doctype html><html lang="es"><meta charset="utf-8"><style>
 @media (prefers-color-scheme:dark){:root{--ink:#e9eef0;--paper:#1b2327;--soft:#2c4046}}
 html,body{margin:0;background:transparent;font:18px/1.4 system-ui,sans-serif;color:var(--ink)}
 .wrap{display:flex;flex-direction:column;align-items:center;gap:8px;padding:4px}
-canvas{width:240px;height:240px}
+canvas{width:168px;height:168px}
 .say{min-height:2.6em;max-height:6em;overflow:auto;width:100%;background:var(--paper);
 border:1px solid var(--soft);border-radius:10px;padding:8px 10px;box-sizing:border-box}
 </style>
