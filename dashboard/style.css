@@ -163,3 +163,18 @@ video { border-radius: 14px; }
   html, [data-testid="stMain"] { scroll-behavior: auto; }
   [class*="st-key-sec_"], [data-testid="stMetric"], .secnav a, .stButton > button { animation: none; transition: none; }
 }
+
+/* Botón del asistente de voz: azul y bien visible */
+.st-key-voz_btn button {
+  width: 100%; padding: 0.7rem 1rem; border: 0; border-radius: 999px;
+  background: linear-gradient(135deg, #1f4fd8, #1f8fb0); color: #fff;
+  box-shadow: 0 6px 18px rgba(31, 79, 216, 0.35);
+  transition: transform 0.15s ease, box-shadow 0.15s ease, filter 0.15s ease;
+}
+.st-key-voz_btn button p { color: #fff; font-weight: 600; }
+.st-key-voz_btn button:hover {
+  transform: translateY(-2px); filter: brightness(1.1);
+  box-shadow: 0 10px 24px rgba(31, 79, 216, 0.45);
+}
+.st-key-voz_btn button:focus-visible { outline: 3px solid #1f4fd8; outline-offset: 3px; }
+@media (prefers-reduced-motion: reduce) { .st-key-voz_btn button { transition: none; } }

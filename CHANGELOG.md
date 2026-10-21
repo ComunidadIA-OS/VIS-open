@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: el botón «Abrir el asistente de voz» es azul, ancho y con icono de micrófono, para que se vea a primera vista.
 - 21 oct 2026: el avatar del asistente de voz pasa a ser una bola de cristal oscura (hilos de luz desde una chispa central, velos de seda que giran, borde azul y violeta; shader WebGL propio, sin librerías), que se ve entera y sin fondo. Sin WebGL o con «reducir movimiento», queda quieta.
 - 21 oct 2026: el asistente de voz se abre en una ventana delante de la página (avatar de orbe azul sereno que reacciona al hablar y al escuchar, micrófono, caja de texto y conversación transcrita por escrito); la página de fondo se actualiza con cada orden. Corregido: el panel ahora carga el `.env` para transcribir con el micrófono y muestra el motivo si falla.
 - 21 oct 2026: asistente de voz del panel (v0) para personas ciegas o sin ratón: órdenes habladas de lista cerrada (transcripción con Whisper de OVH, respuestas de plantilla con cifras calculadas por código, voz del navegador), con guardarraíles de entrada; `docs/ACCESIBILIDAD.md`. Incluye leer la transcripción de un minuto, explicar el análisis, los resultados y la evolución, y validar voces (Human in the loop) hablando, con confirmación antes de guardar.

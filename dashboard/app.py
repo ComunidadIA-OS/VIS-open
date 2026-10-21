@@ -264,7 +264,8 @@ def voice_dialog() -> None:
 
 def voice_button() -> None:
     st.sidebar.button(
-        "Abrir el asistente de voz",
+        "🎙 Abrir el asistente de voz",
+        key="voz_btn",
         on_click=lambda: st.session_state.update(voz_abierto=True),
         help="Habla con el panel: te responde en voz alta y por escrito.",
     )
