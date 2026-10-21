@@ -18,6 +18,7 @@ from dashboard.data import (
     METHOD_NOTICE,
     PENDING_METRICS,
     SOURCE_NOTICE,
+    annotator_answers,
     evolution_gender_table,
     evolution_table,
     fmt_time,
@@ -27,6 +28,7 @@ from dashboard.data import (
     load_sessions,
     make_clip,
     metric_card,
+    review_cuts,
     save_review,
     show_interventions,
     show_tracks,
@@ -38,7 +40,6 @@ from dashboard.data import (
     video_people_series,
     video_tables,
     video_tracks_with_totals,
-    voice_blocks,
     voice_transcripts,
     voices_table,
     voices_to_review,
@@ -66,7 +67,6 @@ SHORT_TITLES = {
     "M04": "M04 Brecha de paridad",
     "M13": "M13 Sin atribuir",
 }
-SAMPLE_S = 9  # segundos de cada muestra de voz
 
 st.set_page_config(page_title="VIS Open", layout="wide")
 # Letra al doble (32 px) en pantalla grande o proyectada; baja sola en tablet y móvil (clamp).
@@ -191,68 +191,50 @@ if screen == "Sesión":
     else:
         st.write(
             "Escucha la muestra: valida **la voz que oyes**, no a las demás personas que salgan "
-            "en la imagen. Pon mujer u hombre solo si lo tienes claro; si dudas, desconocido "
-            "(o pulsa «Otra muestra»). El género cuenta cuando **las dos anotadoras** coinciden."
+            "en la imagen. Pon mujer u hombre solo si lo tienes claro; si dudas, desconocido. "
+            "El género cuenta cuando **las dos anotadoras** coinciden."
         )
     who = st.radio("Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}")
 
-    def next_sample(key: str) -> None:
-        st.session_state[key] = st.session_state.get(key, 0) + 1
-
     codes = speaker_codes(s.timeline)
-    for row in pending:
-        code = codes.get(row.speaker_id, row.speaker_id)
-        st.subheader(code)
-        blocks = voice_blocks(s.timeline, row.speaker_id)
-        sample_key = f"muestra_{s.session_id}_{row.speaker_id}"
-        if blocks:
-            n = st.session_state.get(sample_key, 0) % len(blocks)
-            start, end = blocks[n]
-            stop = min(end, start + SAMPLE_S)
-            clip, text = st.columns([3, 2])
-            clip.write(
-                f"{code}: muestra {n + 1} de {len(blocks)}, de {fmt_time(start)} a {fmt_time(stop)}"
+    folder = DATA_DIR / "processed" / s.session_id
+    answers = annotator_answers(folder, who)  # lo que ya has validado tú, por voz
+    cuts = review_cuts(s, [r.speaker_id for r in pending])
+    if cuts:
+        st.caption(
+            f"{len(cuts)} cortes, uno a continuación de otro. Cuando validas una voz en un corte, "
+            "vale para todos los cortes de esa voz."
+        )
+    for i, cut in enumerate(cuts, 1):
+        sid = str(cut["speaker_id"])
+        code = codes.get(sid, sid)
+        if sid in answers:
+            st.markdown(
+                f"**Corte {i} de {len(cuts)} · {code}:** ya validada por ti como "
+                f"**{answers[sid]}** (vale para todos sus cortes)."
             )
-            if video_file:
-                cut = make_clip(
-                    video_file, start, stop, DATA_DIR / "clips", f"{s.session_id}_{row.speaker_id}"
-                )
-                if cut:
-                    clip.video(cut)  # solo esos segundos
-                else:
-                    clip.video(video_file, start_time=int(start), end_time=int(stop))
-            said = next(
-                (
-                    t["texto"]
-                    for t in transcript_turns(s)
-                    if t["speaker_id"] == row.speaker_id and t["inicio_s"] >= start - 0.5
-                ),
-                "",
-            )
-            text.caption("Lo que dice en este tramo")
-            text.write(said[:400])
-            if len(blocks) > 1:
-                text.button(
-                    "Otra muestra",
-                    key=f"otra_{s.session_id}_{row.speaker_id}",
-                    on_click=next_sample,
-                    args=(sample_key,),
-                )
-        with st.form(f"form_{s.session_id}_{row.speaker_id}_{who}"):
+            continue
+        start, stop = float(cut["start"]), float(cut["stop"])
+        st.subheader(f"Corte {i} de {len(cuts)} · {code}")
+        clip, text = st.columns([3, 2])
+        clip.write(f"De {fmt_time(start)} a {fmt_time(stop)}")
+        if video_file:
+            mp4 = make_clip(video_file, start, stop, DATA_DIR / "clips", f"{s.session_id}_{sid}")
+            if mp4:
+                clip.video(mp4)  # solo esos segundos
+            else:
+                clip.video(video_file, start_time=int(start), end_time=int(stop))
+        text.caption("Lo que dice en este corte")
+        text.write(str(cut["texto"])[:400])
+        with st.form(f"form_{s.session_id}_{sid}_{i}_{who}"):
             gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
             confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
             notes = st.text_input("Notas (opcional, sin nombres)")
             if st.form_submit_button("Guardar"):
                 save_review(
-                    DATA_DIR / "processed" / s.session_id,
-                    who,
-                    row.speaker_id,
-                    gender,
-                    confidence,
-                    notes,
-                    current_user or f"anotadora_{who}",
+                    folder, who, sid, gender, confidence, notes, current_user or f"anotadora_{who}"
                 )
-                st.success("Guardado. Recarga la página para ver el efecto en las cifras.")
+                st.rerun()  # los demás cortes de esa voz pasan a «ya validada»
 
     # 3. El análisis de la sesión completa.
     st.header("Análisis de la sesión")

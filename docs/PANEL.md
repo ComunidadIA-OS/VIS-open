@@ -48,6 +48,10 @@ Si existe `data/usuarios.json`, el panel pide ID de usuario, contraseña y el c�
 - Contraseñas con scrypt y sal; nunca en claro. Cinco fallos en 15 minutos bloquean 15 minutos. Todo intento se anota en `data/auth_log.jsonl` (sin contraseñas ni códigos).
 - `data/` no se sube al repo. Límite conocido: sin caducidad de sesión ni TLS propio; para compartirlo en una red, detrás de un proxy HTTPS.
 
+## Human in the loop: cortes uno a continuación de otro
+
+Cada voz que quedó en `desconocido` se valida con **cortes de 9 s**, puestos uno detrás de otro por orden en el vídeo (no agrupados por voz). Cada corte trae su clip, lo que se dice en él y su formulario. Validar una voz en un corte **vale para todos los cortes de esa voz**: los demás pasan a «ya validada por ti como…» y no hace falta repetirlo. Cada anotadora lo hace por su cuenta, y el género solo entra en las cifras cuando las dos coinciden.
+
 ## Informe descargable (PDF)
 
 El botón **«Descargar informe (PDF)»** de la pantalla de sesión genera un PDF (ReportLab, BSD) con:

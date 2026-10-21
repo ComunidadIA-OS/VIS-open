@@ -346,6 +346,50 @@ def test_screen_tables_use_minutes_and_percent_format():
     assert shown.loc[0, "tamaño medio"] == ""
 
 
+def test_review_cuts_are_listed_one_after_another_and_one_answer_covers_the_voice(tmp_path):
+    from contracts import AnalysisEvent, AnalysisTimeline, Speaker
+    from dashboard.data import (
+        SAMPLE_S,
+        Session,
+        annotator_answers,
+        cut_text,
+        review_cuts,
+        save_review,
+    )
+
+    def ev(i, start, end, spk, text):
+        return AnalysisEvent(
+            event_id=f"e{i}", type="speech", start_s=start, end_s=end, speaker_id=spk,
+            text=text, provenance="ai_inferred",
+        )  # fmt: skip
+
+    events = [
+        ev(0, 0, 20, "SPEAKER_00", "primero de la voz cero"),
+        ev(1, 100, 130, "SPEAKER_01", "de la voz uno"),
+        ev(2, 200, 215, "SPEAKER_00", "segundo de la voz cero"),
+        ev(3, 300, 302, "SPEAKER_00", "demasiado corto"),
+    ]
+    tl = AnalysisTimeline(
+        video_id="V9", duration_s=400,
+        speakers=[Speaker(speaker_id="SPEAKER_00"), Speaker(speaker_id="SPEAKER_01")],
+        events=events,
+    )  # fmt: skip
+    session = Session("V9", tl)
+    cuts = review_cuts(session, ["SPEAKER_00", "SPEAKER_01"])
+    assert [(c["speaker_id"], c["start"]) for c in cuts] == [
+        ("SPEAKER_00", 0), ("SPEAKER_01", 100), ("SPEAKER_00", 200),
+    ]  # fmt: skip
+    assert all(float(c["stop"]) - float(c["start"]) <= SAMPLE_S for c in cuts)
+    assert (
+        "primero" in cuts[0]["texto"] and cut_text(tl, "SPEAKER_00", 300, 302) == "demasiado corto"
+    )
+
+    folder = _review_folder(tmp_path)
+    assert annotator_answers(folder, 1) == {}
+    save_review(folder, 1, "SPEAKER_00", "hombre", "alta", "", "anotadora_1")
+    assert annotator_answers(folder, 1) == {"SPEAKER_00": "hombre"}  # vale para todos sus cortes
+
+
 def test_every_session_page_has_the_same_sections(tmp_path, monkeypatch):
     import re
 
