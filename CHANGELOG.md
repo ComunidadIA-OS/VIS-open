@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: el análisis usa solo el tramo del manifiesto (`tramo_inicio`/`tramo_fin`) en audio y en vídeo, sin recortar el original y con los tiempos del vídeo entero. Pensado para analizar solo el bloque de preguntas de cada sesión.
 - 21 oct 2026: Human in the loop con los cortes uno a continuación de otro (hasta 6 por voz, 9 s cada uno), no agrupados; validar una voz en un corte la resuelve para todos sus cortes.
 - 21 oct 2026: el selector de vídeo y sus opciones tienen letra grande; jerarquía de tamaños coherente (título principal > secciones > subtítulos > texto) y espacio uniforme entre secciones.
 - 21 oct 2026: más espacio entre las secciones del panel (títulos, bloques y botones de descarga).

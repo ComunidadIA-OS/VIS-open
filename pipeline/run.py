@@ -20,9 +20,9 @@ from pipeline.analyze import analyze_timeline
 from pipeline.audio import extract_audio, wav_duration_s
 from pipeline.diarize import DiarizeConfig, diarize
 from pipeline.envfile import load_dotenv
-from pipeline.timeline import build_timeline, write_outputs
+from pipeline.timeline import build_timeline, shift_times, write_outputs
 from pipeline.transcribe import TranscribeConfig, transcribe
-from sources.manifest import ManifestError, require_ready
+from sources.manifest import ManifestError, require_ready, tramo_s
 
 CITED_FIELDS = (
     "video_id", "titulo", "fuente", "url_origen", "fecha_evento", "fecha_descarga",
@@ -54,10 +54,16 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(str(exc)) from exc
 
     out_dir = data_dir / "processed" / args.video.stem
-    wav = extract_audio(args.video, out_dir / "audio.wav")
+    try:
+        start_s, end_s = tramo_s(row)  # solo el tramo del manifiesto; sin él, todo el vídeo
+    except ManifestError as exc:
+        raise SystemExit(str(exc)) from exc
+    wav = extract_audio(args.video, out_dir / "audio.wav", start_s, end_s)
     segments = transcribe(wav, TranscribeConfig.from_env())
     turns = diarize(wav, DiarizeConfig.from_env())
-    timeline = build_timeline(args.video.stem, wav_duration_s(wav), segments, turns)
+    # Los tiempos de salida son los del vídeo original, para poder verlo y cortarlo en el panel.
+    segments, turns = shift_times(segments, turns, start_s)
+    timeline = build_timeline(args.video.stem, start_s + wav_duration_s(wav), segments, turns)
     (out_dir / "source.json").write_text(
         json.dumps(source_citation(row), indent=2, ensure_ascii=False), encoding="utf-8"
     )
