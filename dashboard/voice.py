@@ -56,7 +56,7 @@ _TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta
 ACTIONS = (
     "show_session", "go_section", "go_minute", "women_count", "men_count", "gender_time", "gap",
     "summary", "data_summary", "most_spoken", "pending", "hands", "help", "read_transcript",
-    "explain", "validate_person", "val_conf", "play_video", "stop_video",
+    "explain", "validate_person", "set_annotator", "val_conf", "play_video", "stop_video",
     "validate_start", "val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut", "repeat",
 )  # fmt: skip
 
@@ -189,6 +189,9 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
                 return Command("val_gender", gender=gender, confidence=confidence_in(norm))
         if confidence_in(norm):
             return Command("val_conf", confidence=confidence_in(norm))
+    annotator = re.search(r"\banotadora (\w+)", norm)
+    if annotator and number_in(annotator.group(1)) in (1, 2):
+        return Command("set_annotator", person=number_in(annotator.group(1)))
     person = re.search(r"\bpersona (\w+)", norm)
     asks = (
         "prueba", "muestra", "corte", "valida", "confirmar", "comprobar", "comprueba", "escuchar",
@@ -197,7 +200,10 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     if person and has(*asks):
         n = number_in(person.group(1))
         if n is not None:
-            return Command("validate_person", session, person=n, confidence=confidence_in(norm))
+            redo = "redo" if has("de nuevo", "otra vez", "corrige", "cambia la respuesta") else None
+            return Command(
+                "validate_person", session, person=n, confidence=confidence_in(norm), topic=redo
+            )
     if has("para el video", "pausa", "deten el video", "parar el video"):
         return Command("stop_video", session)
     if has("lanza", "lanzar", "reproduce", "reproducir", "pon ", "activa", "inicia", "arranca"):
@@ -456,8 +462,9 @@ def explain_evolution(sessions) -> str:
     return f"Evolución del tiempo de palabra por sesión. {'; '.join(parts)}. {caveat} {NOTE}"
 
 
-def pending_cuts(session, folder, who: int) -> list[dict]:
-    """Cortes por validar de la anotadora `who`: las voces sin confirmar y sin su respuesta."""
+def pending_cuts(session, folder, who: int, redo: bool = False) -> list[dict]:
+    """Cortes por validar de la anotadora `who`: voces sin confirmar y sin su respuesta (`redo`:
+    también las que ya contestó, para corregirlas)."""
     from dashboard.data import annotator_answers, review_cuts, voices_to_review
     from decision.pseudonymize import speaker_codes
 
@@ -465,7 +472,7 @@ def pending_cuts(session, folder, who: int) -> list[dict]:
     ids = [
         r.speaker_id
         for r in voices_to_review(folder)
-        if r.speaker_id not in session.confirmed and r.speaker_id not in answers
+        if r.speaker_id not in session.confirmed and (redo or r.speaker_id not in answers)
     ]
     codes = speaker_codes(session.timeline)
     return [
