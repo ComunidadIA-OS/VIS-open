@@ -56,7 +56,8 @@ _TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta
 ACTIONS = (
     "show_session", "go_section", "go_minute", "women_count", "men_count", "gender_time", "gap",
     "summary", "data_summary", "most_spoken", "pending", "hands", "help", "read_transcript",
-    "explain", "validate_person", "set_annotator", "val_conf", "play_video", "stop_video",
+    "explain", "validate_person", "set_annotator", "handsfree_off", "val_conf", "play_video",
+    "stop_video",
     "validate_start", "val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut", "repeat",
 )  # fmt: skip
 
@@ -229,6 +230,10 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     if has("empieza", "empezar", "comenzar", "iniciar", "vamos a validar", "quiero validar"):
         if has("valid", "voces", "human"):
             return Command("validate_start", session)
+    if (
+        has("manos libres") and has("desactiva", "apaga", "para", "termina", "deja", "cierra")
+    ) or has("deja de escuchar", "hasta luego", "adios"):
+        return Command("handsfree_off")
     if has("que puedo decir", "que puedes hacer", "ayuda"):
         return Command("help")
     if "minuto" in norm and has(

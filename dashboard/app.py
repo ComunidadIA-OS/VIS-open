@@ -137,6 +137,9 @@ def run_voice(cmd, ids: list[str]) -> str:
         except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
             why = str(exc) if isinstance(exc, ValueError) else f"{type(exc).__name__}: {exc}"[:140]
             return f"No he podido resumir la sesión: {why}."
+    if act == "handsfree_off":
+        ss["voz_hf_off"] = ss.get("voz_hf_off", 0) + 1
+        return "Modo manos libres desactivado."
     if act in ("play_video", "stop_video"):
         ss["voz_video"] = act == "play_video"
         ss["voz_ancla"] = "sec-video"
@@ -247,17 +250,41 @@ def _process_voice(text: str) -> None:
 
 
 def on_voice_audio() -> None:
-    """Cuando acaba la grabación: voz -> texto (Whisper de OVH) -> orden."""
+    """Cuando acaba la grabación del botón: voz -> texto (Whisper de OVH) -> orden."""
+    audio = st.session_state.get("voz_audio")
+    if audio is not None:
+        _hear(audio.getvalue())
+
+
+def on_voice_handsfree() -> None:
+    """Frase que el modo manos libres cortó solo; `voz_seq` avisa de que ya está atendida."""
+    from dashboard import handsfree
+
+    ss = st.session_state
+    try:
+        _hear(handsfree.decode_audio(ss["voz_hf"].audio))
+    except Exception as exc:  # noqa: BLE001 - un audio roto no debe parar el modo
+        reply = f"No he podido oír la orden: {exc}."[:160]
+        ss["voz_respuesta"] = reply
+        ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
+    finally:
+        ss["voz_seq"] = ss.get("voz_seq", 0) + 1
+
+
+def on_handsfree_on() -> None:
+    if st.session_state["voz_hf"].on:
+        st.session_state["voz_abierto"] = True  # se abre la ventana: se ve lo que se dice
+
+
+def _hear(audio: bytes) -> None:
+    """Voz -> texto (Whisper de OVH) -> orden."""
     from dashboard import voice
     from pipeline.envfile import load_dotenv
 
     load_dotenv()  # LLM_BASE_URL y LLM_API_KEY del .env (nunca del repo)
     ss = st.session_state
-    audio = ss.get("voz_audio")
-    if audio is None:
-        return
     try:
-        text = voice.transcribe(audio.getvalue())
+        text = voice.transcribe(audio)
     except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
         why = str(exc) if isinstance(exc, ValueError) else f"{type(exc).__name__}: {exc}"[:140]
         reply = f"No he podido oír la orden: {why}."
@@ -314,12 +341,33 @@ def voice_dialog() -> None:
 
 
 def voice_button() -> None:
+    from dashboard.handsfree import handsfree
+
+    ss = st.session_state
     st.sidebar.button(
         "🎙 Abrir el asistente de voz",
         key="voz_btn",
         on_click=lambda: st.session_state.update(voz_abierto=True),
         help="Habla con el panel: te responde en voz alta y por escrito.",
     )
+    with st.sidebar:
+        st.slider(
+            "Silencio que cierra la frase (s)",
+            1.0,
+            5.0,
+            2.0,
+            0.5,
+            key="voz_silencio",
+            help="Segundos callado para que el modo manos libres dé la frase por terminada.",
+        )
+        handsfree(
+            key="voz_hf",
+            silence_s=ss.get("voz_silencio", 2.0),
+            seq=ss.get("voz_seq", 0),
+            force_off=ss.get("voz_hf_off", 0),
+            on_audio=on_voice_handsfree,
+            on_on=on_handsfree_on,
+        )
 
 
 if sessions:
