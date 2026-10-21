@@ -35,6 +35,10 @@ Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluat
 6. **Tabla de intervenciones**: código anónimo de la persona (Persona 1, Persona 2…), minuto de inicio, duración, género y la evidencia del género (la frase y el minuto, con el nombre sustituido por el código, por ejemplo «tiene la palabra la señora [Persona 3]»). Las voces sin pista aparecen como `desconocido`. Nunca se muestran nombres.
 7. **Aviso de método**, siempre visible: «El género se asigna solo por pistas del lenguaje de la sesión, nunca por la cara ni la voz. Los resultados son orientativos y requieren revisión humana.»
 
+## Subtítulos para personas sordas
+
+El vídeo de la sesión y los cortes de «Human in the loop» llevan una pista de subtítulos (WebVTT, «Español (automático)») que sale de la transcripción: líneas de hasta 42 caracteres, dos por subtítulo, con «Persona N:» al cambiar de voz. Se activan y desactivan con el botón «CC» del reproductor, y se pueden descargar (`.vtt`). Límites: son automáticos (Whisper) y pueden tener errores (WER aún sin medir); los nombres propios salen como «Persona N» por la seudonimización; solo cubren el español transcrito. Para cumplir de verdad con accesibilidad en una publicación final, habría que revisarlos a mano.
+
 ## Diseño del panel
 
 Estilo editorial y sobrio, pensado para proyectar: fondo de papel cálido, tinta oscura, un solo acento (verde azulado) y títulos con tipografía con serifa. Los colores de género (ciruela y verde azulado) se reservan para los gráficos. Cada parte de la sesión (vídeo, Human in the loop, métricas, audio, análisis de vídeo, descargas) es una tarjeta, con una barra de navegación fija arriba, desplazamiento suave, aparición progresiva y efectos al pasar el ratón (se desactivan si el sistema pide menos movimiento). Todo vive en `dashboard/style.css` y en `.streamlit/config.toml` (tema), sin fuentes ni recursos externos. En móvil la navegación se desliza en una sola línea.

@@ -33,6 +33,7 @@ from dashboard.data import (
     show_interventions,
     show_tracks,
     show_voices,
+    subtitles_vtt,
     timeline_strip,
     transcript_csv,
     transcript_turns,
@@ -60,6 +61,7 @@ COLORS = alt.Scale(
     range=["#8e4b8b", "#2a7b8c", "#a7a39b", "#d9d5cc", "#d98e04"],
 )
 
+SUBTITLE_LABEL = "Español (automático)"
 SHORT_TITLES = {
     "M01": "M01 Presencia",
     "M02": "M02 Tiempo de palabra",
@@ -158,8 +160,22 @@ if screen == "Sesión":
             minute = st.number_input(
                 "Ir al minuto", min_value=0.0, max_value=max_minute, step=1.0, key=minute_key
             )
-            st.video(video_file, start_time=int(minute * 60))
-            st.caption("Vídeo original del Congreso, sin alterar. Solo se ve en este equipo.")
+            st.video(
+                video_file,
+                start_time=int(minute * 60),
+                subtitles={SUBTITLE_LABEL: subtitles_vtt(s).encode("utf-8")},
+            )
+            st.caption(
+                "Vídeo original del Congreso, sin alterar. Solo se ve en este equipo. "
+                "Subtítulos para personas sordas: botón «CC» del reproductor (son automáticos, con "
+                "nombres en clave, y pueden tener errores)."
+            )
+            st.download_button(
+                "Descargar subtítulos (.vtt)",
+                subtitles_vtt(s),
+                file_name=f"subtitulos_{s.session_id}.vtt",
+                mime="text/vtt",
+            )
         else:
             st.info("El vídeo original no está en este equipo (`data/raw/`): solo se ve el texto.")
 
@@ -219,7 +235,10 @@ if screen == "Sesión":
                     video_file, start, stop, DATA_DIR / "clips", f"{s.session_id}_{sid}"
                 )
                 if mp4:
-                    clip.video(mp4)  # solo esos segundos
+                    clip.video(
+                        mp4,  # solo esos segundos
+                        subtitles={SUBTITLE_LABEL: subtitles_vtt(s, start, stop).encode("utf-8")},
+                    )
                 else:
                     clip.video(video_file, start_time=int(start), end_time=int(stop))
             text.caption("Lo que dice en este corte")

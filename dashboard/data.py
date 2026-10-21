@@ -343,6 +343,66 @@ def review_cuts(
     return sorted(cuts, key=lambda c: float(c["start"]))
 
 
+LINE_CHARS = 42  # ancho de línea de subtítulo recomendado
+
+
+def _vtt_time(seconds: float) -> str:
+    ms = round(max(seconds, 0.0) * 1000)
+    h, rest = divmod(ms, 3_600_000)
+    m, rest = divmod(rest, 60_000)
+    return f"{h:02d}:{m:02d}:{rest // 1000:02d}.{rest % 1000:03d}"
+
+
+def _wrap_lines(text: str, width: int = LINE_CHARS) -> list[str]:
+    lines: list[str] = []
+    current = ""
+    for word in text.split():
+        if current and len(current) + 1 + len(word) > width:
+            lines.append(current)
+            current = word
+        else:
+            current = f"{current} {word}".strip()
+    return [*lines, current] if current else lines
+
+
+def subtitles_vtt(session: Session, start_s: float = 0.0, end_s: float | None = None) -> str:
+    """Subtítulos WebVTT de la transcripción (seudonimizada), con «Persona N:» al cambiar de voz.
+
+    Con `start_s`/`end_s` solo el tramo, con los tiempos desplazados para un clip que empieza en 0.
+    Son subtítulos automáticos (Whisper): pueden tener errores.
+    """
+    stop = float("inf") if end_s is None else end_s
+    codes = speaker_codes(session.timeline)
+    events = sorted(
+        (
+            e
+            for e in session.timeline.events
+            if e.type == EventType.SPEECH and e.text and e.end_s > start_s and e.start_s < stop
+        ),
+        key=lambda e: e.start_s,
+    )
+    cues = ["WEBVTT", ""]
+    last_speaker = None
+    for e in events:
+        lines = _wrap_lines(e.text.strip())
+        if e.speaker_id != last_speaker and e.speaker_id:
+            lines = [f"{codes.get(e.speaker_id, e.speaker_id)}:", *lines]
+        last_speaker = e.speaker_id
+        groups = [lines[i : i + 2] for i in range(0, len(lines), 2)]  # 2 líneas por subtítulo
+        begin, finish = max(e.start_s, start_s), min(e.end_s, stop)
+        total = sum(len(" ".join(g)) for g in groups) or 1
+        t = begin
+        for group in groups:
+            span = (finish - begin) * len(" ".join(group)) / total
+            cues += [
+                f"{_vtt_time(t - start_s)} --> {_vtt_time(t + span - start_s)}",
+                *group,
+                "",
+            ]
+            t += span
+    return "\n".join(cues)
+
+
 def agreed_genders(folder: Path) -> dict[str, str]:
     """Voz → género, solo si dos anotadoras con ID de conexión distinto pusieron el mismo."""
     answers: list[dict[str, tuple[str, str]]] = []
