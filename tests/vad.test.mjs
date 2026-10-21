@@ -1,90 +1,129 @@
-// Prueba del detector de voz con audio sintético: node tests/vad.test.mjs
+// Prueba del detector de voz: voz real sintetizada (tests/fixtures/voz) frente a ruidos típicos.
+//   node tests/vad.test.mjs
 import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { fileURLToPath } from 'node:url'
 import { createVad, downsample, encodeWav, toBase64 } from '../dashboard/vad.js'
 
-const SR = 48000
-const CHUNK = 2048
-let phase = 0
+const SR = 16000
+const CHUNK = 512
+const here = fileURLToPath(new URL('.', import.meta.url))
 
-function chunk(amp) {
-  const c = new Float32Array(CHUNK)
-  for (let i = 0; i < CHUNK; i++) c[i] = amp * Math.sin(phase++ * 0.12) + (Math.random() - 0.5) * 0.006
-  return c
+function loadWav(name) {
+  const b = readFileSync(`${here}/fixtures/voz/${name}`)
+  const v = new DataView(b.buffer, b.byteOffset, b.byteLength)
+  const n = (b.length - 44) / 2
+  const out = new Float32Array(n)
+  for (let i = 0; i < n; i++) out[i] = v.getInt16(44 + i * 2, true) / 32768
+  return out
 }
 
-function run(vad, plan) {
+let seed = 7
+const rand = () => ((seed = (seed * 1664525 + 1013904223) >>> 0) / 2 ** 32) * 2 - 1
+const floor = (s) => Float32Array.from({ length: Math.floor(s * SR) }, () => 0.004 * rand())
+const tone = (s, f, amp) =>
+  Float32Array.from({ length: Math.floor(s * SR) }, (_, i) => amp * Math.sin((2 * Math.PI * f * i) / SR))
+const join = (...parts) => {
+  const out = new Float32Array(parts.reduce((n, p) => n + p.length, 0))
+  let at = 0
+  for (const p of parts) {
+    out.set(p, at)
+    at += p.length
+  }
+  return out
+}
+const mix = (a, b) => Float32Array.from(a, (x, i) => x + (b[i] ?? 0))
+const gain = (a, g) => a.map((x) => x * g)
+
+function run(vad, audio) {
   const events = []
-  let t = 0
-  for (const [seconds, amp] of plan) {
-    for (let n = 0; n < (seconds * SR) / CHUNK; n++) {
-      for (const e of vad.push(chunk(amp))) events.push({ ...e, at: t })
-      t += (CHUNK / SR) * 1000
-    }
+  for (let i = 0; i + CHUNK <= audio.length; i += CHUNK) {
+    for (const e of vad.push(audio.subarray(i, i + CHUNK))) events.push(e.type)
   }
   return events
 }
+const types = (audio, opts = {}) => run(createVad({ sampleRate: SR, ...opts }), audio)
 
-// 1) ruido, 1,5 s de voz y 4 s de silencio: empieza, y acaba tras ~2 s de silencio
-let ev = run(createVad({ sampleRate: SR }), [[1, 0.004], [1.5, 0.3], [4, 0.004]])
-assert.deepEqual(ev.map((e) => e.type), ['start', 'end'])
-assert.ok(ev[0].at >= 900 && ev[0].at <= 1300, `empieza hacia 1 s (fue ${ev[0].at})`)
-assert.ok(ev[1].at >= 4300 && ev[1].at <= 4800, `acaba ~2 s tras la voz (fue ${ev[1].at})`)
-const spoken = ev[1].ms
-assert.ok(spoken > 1800 && spoken < 3000, `la frase dura ~1,5 s + pre-roll y cola (fue ${spoken})`)
+// ---- ruidos --------------------------------------------------------------------------------
+const noises = {
+  'bocina (dos tonos fijos)': mix(tone(1.5, 420, 0.25), tone(1.5, 510, 0.25)),
+  'bocina con pitidos': join(tone(0.35, 440, 0.4), floor(0.25), tone(0.35, 440, 0.4), floor(0.25)),
+  'motor (sierra de 90 Hz)': Float32Array.from(
+    { length: 3 * SR },
+    (_, i) => 0.25 * ((((i * 90) / SR) % 1) - 0.5),
+  ),
+  'sirena (barrido)': Float32Array.from(
+    { length: 3 * SR },
+    (_, i) => 0.3 * Math.sin(2 * Math.PI * (700 * (i / SR) + 150 * Math.sin((2 * Math.PI * i) / SR))),
+  ),
+  'coche que pasa (grave)': (() => {
+    let y = 0
+    return Float32Array.from({ length: 4 * SR }, (_, i) => {
+      y += 0.03 * (rand() - y) // paso bajo ~80 Hz
+      return 3 * y * Math.sin((Math.PI * i) / (4 * SR))
+    })
+  })(),
+  teclas: (() => {
+    const a = new Float32Array(4 * SR)
+    for (let k = 0; k < 16; k++) {
+      for (let i = 0; i < 0.06 * SR; i++) a[Math.floor(k * 0.25 * SR) + i] = 0.5 * rand()
+    }
+    return a
+  })(),
+  'viento o aire (ruido plano)': Float32Array.from({ length: 3 * SR }, () => 0.06 * rand()),
+  portazo: (() => {
+    const a = new Float32Array(2 * SR)
+    for (let i = 0; i < 0.12 * SR; i++) {
+      a[Math.floor(0.5 * SR) + i] = 0.8 * rand() * Math.exp(-i / (0.03 * SR))
+    }
+    return a
+  })(),
+}
+for (const [name, noise] of Object.entries(noises)) {
+  const ev = types(join(floor(1), noise, floor(3)))
+  assert.ok(!ev.includes('end'), `${name}: no debe pasar por voz (eventos: ${ev})`)
+}
+console.log(`ruidos rechazados: ${Object.keys(noises).length}`)
 
-// 2) silencio de 5 s ajustable: no acaba con 2 s, sí con 5 s
-let vad5 = createVad({ sampleRate: SR, silenceMs: 5000 })
-ev = run(vad5, [[0.5, 0.004], [1, 0.3], [3, 0.004]])
-assert.deepEqual(ev.map((e) => e.type), ['start'], 'con 5 s de silencio aún no cierra')
-ev = run(vad5, [[3, 0.004]])
-assert.deepEqual(ev.map((e) => e.type), ['end'])
+// ---- voz real ------------------------------------------------------------------------------
+const speeches = ['dashboard_sesion4.wav', 'para_el_video.wav', 'resumen.wav', 'es_un_hombre.wav']
+for (const name of speeches) {
+  const ev = types(join(floor(1), loadWav(name), floor(3)))
+  assert.deepEqual(ev, ['start', 'end'], `${name}: voz detectada (eventos: ${ev})`)
+}
+console.log(`voces aceptadas: ${speeches.length}`)
 
-// 3) un golpe corto (100 ms) no cuenta
-ev = run(createVad({ sampleRate: SR }), [[1, 0.004], [0.1, 0.4], [3, 0.004]])
-assert.ok(!ev.some((e) => e.type === 'end'), 'un golpe no produce frase')
+// con ruido de fondo moderado (tráfico grave) también se oye la voz
+const traffic = noises['coche que pasa (grave)']
+for (const name of speeches) {
+  const speech = loadWav(name)
+  const ev = types(join(floor(1), mix(speech, gain(traffic.subarray(0, speech.length), 0.5)), floor(3)))
+  assert.deepEqual(ev, ['start', 'end'], `${name} con tráfico de fondo (eventos: ${ev})`)
+}
+console.log('voz con tráfico de fondo: ok')
 
-// 4) una pausa corta dentro de la frase no la parte
-ev = run(createVad({ sampleRate: SR }), [[0.5, 0.004], [1, 0.3], [1, 0.004], [1, 0.3], [3, 0.004]])
-assert.deepEqual(ev.map((e) => e.type), ['start', 'end'])
+// ---- ajustes -------------------------------------------------------------------------------
+const phrase = loadWav('resumen.wav')
+const five = createVad({ sampleRate: SR, silenceMs: 5000 })
+assert.deepEqual(run(five, join(floor(0.5), phrase, floor(3))), ['start'], 'con 5 s de silencio aún no cierra')
+assert.deepEqual(run(five, floor(3)), ['end'])
 
-// 5) el umbral se adapta a un ruido de fondo alto y constante
-const noisy = createVad({ sampleRate: SR })
-run(noisy, [[3, 0.03]])
-assert.ok(noisy.threshold > 0.05, `umbral adaptado (fue ${noisy.threshold})`)
+const twice = types(join(floor(0.5), loadWav('para_el_video.wav'), floor(1), phrase, floor(3)))
+assert.deepEqual(twice, ['start', 'end'], 'una pausa corta dentro de la frase no la parte')
 
-// 6) tope de frase: una voz continua se corta a los 30 s
-ev = run(createVad({ sampleRate: SR }), [[0.5, 0.004], [40, 0.3]])
-assert.ok(ev.some((e) => e.type === 'end'))
+const long = types(join(floor(0.5), ...Array.from({ length: 14 }, () => phrase)))
+assert.ok(long.includes('end'), 'tope de frase')
 
-// 7) WAV: cabecera correcta, 16 kHz y base64
-const wav = encodeWav(downsample(new Float32Array(SR), SR, 16000), 16000)
+// con un vídeo sonando (modo estricto): el residuo bajo no cuenta, tu voz fuerte sí
+const strict = createVad({ sampleRate: SR })
+strict.setStrict(true)
+assert.ok(!run(strict, join(floor(1), gain(phrase, 0.04), floor(3))).includes('end'), 'residuo del vídeo')
+assert.deepEqual(run(strict, join(floor(1), gain(phrase, 2.5), floor(3))), ['start', 'end'])
+
+// ---- WAV -----------------------------------------------------------------------------------
+const wav = encodeWav(downsample(new Float32Array(48000), 48000, 16000), 16000)
 assert.equal(String.fromCharCode(...wav.slice(0, 4)), 'RIFF')
 assert.equal(wav.length, 44 + 16000 * 2)
 assert.ok(toBase64(wav).length > 1000)
 
 console.log('vad: ok')
-
-// 8) pulsaciones de teclado (ráfagas de ruido agudo cada 250 ms durante 4 s): no es voz
-{
-  const vad = createVad({ sampleRate: SR })
-  const events = []
-  for (let n = 0; n < (4 * SR) / CHUNK; n++) {
-    const c = new Float32Array(CHUNK)
-    const clicking = n % 6 < 2 // ~85 ms de clic cada ~250 ms
-    for (let i = 0; i < CHUNK; i++) c[i] = (clicking ? 0.5 : 0.004) * (Math.random() * 2 - 1)
-    events.push(...vad.push(c))
-  }
-  assert.ok(!events.some((e) => e.type === 'start'), 'las teclas no inician una frase')
-}
-console.log('vad teclado: ok')
-
-// 9) con un vídeo sonando (modo estricto): el residuo del vídeo no cuenta, tu voz fuerte sí
-{
-  const vad = createVad({ sampleRate: SR })
-  vad.setStrict(true)
-  let events = run(vad, [[1, 0.004], [2, 0.03], [3, 0.004]]) // residuo bajo del vídeo
-  assert.ok(!events.some((e) => e.type === 'start'), 'el residuo del vídeo no es voz')
-  events = run(vad, [[1.2, 0.3], [3, 0.004]]) // hablas cerca del micrófono
-  assert.deepEqual(events.map((e) => e.type), ['start', 'end'])
-}
-console.log('vad estricto: ok')

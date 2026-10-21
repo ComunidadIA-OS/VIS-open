@@ -24,3 +24,6 @@ models/
 *.docx
 *.xlsx
 *.zip
+
+# Excepción: frases de prueba SINTÉTICAS del detector de voz (no son audio real de sesiones)
+!tests/fixtures/voz/*.wav

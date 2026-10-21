@@ -199,11 +199,11 @@ export default function (component) {
         else if (now - s.t0 > 25000) resume()
       } else if (s.phase === 'await') {
         if (speaking()) { s.phase = 'speaking'; say('speaking') }
-        else if (now - s.t1 > 1800) resume() // no hay respuesta hablada
+        else if (now - s.t1 > 1200) resume() // no hay respuesta hablada
       } else if (s.phase === 'speaking') {
         if (!speaking()) { s.phase = 'cooldown'; s.t2 = now } // cola de eco
       } else if (s.phase === 'cooldown') {
-        if (now - s.t2 > 700) resume()
+        if (now - s.t2 > 450) resume()
       }
     }, 150)
   }
