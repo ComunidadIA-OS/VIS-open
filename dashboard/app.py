@@ -49,10 +49,46 @@ from dashboard.pdf_report import report_pdf
 from decision.pseudonymize import speaker_codes
 
 
-def big(chart: alt.Chart) -> alt.Chart:
-    """Letra de ejes y leyendas legible en pantalla grande."""
-    return chart.configure_axis(labelFontSize=20, titleFontSize=22).configure_legend(
-        labelFontSize=20, titleFontSize=22
+def big(chart: alt.Chart, description: str = "") -> alt.Chart:
+    """Letra legible en pantalla grande y, para lectores de pantalla, una descripción en español
+    en lugar de las que Vega genera en inglés para cada eje, leyenda y barra."""
+    return (
+        chart.properties(description=description)
+        .configure_axis(labelFontSize=20, titleFontSize=22, aria=False)
+        .configure_legend(labelFontSize=20, titleFontSize=22, aria=False)
+        .configure_mark(aria=False)
+    )
+
+
+def chart(c: alt.Chart, text: str) -> None:
+    """Gráfico con su alternativa en texto (oculta a la vista, la lee el lector de pantalla)."""
+    import html
+
+    st.altair_chart(big(c, text), use_container_width=True)
+    st.markdown(f"<p class='sr-only'>{html.escape(text)}</p>", unsafe_allow_html=True)
+
+
+def say_rows(rows, label: str, value: str, unit: str) -> str:
+    """«mujer 2,8 minutos; hombre 0 minutos…» a partir de una tabla."""
+    from dashboard.voice import es_num
+
+    return "; ".join(f"{r[label]} {es_num(float(r[value]))} {unit}" for _, r in rows.iterrows())
+
+
+def page_a11y() -> None:
+    """Idioma de la página (español, para que el lector no lea con voz inglesa) y nombres para
+    los vídeos y la ventana del asistente, que Streamlit deja sin nombre."""
+    import streamlit.components.v1 as components
+
+    components.html(
+        "<script>(function(){const d=window.parent.document;d.documentElement.lang='es';"
+        "const fix=()=>{d.querySelectorAll('video').forEach((v)=>{if(!v.getAttribute('aria-label'))"
+        "v.setAttribute('aria-label',v.closest('[role=dialog]')?'Corte de voz para validar'"
+        ":'Vídeo de la sesión')});d.querySelectorAll('[role=dialog] iframe')"
+        ".forEach((f)=>{f.title='Asistente de voz'})};fix();"
+        "if(!d.__a11y){d.__a11y=new MutationObserver(fix);"
+        "d.__a11y.observe(d.body,{childList:true,subtree:true})}})()</script>",
+        height=0,
     )
 
 
@@ -487,7 +523,11 @@ if screen == "Sesión":
         st.session_state[minute_key] = min(seconds / 60, max_minute)
 
     with st.container(key="sec_video"):
-        st.markdown("<span id='sec-video' class='anchor'></span>", unsafe_allow_html=True)
+        st.markdown(
+            "<span id='sec-video' class='anchor'></span>"
+            "<h2 class='sr-only'>Vídeo de la sesión</h2>",
+            unsafe_allow_html=True,
+        )
         # 1. El vídeo completo.
         if video_file:
             minute = st.number_input(
@@ -623,23 +663,23 @@ if screen == "Sesión":
         st.header("Análisis de audio (transcripción y voces)")
         st.subheader("Tiempo de palabra por género")
         gt = gender_time_table(s)
-        st.altair_chart(
-            big(
-                alt.Chart(gt)
-                .mark_bar()
-                .encode(x="gender", y="minutos", color=alt.Color("gender", scale=COLORS))
-            ),
-            use_container_width=True,
+        chart(
+            alt.Chart(gt)
+            .mark_bar()
+            .encode(x="gender", y="minutos", color=alt.Color("gender", scale=COLORS)),
+            "Gráfico de barras del tiempo de palabra por género: "
+            + say_rows(gt, "gender", "minutos", "minutos")
+            + ".",
         )
         st.subheader("Línea de tiempo")
-        st.altair_chart(
-            big(
-                alt.Chart(timeline_strip(s))
-                .mark_bar(height=80)
-                .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS))
-                .properties(height=130)
-            ),
-            use_container_width=True,
+        chart(
+            alt.Chart(timeline_strip(s))
+            .mark_bar(height=80)
+            .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS))
+            .properties(height=130),
+            f"Línea de tiempo de los {s.timeline.duration_s / 60:.0f} minutos de la sesión, "
+            "coloreada por el género de quien habla. La transcripción de abajo tiene lo mismo en "
+            "texto, en orden.",
         )
 
         st.subheader("Transcripción")
@@ -709,23 +749,22 @@ if screen == "Sesión":
                     f"Fotogramas sin nadie: {v['fotogramas_sin_personas_%']} %."
                 )
                 st.subheader("Personas que ve la cámara a lo largo del vídeo")
-                st.altair_chart(
-                    big(
-                        alt.Chart(video_people_series(s))
-                        .mark_area(opacity=0.6, line=True)
-                        .encode(x="minuto", y="personas")
-                    ),
-                    use_container_width=True,
+                chart(
+                    alt.Chart(video_people_series(s))
+                    .mark_area(opacity=0.6, line=True)
+                    .encode(x="minuto", y="personas"),
+                    "Gráfico de área de las personas que ve la cámara por minuto: máximo "
+                    f"{v['personas_visibles_max']} y mediana {v['personas_visibles_mediana']}.",
                 )
                 st.subheader("Tiempo en pantalla por género")
                 st.caption("El género sale del audio, no de la imagen.")
-                st.altair_chart(
-                    big(
-                        alt.Chart(vt[0])
-                        .mark_bar()
-                        .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS))
-                    ),
-                    use_container_width=True,
+                chart(
+                    alt.Chart(vt[0])
+                    .mark_bar()
+                    .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS)),
+                    "Gráfico de barras del tiempo en pantalla por género: "
+                    + say_rows(vt[0], "genero", "minutos", "minutos")
+                    + ".",
                 )
                 st.subheader("Pistas con más tiempo en pantalla")
                 st.table(show_tracks(video_tracks_with_totals(s)).style.hide(axis="index"))
@@ -744,7 +783,10 @@ if screen == "Sesión":
                         disabled=not video_file,
                     )
     with st.container(key="sec_descargas"):
-        st.markdown("<span id='sec-descargas' class='anchor'></span>", unsafe_allow_html=True)
+        st.markdown(
+            "<span id='sec-descargas' class='anchor'></span><h2 class='sr-only'>Descargas</h2>",
+            unsafe_allow_html=True,
+        )
         st.download_button(
             "Descargar transcripción (CSV)",
             transcript_csv(s),
@@ -764,18 +806,18 @@ else:
         "el gráfico muestra cómo funcionará con más sesiones."
     )
     st.subheader("Tiempo de palabra por género en cada sesión (%)")
-    st.altair_chart(
-        big(
-            alt.Chart(evolution_gender_table(sessions))
-            .mark_bar()
-            .encode(
-                x="sesion",
-                y=alt.Y("porcentaje", scale=alt.Scale(domain=[0, 100])),
-                color=alt.Color("gender", scale=COLORS),
-                tooltip=["sesion", "gender", "porcentaje"],
-            )
+    from dashboard.voice import explain_evolution
+
+    chart(
+        alt.Chart(evolution_gender_table(sessions))
+        .mark_bar()
+        .encode(
+            x="sesion",
+            y=alt.Y("porcentaje", scale=alt.Scale(domain=[0, 100])),
+            color=alt.Color("gender", scale=COLORS),
+            tooltip=["sesion", "gender", "porcentaje"],
         ),
-        use_container_width=True,
+        "Gráfico de barras. " + explain_evolution(sessions),
     )
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
     evo = evolution_table(sessions).astype(object).fillna("no concluyente")
@@ -784,3 +826,5 @@ else:
 
 if sessions and st.session_state.get("voz_abierto"):
     voice_dialog()
+
+page_a11y()
