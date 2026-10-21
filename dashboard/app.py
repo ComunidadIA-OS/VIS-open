@@ -128,6 +128,15 @@ def run_voice(cmd, ids: list[str]) -> str:
     if act == "go_minute" and cmd.minute is not None and cmd.minute >= 0:
         ss[f"minuto_{current}"] = min(cmd.minute, sess.timeline.duration_s / 60)
         ss["voz_ancla"] = "sec-video"
+    if act == "summary":
+        from pipeline.envfile import load_dotenv
+
+        load_dotenv()
+        try:
+            return voice.content_summary(sess, cache=ss)
+        except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
+            why = str(exc) if isinstance(exc, ValueError) else f"{type(exc).__name__}: {exc}"[:140]
+            return f"No he podido resumir la sesión: {why}."
     if act == "repeat":
         return ss.get("voz_respuesta") or voice.HELP
 
@@ -208,7 +217,7 @@ def on_voice_audio() -> None:
     try:
         text = voice.transcribe(audio.getvalue())
     except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
-        why = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
+        why = str(exc) if isinstance(exc, ValueError) else f"{type(exc).__name__}: {exc}"[:140]
         reply = f"No he podido oír la orden: {why}."
         ss["voz_respuesta"] = reply
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
