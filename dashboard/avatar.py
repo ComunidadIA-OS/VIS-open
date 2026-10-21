@@ -62,15 +62,22 @@ void main(){
   // cristal oscuro, con borde que brilla en azul y un toque violeta
   vec3 body=mix(vec3(.0,.012,.045),vec3(.0,.006,.025),rr);
   float vio=smoothstep(-.2,.9,dot(normalize(uv+.0001),normalize(vec2(.6,-.7))));
-  body+=mix(vec3(.4,.72,1.),vec3(.6,.28,1.),vio)*pow(1.-z,4.)*.75;
+  body+=mix(vec3(.3,.9,.95),vec3(.25,.45,1.),vio)*pow(1.-z,4.)*.75;
   col+=body;a=.95;
-  // hilos radiales finos que fluyen desde el centro
+  // pliegues de luz turquesa y azul: giran en un sentido (sobre el eje vertical)
   float rc=rr;
-  float spin=uT*.35;
-  float tl=tendrils(ang,rc,22.,spin,uT,0.)*.8+tendrils(ang,rc,37.,spin*.8,uT,3.1)*.55
-    +tendrils(ang,rc,61.,spin*.6,uT,6.2)*.3;
-  float fade=exp(-rc*1.6)*smoothstep(.97,.55,rc)*smoothstep(.015,.14,rc);
-  col+=mix(vec3(.5,.7,1.),vec3(.92,.96,1.),exp(-rc*3.))*tl*fade*(.7+.5*uE);
+  for(int s=0;s<2;s++){
+   vec3 p3=vec3(uv,s==0?z:-z);
+   float ca=cos(uT*.24),sa=sin(uT*.24);
+   p3=vec3(p3.x*ca+p3.z*sa,p3.y,-p3.x*sa+p3.z*ca);
+   vec3 q=p3*1.05;
+   vec3 w=vec3(fbm(q+uT*.1),fbm(q+vec3(5.2,1.3,2.8)-uT*.08),fbm(q+vec3(8.3,2.8,4.1)+uT*.06));
+   float f=fbm(q+(1.7+1.*uE)*w);
+   float ridge=1.-abs(2.*f-1.);
+   vec3 hue=mix(vec3(.12,.42,1.),vec3(.1,.88,.84),smoothstep(.3,.7,fbm(q*.8-uT*.05)));
+   float v=(smoothstep(.55,.97,ridge)*.3+pow(ridge,14.)*.85)*(.75+.5*uE)*(s==0?1.:.55);
+   col+=mix(hue,vec3(1.),.35)*v;
+  }
   // flujos de azules distintos, girando en sentido contrario a los hilos
   float phi=-uT*.22,cp=cos(phi),sp2=sin(phi);
   vec2 u2=mat2(cp,-sp2,sp2,cp)*uv;
@@ -81,7 +88,7 @@ void main(){
     vec3 nrm=normalize(vec3(sin(uT*(.17+.06*fi)+fi*2.1),cos(uT*(.13+.05*fi)+fi*1.3),
                             sin(uT*(.1+.05*fi)+fi*3.7)));
     vec2 b=ribbon(p,nrm,uT,uE);
-    vec3 hue=i==0?vec3(.1,.3,.95):i==1?vec3(.2,.6,1.):i==2?vec3(.32,.26,.92):vec3(.58,.3,.95);
+    vec3 hue=i==0?vec3(.1,.85,.8):i==1?vec3(.2,.65,1.):i==2?vec3(.12,.36,1.):vec3(.1,.22,.85);
     col+=hue*b.y*(.14+.12*uE)*(s==0?1.:.6)+mix(hue,vec3(1.),.55)*b.x*(.3+.22*uE)*(s==0?1.:.5);
    }
   }
@@ -89,15 +96,15 @@ void main(){
   float grain=smoothstep(.985,1.,n(vec3(uv*85.,uT*.4)))*smoothstep(.78,.97,rr);
   col+=vec3(.7,.85,1.)*grain*.8;
   // chispa central
-  col+=vec3(.85,.92,1.)*exp(-600.*rr*rr)*(.8+.6*uE)+vec3(.35,.55,1.)*exp(-16.*rr*rr)*(.25+.3*uE);
+  col+=vec3(.85,.92,1.)*exp(-1400.*rr*rr)*(.8+.6*uE)+vec3(.35,.55,1.)*exp(-16.*rr*rr)*(.25+.3*uE);
   // brillos del cristal
   float dir=dot(normalize(uv+.0001),normalize(vec2(-.6,.75)));
   col+=vec3(.9,.95,1.)*smoothstep(.05,0.,abs(rr-.9))*smoothstep(.1,.85,dir)*.6;
-  col+=vec3(.55,.4,1.)*smoothstep(.05,0.,abs(rr-.9))*smoothstep(-.1,-.9,dir)*.35;
+  col+=vec3(.3,.7,1.)*smoothstep(.05,0.,abs(rr-.9))*smoothstep(-.1,-.9,dir)*.35;
   col=min(col,vec3(a));
  }
  float ring=exp(-pow((rr-.995)*40.,2.))*.9;
- col+=vec3(.6,.82,1.)*ring;a=max(a,ring);
+ col+=vec3(.45,.9,.95)*ring;a=max(a,ring);
  gl_FragColor=vec4(min(col,vec3(a)),a); // color premultiplicado
 }
 </script>
