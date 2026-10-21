@@ -222,3 +222,12 @@ def test_annotator_and_redo_commands():
     assert voice.parse_command("anotadora tres", IDS) is None
     cmd = voice.parse_command("valida la persona 1 otra vez", IDS)
     assert (cmd.action, cmd.person, cmd.topic) == ("validate_person", 1, "redo")
+
+
+def test_echo_and_one_shot_save():
+    reply = "Reproduzco la prueba de Persona 1. ¿Es mujer, hombre o desconocido?"
+    assert voice.is_echo("Es mujer, hombre o desconocido.", reply)
+    assert not voice.is_echo("es hombre", reply)  # una orden corta nunca se toma por eco
+    cmd = voice.parse_command("es mujer con nivel medio, confirmo", IDS, "gender")
+    assert (cmd.action, cmd.gender, cmd.topic) == ("val_gender", "mujer", "save")
+    assert voice.parse_command("es mujer", IDS, "gender").topic is None
