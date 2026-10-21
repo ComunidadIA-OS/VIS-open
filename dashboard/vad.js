@@ -134,7 +134,7 @@ export function createVad(options) {
     silenceMs: 2000, // silencio que cierra la frase
     minSpeechMs: 400, // menos voz que esto es un golpe o un clic: se descarta
     maxUtteranceMs: 30000, // tope de una frase
-    preRollMs: 400, // se guarda lo anterior al inicio para no perder la primera sílaba
+    preRollMs: 600, // se guarda lo anterior al inicio para no perder la primera sílaba
     startMs: 220, // voz sostenida necesaria para dar por empezada la frase (una tecla no llega)
     gapMs: 130, // huecos entre sílabas que no cortan el comienzo
     minThreshold: 0.015,

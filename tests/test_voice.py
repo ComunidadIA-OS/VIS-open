@@ -364,3 +364,26 @@ def test_command_wins_over_greeting():
 def test_goodbye_turns_handsfree_off(text):
     cmd = voice.parse_command(text, IDS)
     assert (cmd.action, cmd.topic) == ("handsfree_off", "bye")
+
+
+@pytest.mark.parametrize(
+    "text",
+    [
+        "¿puedes parar el vídeo?", "páralo", "¿puedes pararlo?", "detenlo", "pon pausa",
+        "apaga el vídeo", "quita el vídeo", "para la reproducción", "detén la reproducción",
+    ],
+)  # fmt: skip
+def test_more_stop_video_phrasings(text):
+    assert voice.parse_command(text, IDS).action == "stop_video"
+
+
+@pytest.mark.parametrize(
+    ("text", "stop"),
+    [
+        ("¡Ahora, vídeo!", True), ("¿Por qué para?", True), ("para el vídeo", True),
+        ("lánzalo", False), ("lanza el vídeo", False), ("dame el resumen de la sesión", False),
+        ("el señor diputado dijo que para el año que viene habrá vídeo", False),
+    ],
+)  # fmt: skip
+def test_stop_intent_while_video_plays(text, stop):
+    assert voice.stop_intent(text) is stop
