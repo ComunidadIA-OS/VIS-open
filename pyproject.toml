@@ -21,6 +21,8 @@ pipeline = [
 ]
 # Alineado de palabras (opcional, WHISPER_ALIGN=1). WhisperX fija torch==2.8: en el notebook de OVH
 # (torch 2.12 ya instalado) no se instala y se usa WHISPER_ALIGN=0.
+# Ajuste ligero de Qwen (solo en el notebook de OVH; el script finetune/train_lora.py es autónomo).
+finetune = ["transformers>=5", "peft>=0.21", "accelerate>=1.15", "trl>=1.16", "datasets>=5"]
 align = ["whisperx>=3.8; python_version < '3.14'"]
 
 [build-system]
