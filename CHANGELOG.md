@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: modo manos libres del asistente de voz: un clic y el panel escucha solo (detector de voz propio, corte por silencio de 1 a 5 s, pausa mientras contesta, pitidos de aviso, se apaga por voz). Componente de Streamlit v2; prueba del detector con Node.
 - 21 oct 2026: el asistente de voz valida una voz concreta («pon en marcha la prueba de sonido de la persona 3»), reproduce su corte y acepta la confianza hablada («mujer con confianza media»); sigue pidiendo «confirmo» antes de guardar.
 - 21 oct 2026: el botón «Abrir el asistente de voz» es azul, ancho y con icono de micrófono, para que se vea a primera vista.
 - 21 oct 2026: el asistente de voz resume de qué se habló en la sesión (Qwen por API, transcripción como dato, aviso de IA); «resumen de los datos» da las cifras. Las palabras clave solo encajan al principio de palabra («devolución» ya no se confunde con «evolución») y los errores del micrófono muestran su motivo.
