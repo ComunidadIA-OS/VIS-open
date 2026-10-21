@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: `finetune/train_lora.py`, ajuste ligero (LoRA, float16) de Qwen para detectar preguntas en las V100S de OVH: prueba de humo, entrenamiento y medida del antes y el después en la misma ejecución. Extra `[finetune]` y licencias de las nuevas librerías (todas Apache-2.0).
 - 21 oct 2026: andamiaje de M09 (definición provisional, pendiente de Ivette): detectores de preguntas por reglas y por modelo, evaluación contra anotación (`evaluation/questions_eval.py`), hoja para anotar preguntas y datos del ajuste de Qwen (`evaluation/prepare_questions.py`), y `docs/M09_PREGUNTAS.md`.
 - 21 oct 2026: escala tipográfica única en `dashboard/style.css` (héroe > título 1 > título 2 > texto 1 > texto 2 > mínimo); ningún texto baja del tamaño de la barra lateral, incluida la letra de los gráficos.
 - 21 oct 2026: subtítulos para personas sordas en el vídeo de la sesión y en los cortes de Human in the loop (WebVTT generado de la transcripción, con «Persona N:» al cambiar de voz; botón CC) y descarga del `.vtt`. Son automáticos y pueden tener errores.
