@@ -344,3 +344,19 @@ def test_screen_tables_use_minutes_and_percent_format():
         shown.loc[0, "tiempo en pantalla"] == "10:03" and shown.loc[0, "% del tiempo"] == "11.9 %"
     )
     assert shown.loc[0, "tamaño medio"] == ""
+
+
+def test_every_session_page_has_the_same_sections(tmp_path, monkeypatch):
+    import re
+
+    from streamlit.testing.v1 import AppTest
+
+    monkeypatch.setenv("DATA_DIR", str(tmp_path))  # sin datos reales: sesiones sintéticas
+    app = Path(__file__).parent.parent / "dashboard" / "app.py"
+    layouts = {}
+    for s in load_sessions(tmp_path):
+        at = AppTest.from_file(str(app), default_timeout=120).run()
+        at.selectbox[0].set_value(s.session_id).run()
+        titles = [t.value for t in at.title] + [h.value for h in at.header]
+        layouts[s.session_id] = [re.sub(r"\(\d+ voces.*\)|Sesión .*", "X", t) for t in titles]
+    assert len({tuple(v) for v in layouts.values()}) == 1, layouts
