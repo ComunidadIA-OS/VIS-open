@@ -15,10 +15,11 @@ La igualdad no es solo de género: el panel debe poder usarse con una discapacid
 - El `.env` (`LLM_BASE_URL`, `LLM_API_KEY`) se carga al usar el micrófono; si falta, el asistente lo dice.
 - Órdenes de una lista **cerrada** (`dashboard/voice.py`): enséñame la sesión cuatro, ve a Human in the loop, cuántas mujeres hablaron, dame el resumen, cuál es la brecha, quién habló más, cuántas voces faltan, cuántas manos levantadas, lleva el vídeo al minuto 40, ayuda.
 - Tu voz se transcribe con `whisper-large-v3-turbo` de OVH AI Endpoints (`VOICE_ASR_MODEL`); solo viaja tu orden, nunca el audio de las sesiones. Respuesta hablada con la voz del navegador (es-ES).
-- Las cifras salen de los datos con código; ningún modelo escribe un número. Toda respuesta recuerda que los datos son orientativos.
+- Las cifras salen de los datos con código; ningún modelo escribe un número. Solo el resumen de contenido usa un modelo, con las mismas protecciones que el motor de género (datos delimitados, sin herramientas, salida limpiada y con aviso). Toda respuesta recuerda que los datos son orientativos.
 
 ## Lo que se puede hacer solo hablando
 - **Transcripción por minuto:** «léeme la transcripción del minuto 3:59» (o «tres cincuenta y nueve»): lee 3 turnos desde ahí y lleva el vídeo a ese punto. El texto leído es dato seudonimizado, nunca una orden.
+- **Resumen de lo que se dijo:** «resume lo que dijeron» o «de qué hablaron» → resumen de 3 o 4 frases hecho por Qwen (API de OVH) a partir de la transcripción seudonimizada. Va marcado como IA y con posibles errores; no da cifras ni género. La transcripción se envía entre marcas aleatorias como DATO, sin herramientas, y la respuesta se limpia a texto plano. «Resumen de los datos» da las cifras (calculadas por código).
 - **Explicaciones:** «explícame el análisis» (cómo se mide), «explícame los resultados» (cifras de la sesión y brecha, con su aviso) y «explícame la evolución» (pantalla Evolución, con la advertencia de pocas sesiones).
 - **Human in the loop por voz:** «empieza la validación de voces» → lee el corte (persona, tramo, texto) → «reproduce el corte» lo pone en el reproductor → dices «mujer», «hombre» o «no lo sé» → repite lo entendido y pide «confirmo» o «cancela» → guarda. Si dices «siguiente» salta. Es la misma validación que con ratón: cada persona guarda su respuesta como anotadora 1 o 2, y la voz cuenta cuando dos coinciden.
   - El asistente nunca propone ni sugiere el género; solo registra lo que dice la anotadora.
