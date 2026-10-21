@@ -156,6 +156,7 @@ def run_voice(cmd, ids: list[str]) -> str:
         ss["voz_video"] = act == "play_video"
         ss["voz_ancla"] = "sec-video"
         if act == "stop_video":
+            ss["voz_vstop"] = ss.get("voz_vstop", 0) + 1  # el modo manos libres no lo reanuda
             return "Detengo el vídeo."
         return (
             f"Vídeo {current} seleccionado. " if cmd.session else ""
@@ -250,7 +251,7 @@ def run_voice(cmd, ids: list[str]) -> str:
 
 
 VIDEO_COMMANDS = ("stop_video", "handsfree_off")  # el resto sería el audio del vídeo
-VIDEO_MAX_WORDS = 5  # una orden es corta; el discurso del vídeo, no
+VIDEO_MAX_WORDS = 8  # una orden es corta; el discurso del vídeo, no
 
 
 def _process_voice(text: str, during_video: bool = False, handsfree: bool = False) -> None:
@@ -271,6 +272,9 @@ def _process_voice(text: str, during_video: bool = False, handsfree: bool = Fals
         or cmd.action not in VIDEO_COMMANDS
         or len(voice.normalize(text).split()) > VIDEO_MAX_WORDS
     ):
+        # se apunta (sin hablar) para que se vea qué se oyó mientras sonaba el vídeo
+        note = "(con el vídeo sonando solo atiendo «para el vídeo»)"
+        ss["voz_historial"] = [*ss.get("voz_historial", []), [text, note]][-30:]
         return
     if cmd is None:  # en manos libres puede ser ruido o una charla ajena: sin regañar
         reply = "Si necesitas algo, indícamelo." if handsfree else "No te he entendido. Di «ayuda»."
@@ -416,6 +420,7 @@ def voice_button() -> None:
             silence_s=ss.get("voz_silencio", 2.0),
             seq=ss.get("voz_seq", 0),
             force_off=ss.get("voz_hf_off", 0),
+            vstop=ss.get("voz_vstop", 0),
             on_audio=on_voice_handsfree,
             on_on=on_handsfree_on,
         )

@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: «para el vídeo» funciona con el vídeo sonando: al empezar a hablar el vídeo se pausa (Whisper ya no mezcla su audio con tu voz) y solo vuelve a sonar si no pediste pararlo. Lo que se ignora con el vídeo sonando queda apuntado en la conversación.
 - 21 oct 2026: cortesía en el asistente de voz: «gracias» → «De nada. Aquí estoy si necesitas algo más»; «hola» → «Hola. ¿En qué te ayudo?»; «adiós», «hasta mañana», «hasta luego» se despiden y apagan el modo manos libres.
 - 21 oct 2026: «pon el vídeo 4» elige ese vídeo y lo lanza sin preguntar; «lo puedes lanzar» o «lánzalo» lanzan el vídeo elegido. «Te llevo al vídeo» (antes «a el»).
 - 21 oct 2026: el asistente contesta antes en manos libres: el ruido de la sala ya no alarga la espera tras la frase (solo la voz con tono reinicia el contador de silencio, medido con un filtro de 80-1000 Hz más robusto) y se quita un redibujado de la página por orden (~1 s). Nuevo texto del aviso de método: «El género asignado por IA solo se hace por pistas del lenguaje de la sesión…».
