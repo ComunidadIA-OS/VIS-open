@@ -101,7 +101,141 @@ def login_gate() -> str | None:
 
 current_user = login_gate()
 sessions = load_sessions(DATA_DIR)
-screen = st.sidebar.radio("Pantalla", ["Sesión", "Evolución"])
+
+
+def run_voice(cmd, ids: list[str]) -> str:
+    """Ejecuta una orden ya validada por la lista cerrada y devuelve lo que se dice en voz alta."""
+    from dashboard import voice
+
+    ss = st.session_state
+    current = cmd.session or ss.get("sesion", ids[0])
+    sess = next(x for x in sessions if x.session_id == current)
+    folder = DATA_DIR / "processed" / current
+    who = ss.get("anotadora", 1)
+    ss["sesion"] = current
+    ss["pantalla"] = "Evolución" if cmd.topic == "evolution" else "Sesión"
+    ss["voz_ancla"] = cmd.section
+    act = cmd.action
+
+    if act == "explain":
+        if cmd.topic == "evolution":
+            return voice.explain_evolution(sessions)
+        return voice.METHOD if cmd.topic == "method" else voice.explain_results(sess)
+    if act == "read_transcript":
+        ss[f"minuto_{current}"] = min(cmd.minute, sess.timeline.duration_s / 60)
+        ss["voz_ancla"] = "sec-video"
+        return voice.read_transcript(sess, cmd.minute)
+    if act == "go_minute" and cmd.minute is not None and cmd.minute >= 0:
+        ss[f"minuto_{current}"] = min(cmd.minute, sess.timeline.duration_s / 60)
+        ss["voz_ancla"] = "sec-video"
+    if act == "repeat":
+        return ss.get("voz_respuesta") or voice.HELP
+
+    if act == "validate_start":
+        cuts = voice.pending_cuts(sess, folder, who)
+        if not cuts:
+            return f"No quedan voces por validar en la sesión {current}."
+        ss.update(voz_cortes=cuts, voz_i=0, voz_estado="gender", voz_ancla="sec-hitl")
+        return f"Validación de la sesión {current} como anotadora {who}. " + voice.describe_cut(
+            cuts[0], 1, len(cuts)
+        )
+    if act in ("val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut"):
+        cuts = ss.get("voz_cortes")
+        if not cuts:
+            return "No hay una validación en curso. Di «empieza la validación de voces»."
+        cut = cuts[ss.get("voz_i", 0)]
+        ss["voz_ancla"] = "sec-hitl"
+        if act == "val_cancel":
+            ss.update(voz_estado=None, voz_cortes=None)
+            return "Validación cancelada. No se ha guardado nada."
+        if act == "play_cut":
+            ss["voz_play"] = cut
+            return "Reproduzco el corte."
+        if act == "val_gender":
+            ss.update(voz_genero=cmd.gender, voz_estado="confirm")
+            return (
+                f"Has dicho {cmd.gender} para {cut['code']}. ¿Confirmas? Di «confirmo» o «cancela»."
+            )
+        if act == "val_confirm":
+            save_review(
+                folder,
+                who,
+                str(cut["speaker_id"]),
+                ss["voz_genero"],
+                "media",
+                "",
+                current_user or f"anotadora_{who}",
+            )
+            done = f"Guardado: {cut['code']} es {ss['voz_genero']}. "
+        else:  # val_skip
+            done = "Salto este corte. "
+        ss["voz_i"] = ss.get("voz_i", 0) + (1 if act == "val_skip" else 0)
+        rest = voice.pending_cuts(sess, folder, who)
+        if act == "val_skip":
+            rest = cuts[ss["voz_i"] :]
+        if not rest:
+            ss.update(voz_estado=None, voz_cortes=None)
+            return done + "No quedan más cortes. La voz cuenta cuando dos anotadoras coinciden."
+        ss.update(voz_cortes=rest, voz_i=0, voz_estado="gender")
+        return done + voice.describe_cut(rest[0], 1, len(rest))
+    return voice.answer(cmd, sess)
+
+
+def voice_assistant() -> None:
+    """Órdenes habladas (o escritas) -> acción en el panel + respuesta en voz alta."""
+    from dashboard import voice
+
+    ss = st.session_state
+    ids = [x.session_id for x in sessions]
+    box = st.sidebar.expander("Asistente de voz", expanded=bool(ss.get("voz_respuesta")))
+    with box:
+        st.caption(
+            "Pulsa, di una orden y para. Ejemplos: «enséñame la sesión cuatro», «cuántas mujeres "
+            "hablaron», «léeme la transcripción del minuto 3:59», «explícame los resultados», "
+            "«empieza la validación de voces». Di «ayuda» para oír todas."
+        )
+        audio = st.audio_input("Dí una orden", key="voz_audio")
+        typed = st.text_input("o escríbela", key="voz_texto")
+    text = ""
+    if audio is not None and ss.get("voz_hecha") != audio.file_id:
+        ss["voz_hecha"] = audio.file_id
+        try:
+            text = voice.transcribe(audio.getvalue())
+        except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
+            ss["voz_respuesta"] = f"No he podido oír la orden ({type(exc).__name__})."
+    elif typed and ss.get("voz_escrita") != typed:
+        ss["voz_escrita"] = typed
+        text = typed
+    if text:
+        cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
+        ss["voz_texto_oido"] = text
+        ss["voz_respuesta"] = (
+            "No te he entendido. " + voice.HELP if cmd is None else run_voice(cmd, ids)
+        )
+        ss["voz_nueva"] = True
+    if ss.get("voz_respuesta"):
+        with box:
+            st.text(f"Has dicho: {ss.get('voz_texto_oido', '')}")  # texto plano
+            st.text(f"Respuesta: {ss['voz_respuesta']}")
+            cut = ss.pop("voz_play", None)
+            current = ss.get("sesion", ids[0])
+            clip_src = video_path(next(x for x in sessions if x.session_id == current), DATA_DIR)
+            if cut and clip_src:
+                mp4 = make_clip(
+                    clip_src,
+                    float(cut["start"]),
+                    float(cut["stop"]),
+                    DATA_DIR / "clips",
+                    f"{current}_{cut['speaker_id']}",
+                )
+                if mp4:
+                    st.video(mp4, autoplay=True)
+
+
+if sessions:
+    voice_assistant()
+
+screen = st.sidebar.radio("Pantalla", ["Sesión", "Evolución"], key="pantalla")
 st.sidebar.info(METHOD_NOTICE)
 if current_user:
     st.sidebar.write(f"Conectada: {current_user}")
@@ -113,6 +247,7 @@ if not sessions:
     st.warning("No hay sesiones procesadas.")
     st.stop()
 
+
 if screen == "Sesión":
     with st.container(key="hero"):
         st.markdown(
@@ -120,7 +255,9 @@ if screen == "Sesión":
             unsafe_allow_html=True,
         )
         title_col, pick_col = st.columns([3, 1])
-        chosen = pick_col.selectbox("Cambiar de vídeo", [s.session_id for s in sessions])
+        chosen = pick_col.selectbox(
+            "Cambiar de vídeo", [s.session_id for s in sessions], key="sesion"
+        )
         s = next(x for x in sessions if x.session_id == chosen)
         title_col.title(f"Sesión {s.session_id}")
         if s.synthetic:
@@ -197,7 +334,13 @@ if screen == "Sesión":
                 "desconocido. "
                 "El género cuenta cuando **las dos anotadoras** coinciden."
             )
-        who = st.radio("Anotadora", [1, 2], horizontal=True, format_func=lambda n: f"Anotadora {n}")
+        who = st.radio(
+            "Anotadora",
+            [1, 2],
+            horizontal=True,
+            format_func=lambda n: f"Anotadora {n}",
+            key="anotadora",
+        )
 
         codes = speaker_codes(s.timeline)
         folder = DATA_DIR / "processed" / s.session_id
@@ -441,3 +584,34 @@ else:
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
     evo = evolution_table(sessions).astype(object).fillna("no concluyente")
     st.table(evo.style.hide(axis="index").format(precision=2, na_rep="-"))
+
+
+def speak_and_scroll() -> None:
+    """Dice la respuesta en voz alta (voz del navegador, es-ES) y lleva la vista a la sección."""
+    import json as _json
+
+    import streamlit.components.v1 as components
+
+    def _safe(value) -> str:  # JSON sin «<»: nada puede cerrar el <script>
+        return _json.dumps(value).replace("<", "\\u003c")
+
+    reply = st.session_state.get("voz_respuesta")
+    if not reply:
+        return
+    if not st.session_state.pop("voz_nueva", False):
+        return
+    anchor = st.session_state.get("voz_ancla")
+    components.html(
+        "<script>"
+        f"const t={_safe(reply)},a={_safe(anchor)};"
+        "const d=window.parent.document;"
+        "if(a){setTimeout(()=>{const e=d.getElementById(a);"
+        "if(e)e.scrollIntoView({behavior:'smooth'})},400)}"
+        "const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';"
+        "window.parent.speechSynthesis.cancel();window.parent.speechSynthesis.speak(u);"
+        "</script>",
+        height=0,
+    )
+
+
+speak_and_scroll()
