@@ -137,6 +137,16 @@ def run_voice(cmd, ids: list[str]) -> str:
         except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
             why = str(exc) if isinstance(exc, ValueError) else f"{type(exc).__name__}: {exc}"[:140]
             return f"No he podido resumir la sesión: {why}."
+    if act == "download":
+        names = {
+            "informe": ("el informe", "Descargar informe"),
+            "transcripcion": ("la transcripción", "Descargar transcripción"),
+            "subtitulos": ("los subtítulos", "Descargar subtítulos"),
+        }
+        if cmd.topic not in names:
+            return "¿Qué descargo: el informe, la transcripción o los subtítulos?"
+        ss["voz_descarga"] = names[cmd.topic][1]
+        return f"Descargo {names[cmd.topic][0]}."
     if act == "handsfree_off":
         ss["voz_hf_off"] = ss.get("voz_hf_off", 0) + 1
         return "Modo manos libres desactivado."
@@ -291,7 +301,8 @@ def _hear(audio: bytes) -> None:
         ss["voz_respuesta"] = reply
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
         return
-    _process_voice(text)
+    if text.strip():  # una transcripción vacía (ruido, teclas) no es una orden: se ignora
+        _process_voice(text)
 
 
 def on_voice_text() -> None:
@@ -316,12 +327,21 @@ def voice_dialog() -> None:
     if ss.pop("voz_refrescar", False):
         st.rerun()  # dibuja la página de fondo con la orden cumplida y reabre esta ventana
     cut = ss.pop("voz_play", None)
+    video = ss.pop("voz_video", None)  # True: lanzar el vídeo; False: pararlo
+    download = ss.pop("voz_descarga", None)  # texto del botón de descarga a pulsar
+    then = None
+    if cut:
+        then = {"op": "play", "sel": "[role=dialog] video", "delay": 400}
+    elif download:
+        then = {"op": "click", "text": download, "delay": 700}
+    elif video is not None:
+        then = {"op": "play" if video else "pause", "sel": ".st-key-sec_video video", "delay": 1000}
     components.html(
         avatar_html(
             ss.get("voz_respuesta"),
             ss.get("voz_ancla"),
             ss.pop("voz_nueva", False),
-            then_play=bool(cut),  # el corte suena cuando el asistente acaba de hablar
+            then=then,  # el vídeo suena (o se para) según la orden, junto a lo que se dice
         ),
         height=220,
     )
@@ -443,7 +463,6 @@ if screen == "Sesión":
                 video_file,
                 start_time=int(minute * 60),
                 subtitles={SUBTITLE_LABEL: subtitles_vtt(s).encode("utf-8")},
-                autoplay=bool(st.session_state.pop("voz_video", False)),  # orden por voz
             )
             st.caption(
                 "Vídeo original del Congreso, sin alterar. Solo se ve en este equipo. "

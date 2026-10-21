@@ -109,7 +109,7 @@ void main(){
 }
 </script>
 <script>
-const t=__TEXT__,a=__ANCHOR__,speak=__SPEAK__,thenPlay=__THENPLAY__;
+const t=__TEXT__,a=__ANCHOR__,speak=__SPEAK__,then=__THEN__;
 const say=document.getElementById('say');say.textContent=t||'Dime una orden.';
 const cv=document.getElementById('c');
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
@@ -158,8 +158,14 @@ if(still){draw(3.,.3)}else{
   setInterval(()=>{const l=listening();
     if(l&&state==='speaking'){window.parent.speechSynthesis.cancel();state='listening'}
     else if(state!=='speaking')state=l?'listening':'idle'},250)}
-const playClip=()=>{if(!thenPlay)return;setTimeout(()=>{
-  const v=pd.querySelector('[role=dialog] video');if(v)v.play().catch(()=>{})},400)};
+const withVideo=(fn,delay)=>{if(!then)return;setTimeout(()=>{
+  const v=then.text?[...pd.querySelectorAll('[data-testid=stDownloadButton] button')]
+    .find((b)=>b.innerText.includes(then.text)):pd.querySelector(then.sel);
+  if(v)fn(v)},delay)};
+const playClip=()=>{
+  if(then&&then.op==='play')withVideo((v)=>v.play().catch(()=>{}),then.delay)
+  else if(then&&then.op==='click')withVideo((b)=>b.click(),then.delay)};
+if(then&&then.op==='pause')withVideo((v)=>v.pause(),0); // parar antes de hablar, para oírse
 if(!(speak&&t))playClip();
 if(speak&&t){
   if(a){setTimeout(()=>{const e=pd.getElementById(a);
@@ -178,11 +184,14 @@ def _safe(value: object) -> str:
 
 
 def avatar_html(
-    text: str | None, anchor: str | None = None, speak: bool = False, then_play: bool = False
+    text: str | None,
+    anchor: str | None = None,
+    speak: bool = False,
+    then: dict | None = None,
 ) -> str:
     return (
         _PAGE.replace("__TEXT__", _safe(text or ""))
         .replace("__ANCHOR__", _safe(anchor))
         .replace("__SPEAK__", "true" if speak else "false")
-        .replace("__THENPLAY__", "true" if then_play else "false")
+        .replace("__THEN__", _safe(then))
     )

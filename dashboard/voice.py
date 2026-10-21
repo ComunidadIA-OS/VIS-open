@@ -23,8 +23,9 @@ from dataclasses import dataclass
 
 DEFAULT_ASR_MODEL = "whisper-large-v3-turbo"
 ASR_HINT = (
-    "Orden para el panel: sesión cuatro, persona dos, mujer, hombre, desconocido, confirmo, "
-    "cancela, confianza media, vídeo, minuto, transcripción, resumen, Human in the loop."
+    "Orden para el panel: sesión cuatro, persona uno, persona dos, anotadora dos, mujer, hombre, "
+    "desconocido, confirmo, cancela, confianza media, vídeo, minuto, transcripción, resumen, "
+    "Human in the loop."
 )
 MAX_AUDIO_BYTES = 4_000_000  # una orden dura segundos; más es un abuso o un error
 MAX_TEXT_CHARS = 200  # una orden es corta; el resto se descarta
@@ -57,7 +58,8 @@ _TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta
 ACTIONS = (
     "show_session", "go_section", "go_minute", "women_count", "men_count", "gender_time", "gap",
     "summary", "data_summary", "most_spoken", "pending", "hands", "help", "read_transcript",
-    "explain", "validate_person", "set_annotator", "handsfree_off", "val_conf", "play_video",
+    "explain", "download", "validate_person", "set_annotator", "handsfree_off", "val_conf",
+    "play_video",
     "stop_video",
     "validate_start", "val_gender", "val_confirm", "val_cancel", "val_skip", "play_cut", "repeat",
 )  # fmt: skip
@@ -114,7 +116,14 @@ def is_echo(heard: str, last_reply: str) -> bool:
     return len(h.split()) >= 3 and h in r
 
 
-JUNK_EXACT = ("que es lo que se hace", "verdad", "gracias")  # lo que más inventa con ruido
+JUNK_EXACT = (
+    "que es lo que se hace",
+    "verdad",
+    "gracias",
+    "seguimos",
+    "musica",
+    "aplausos",
+)  # lo que más inventa con ruido
 JUNK_PHRASES = (
     "gracias por ver",
     "suscribete",
@@ -128,9 +137,9 @@ JUNK_PHRASES = (
 
 def _plausible_segment(seg: dict) -> bool:
     """Descarta lo que Whisper inventa sobre ruido: poca voz, poca confianza o repetición."""
-    if float(seg.get("no_speech_prob", 0) or 0) > 0.6:
+    if float(seg.get("no_speech_prob", 0) or 0) > 0.5:
         return False
-    if float(seg.get("avg_logprob", 0) or 0) < -1.0:
+    if float(seg.get("avg_logprob", 0) or 0) < -0.9:
         return False
     return float(seg.get("compression_ratio", 0) or 0) <= 2.4
 
@@ -248,6 +257,14 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
             return Command(
                 "validate_person", session, person=n, confidence=confidence_in(norm), topic=redo
             )
+    if has("descarga", "descargar", "baja el", "bajame") and "descargas" not in norm:
+        what = (
+            "informe" if has("informe", "pdf")
+            else "transcripcion" if has("transcripcion", "csv")
+            else "subtitulos" if has("subtitulo")
+            else None
+        )  # fmt: skip
+        return Command("download", session, topic=what)
     if has("para el video", "pausa", "deten el video", "parar el video"):
         return Command("stop_video", session)
     if has("lanza", "lanzar", "reproduce", "reproducir", "pon ", "activa", "inicia", "arranca"):

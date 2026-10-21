@@ -260,5 +260,19 @@ def test_annotator_with_number_word():
 def test_junk_phrases_and_subtitles_section():
     assert voice.looks_hallucinated("¿Qué es lo que se hace?")
     assert voice.looks_hallucinated("¿Verdad? ¿Verdad?")
-    cmd = voice.parse_command("descarga los subtítulos", IDS)
+    cmd = voice.parse_command("quiero ver los subtítulos", IDS)
     assert (cmd.action, cmd.section) == ("go_section", "sec-video")
+
+
+def test_stricter_noise_filter():
+    assert voice.looks_hallucinated("Seguimos.")
+    seg = {"no_speech_prob": 0.55, "avg_logprob": -0.3, "compression_ratio": 1.0}
+    assert not voice._plausible_segment(seg)
+    assert voice._plausible_segment({**seg, "no_speech_prob": 0.1})
+
+
+def test_download_commands():
+    assert voice.parse_command("¿puedes descargar el informe?", IDS).topic == "informe"
+    assert voice.parse_command("descarga la transcripción", IDS).topic == "transcripcion"
+    assert voice.parse_command("descarga los subtítulos", IDS).topic == "subtitulos"
+    assert voice.parse_command("puedes lanzar la descarga", IDS).topic is None
