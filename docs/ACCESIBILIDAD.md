@@ -40,5 +40,12 @@ La igualdad no es solo de género: el panel debe poder usarse con una discapacid
 ## Qué NO se hace
 No se detecta discapacidad de las personas que intervienen: es dato de salud (RGPD art. 9) y no se infiere de la voz ni de la cara. Si algún día se midiera, solo con declaración pública o anotación humana y decisión de Sabrina.
 
-## Pendiente (v1)
-Lector de pantalla (texto alternativo de cada gráfico, orden de foco), probar con NVDA, lectura de la tabla de intervenciones, y medir el reconocimiento con voces reales.
+## Lector de pantalla (NVDA, JAWS, VoiceOver)
+- La página se declara en español (`lang="es"`): el lector usa voz española.
+- Cada sección tiene su encabezado (h1 sesión, h2 secciones, h3 apartados); el vídeo y las descargas, con encabezado solo para el lector.
+- Cada gráfico lleva una descripción en español con sus cifras (oculta a la vista) en lugar de las descripciones automáticas en inglés de Vega.
+- Los vídeos y la ventana del asistente tienen nombre («Vídeo de la sesión», «Corte de voz para validar», «Asistente de voz»); todos los botones tienen nombre.
+- Lo que dice el asistente se escribe en un recuadro `aria-live`: el lector lo anuncia.
+
+## Pendiente
+Probar con NVDA de verdad (la revisión se hizo con el árbol de accesibilidad del navegador); las tablas grandes (`st.dataframe`) se leen mal: si hace falta, ofrecer la transcripción en CSV o en texto.
