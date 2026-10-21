@@ -1,10 +1,10 @@
-"""Avatar del asistente de voz: un orbe de plasma, abstracto y neutro (sin rasgos de género).
+"""Avatar del asistente de voz: un orbe azul sereno, abstracto y sin rasgos de género.
 
 Una página HTML/canvas/JS propia, sin librerías ni recursos externos. Estados:
-- reposo: filamentos tenues y lentos;
+- reposo: brillo suave y lento;
 - escuchando: se activa mientras el micrófono del panel está grabando (se mira el botón del
   panel; no se abre ningún micrófono más);
-- hablando: filamentos intensos, que saltan con cada palabra de la voz del navegador (es-ES).
+- hablando: brillo intenso, que pulsa con cada palabra de la voz del navegador (es-ES).
 La respuesta también se escribe en un recuadro `aria-live`, para quien no oye o usa lector de
 pantalla. Con «reducir movimiento» activado en el sistema, el orbe no se anima.
 
@@ -32,37 +32,34 @@ const t=__TEXT__,a=__ANCHOR__,speak=__SPEAK__;
 const say=document.getElementById('say');say.textContent=t||'Dime una orden.';
 const cv=document.getElementById('c'),g=cv.getContext('2d'),W=440,C=W/2,R=190;
 const still=matchMedia('(prefers-reduced-motion:reduce)').matches;
-let state='idle',energy=.25,spike=0,bolts=[];
+let state='idle',energy=.25,spike=0,ph=0;
 const pd=window.parent.document;
 function listening(){const b=pd.querySelector('[data-testid=stAudioInputActionButton]');
   const l=((b&&b.getAttribute('aria-label'))||'').toLowerCase();
   return /stop|detener|parar|grab/.test(l)&&!/record/.test(l)}
-function bolt(){ // un filamento irregular del centro al borde
-  const ang=Math.random()*Math.PI*2,pts=[[C,C]],n=9;
-  for(let i=1;i<=n;i++){const r=R*.94*i/n,j=(Math.random()-.5)*34*(i/n+.3);
-    pts.push([C+Math.cos(ang)*r+Math.cos(ang+1.57)*j,C+Math.sin(ang)*r+Math.sin(ang+1.57)*j])}
-  return pts}
-for(let i=0;i<16;i++)bolts.push(bolt());
+const cells=[];for(let i=0;i<9;i++)cells.push({a:Math.random()*6.28,d:.15+Math.random()*.55,
+  s:.4+Math.random()*.8,r:.22+Math.random()*.2,h:Math.random()});
+function glow(x,y,r,c0,c1){const q=g.createRadialGradient(x,y,0,x,y,r);q.addColorStop(0,c0);
+  q.addColorStop(1,c1);g.fillStyle=q;g.beginPath();g.arc(x,y,r,0,7);g.fill()}
 function frame(){
-  const target=state==='speaking'?.75+Math.random()*.3:state==='listening'?.5+Math.random()*.25:.22;
-  energy+=(target-energy)*.18;spike*=.88;const e=Math.min(1.3,energy+spike);
-  g.clearRect(0,0,W,W);
-  let s=g.createRadialGradient(C,C,10,C,C,R);
-  s.addColorStop(0,'rgba(120,200,255,'+(.35+.4*e)+')');s.addColorStop(.55,'rgba(42,123,140,.55)');
-  s.addColorStop(1,'rgba(20,50,90,.85)');
-  g.fillStyle=s;g.beginPath();g.arc(C,C,R,0,7);g.fill();
-  g.save();g.beginPath();g.arc(C,C,R-3,0,7);g.clip();g.globalCompositeOperation='lighter';
-  g.lineCap='round';g.lineJoin='round';
-  bolts.forEach((b,k)=>{ if(!still&&Math.random()<.05+.25*e)bolts[k]=bolt();
-    g.beginPath();b.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));
-    g.strokeStyle='rgba(170,225,255,'+(.25+.5*e)+')';g.shadowColor='rgba(120,200,255,1)';
-    g.shadowBlur=14*e+4;g.lineWidth=1.2+1.8*e;g.stroke()});
+  const target=state==='speaking'?.75+Math.random()*.25
+    :state==='listening'?.55+Math.random()*.15:.38;
+  energy+=(target-energy)*.12;spike*=.9;const e=Math.min(1.25,energy+spike);
+  ph+=still?0:.004+.022*e;
+  g.clearRect(0,0,W,W);g.globalCompositeOperation='source-over';
+  glow(C,C,R+30+26*e,'rgba(120,200,225,'+(.25+.3*e)+')','rgba(42,123,140,0)');  // halo
+  glow(C,C,R,'rgba(42,123,140,.92)','rgba(22,70,100,.96)');                        // esfera
+  g.save();g.beginPath();g.arc(C,C,R-2,0,7);g.clip();g.globalCompositeOperation='lighter';
+  cells.forEach(c=>{const x=C+Math.cos(c.a+ph*c.s)*R*c.d*(1+.5*e),
+    y=C+Math.sin(c.a*1.7+ph*c.s*1.3)*R*c.d*(1+.5*e),r=R*c.r*(1+.35*e);
+    glow(x,y,r,'hsla('+(185+c.h*35)+',70%,'+(62+16*e)+'%,'+(.42+.3*e)+')','hsla(200,70%,50%,0)')});
+  glow(C,C,R*(.5+.3*e),'rgba(232,248,255,'+(.55+.45*e)+')','rgba(140,210,235,0)');   // núcleo
   g.restore();
-  const core=g.createRadialGradient(C,C,0,C,C,40+40*e);
-  core.addColorStop(0,'rgba(255,255,255,'+(.7+.3*e)+')');core.addColorStop(1,'rgba(150,215,255,0)');
-  g.fillStyle=core;g.beginPath();g.arc(C,C,40+40*e,0,7);g.fill();
-  g.lineWidth=5;g.strokeStyle='rgba(190,230,255,.75)';g.beginPath();g.arc(C,C,R,0,7);g.stroke();
-  g.fillStyle='rgba(255,255,255,.22)';g.beginPath();g.ellipse(C-R*.35,C-R*.5,R*.32,R*.14,-.6,0,7);
+  g.globalCompositeOperation='lighter';
+  const rim=g.createRadialGradient(C,C,R*.78,C,C,R);rim.addColorStop(0,'rgba(150,215,235,0)');
+  rim.addColorStop(1,'rgba(190,235,248,'+(.55+.3*e)+')');g.fillStyle=rim;
+  g.beginPath();g.arc(C,C,R,0,7);g.fill();g.globalCompositeOperation='source-over';
+  g.fillStyle='rgba(255,255,255,.18)';g.beginPath();g.ellipse(C-R*.35,C-R*.52,R*.3,R*.12,-.6,0,7);
   g.fill();
   if(!still&&!document.hidden)requestAnimationFrame(frame)}
 if(still){frame()}else{
