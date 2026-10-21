@@ -294,6 +294,55 @@ def transcript_csv(session: Session) -> str:
     return buf.getvalue()
 
 
+SAMPLE_S = 9  # segundos de cada corte que se valida
+MIN_CUT_S = 4.0  # un corte más corto que esto casi no se oye: se prefieren los largos
+
+
+def annotator_answers(folder: Path, n: int) -> dict[str, str]:
+    """Voz → género que la anotadora `n` ya ha puesto (vale para todos los cortes de esa voz)."""
+    path = _review_file(folder, n)
+    rows = read_rows(ReviewRow, path) if path.is_file() else []
+    return {r.speaker_id: r.gender.value for r in rows if r.gender}
+
+
+def cut_text(timeline: AnalysisTimeline, speaker_id: str, start_s: float, stop_s: float) -> str:
+    """Lo que dice esa voz en el tramo (texto seudonimizado)."""
+    events = sorted(
+        (
+            e
+            for e in timeline.events
+            if e.type == EventType.SPEECH
+            and e.speaker_id == speaker_id
+            and e.text
+            and e.end_s > start_s
+            and e.start_s < stop_s
+        ),
+        key=lambda e: e.start_s,
+    )
+    return " ".join(e.text.strip() for e in events)
+
+
+def review_cuts(
+    session: Session, speaker_ids: list[str], per_voice: int = 6
+) -> list[dict[str, float | str]]:
+    """Cortes para validar, uno detrás de otro (por orden en el vídeo), de las voces dadas."""
+    cuts: list[dict[str, float | str]] = []
+    for sid in speaker_ids:
+        blocks = voice_blocks(session.timeline, sid, top=per_voice)
+        long = [b for b in blocks if b[1] - b[0] >= MIN_CUT_S] or blocks[:1]
+        for start, end in long:
+            stop = min(end, start + SAMPLE_S)
+            cuts.append(
+                {
+                    "speaker_id": sid,
+                    "start": start,
+                    "stop": stop,
+                    "texto": cut_text(session.timeline, sid, start, stop),
+                }
+            )
+    return sorted(cuts, key=lambda c: float(c["start"]))
+
+
 def agreed_genders(folder: Path) -> dict[str, str]:
     """Voz → género, solo si dos anotadoras con ID de conexión distinto pusieron el mismo."""
     answers: list[dict[str, tuple[str, str]]] = []
