@@ -59,6 +59,13 @@ COLORS = alt.Scale(
     range=["#7b3fa0", "#2f7f8f", "#9a9a9a", "#d9d9d9", "#e08a00"],
 )
 
+SHORT_TITLES = {
+    "M01": "M01 Presencia",
+    "M02": "M02 Tiempo de palabra",
+    "M03": "M03 Turnos",
+    "M04": "M04 Brecha de paridad",
+    "M13": "M13 Sin atribuir",
+}
 SAMPLE_S = 9  # segundos de cada muestra de voz
 
 st.set_page_config(page_title="VIS Open", layout="wide")
@@ -72,12 +79,19 @@ st.markdown(
     " {font-size: clamp(0.9rem, 1.4vw, 1.3rem);}"
     "[data-testid='stTab'] p, .stButton p {font-size: clamp(0.9rem, 1.5vw, 1.4rem);}"
     "[data-testid='stMetricValue'] {font-size: clamp(2rem, 4.5vw, 4rem);}"
-    "[data-testid='stMetricLabel'] {overflow: visible; white-space: normal;}"
+    "[data-testid='stMetricLabel'], [data-testid='stMetricLabel'] *"
+    " {overflow: visible !important; white-space: normal !important;"
+    " text-overflow: clip !important;}"
+    "[data-testid='stMetric'] {padding: 0.5rem 0 1.4rem;}"
+    "[data-testid='stMetricLabel'] {min-height: 2.6em;}"
+    ".st-key-genero_filtro, .st-key-genero_filtro > div"
+    " {flex-direction: row !important; flex-wrap: wrap;"
+    " gap: 0.4rem 2rem;}"
     ".stApp h1 {font-size: clamp(1.8rem, 4vw, 3.16rem);"
     " background: linear-gradient(90deg, #7b3fa0, #2f7f8f); -webkit-background-clip: text;"
     " background-clip: text; -webkit-text-fill-color: transparent;}"
     ".stApp h2 {font-size: clamp(1.5rem, 3.2vw, 2.6rem); color: #7b3fa0;"
-    " border-left: 6px solid #2f7f8f; padding-left: 0.6rem; margin-top: 1.4rem;"
+    " border-left: 6px solid #2f7f8f; padding-left: 0.6rem; margin-top: 2.4rem;"
     " border-bottom: 1px solid #e5e5ea;}"
     ".stApp h3 {font-size: clamp(1.2rem, 2.5vw, 2rem); color: #2f7f8f;}"
     ".st-key-transcript_box p, .st-key-voices_box [data-testid='stExpanderDetails'] p"
@@ -236,9 +250,17 @@ if screen == "Sesión":
 
     # 3. El análisis de la sesión completa.
     st.header("Análisis de la sesión")
-    cards = [metric_card(r) for r in s.metrics.values()]
-    for col, card in zip(st.columns(len(cards)), cards, strict=True):
-        col.metric(card["titulo"].split(" (")[0], card["valor"])
+    cards = [(key, metric_card(r)) for key, r in s.metrics.items()]
+    per_row = 3
+    for first in range(0, len(cards), per_row):
+        for col, (key, card) in zip(
+            st.columns(per_row), cards[first : first + per_row], strict=False
+        ):
+            col.metric(
+                SHORT_TITLES.get(key, card["titulo"].split(" (")[0]),
+                card["valor"],
+                help=card["titulo"],  # el nombre completo, al pasar el ratón
+            )
     if why := inconclusive_reason(s):
         st.warning(why)
     for key, label in PENDING_METRICS.items():
@@ -292,11 +314,12 @@ if screen == "Sesión":
     genders = ["mujer", "hombre", "desconocido", "sin_atribuir"]
     st.write("Género a mostrar")
     controls, _ = st.columns([7, 3])  # los controles ocupan el 70 % de la izquierda
-    shown = [
-        g
-        for g in genders
-        if controls.checkbox(g.replace("_", " "), value=True, key=f"genero_{s.session_id}_{g}")
-    ]
+    with controls.container(key="genero_filtro"):  # casillas en horizontal (ver CSS)
+        shown = [
+            g
+            for g in genders
+            if st.checkbox(g.replace("_", " "), value=True, key=f"genero_{s.session_id}_{g}")
+        ]
     rows = inter[inter["genero"].isin(shown)].drop(columns=["evidencia"])
     per_page = 25
     pages = max(1, -(-len(rows) // per_page))
