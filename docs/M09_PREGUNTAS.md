@@ -14,4 +14,14 @@
 3. «Después»: la misma evaluación con el modelo ajustado, con el mismo método.
 4. Si no mejora más de lo que fijemos con Ivette, se conserva el modelo sin ajustar y se dice. Los pesos ajustados no se publican ni se suben al repo.
 
-Pendiente: la definición de Ivette, la anotación (#52), el script de entrenamiento y comprobar el espacio 2 de OVH.
+## Prueba de humo en OVH (21 oct 2026)
+`finetune/train_lora.py --smoke` (16 ejemplos inventados, 10 pasos, una V100S del notebook, float16, sin NaN):
+
+| Modelo | Memoria pico | 10 pasos | Pérdida |
+|---|---|---|---|
+| Qwen3.5-4B | 9,3 GB | 37 s | 1,02 → 0,34 |
+| Qwen3.5-9B | 19,0 GB | 35 s | 0,95 → 0,33 |
+
+Los dos caben en una V100S de 32 GB y entrenan sin problemas; el 9B es el candidato para el ajuste real. El «antes y después» de esta prueba **no cuenta como resultado**: evalúa con los mismos ejemplos inventados con los que entrena (el 9B ya acertaba el 100 % antes). Los avisos de `causal_conv1d` y `flash-linear-attention` son solo de velocidad.
+
+Pendiente: la definición de Ivette, la anotación (#52) y los datos reales de ajuste y de evaluación (sesiones distintas).
