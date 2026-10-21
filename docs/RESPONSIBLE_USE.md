@@ -24,6 +24,15 @@ Medir de forma transparente la presencia, la participación y el protagonismo de
 - **Límite honesto:** seudonimizar reduce el riesgo, pero la voz y la imagen siguen siendo datos personales y, según el RGPD, los datos seudonimizados también lo son. Por eso se mantienen la base legal, los avisos y la supervisión humana.
 - **Ajuste del modelo:** el único ajuste previsto (Qwen, para la métrica M09) usa solo texto seudonimizado; el modelo ajustado no se publica.
 
+## Asistente de voz y datos que salen del equipo
+
+- **Qué sale:** solo tu voz diciendo una orden (segundos) hacia la API de transcripción, y fragmentos de **transcripción seudonimizada** hacia el modelo de lenguaje (M09 y resumen). Nunca audio ni vídeo de las sesiones. Detalle y proveedores en `docs/PROVEEDORES.md`.
+- **Qué no se guarda:** el audio de las órdenes no se guarda en el equipo. Si el proveedor guarda algo, está por verificar en su documentación.
+- **Lista cerrada de órdenes:** el asistente no ejecuta lo que dice una transcripción ni un vídeo; solo encaja la frase en una lista de acciones y nada se guarda sin tu confirmación.
+- **Marcado como IA:** el asistente se presenta como IA y lo que genera un modelo (el resumen) lleva «hecho por IA y con posibles errores».
+- **Género:** el asistente nunca sugiere el género de una voz; solo registra lo que dice la anotadora.
+- **Accesibilidad sin inferir nada de las personas:** no se detecta ni se registra la discapacidad de quien interviene en una sesión (dato de salud). Ver `docs/DECLARACION_ACCESIBILIDAD.md`.
+
 ## Usos que no apoyamos
 
 - Vigilancia, seguimiento o identificación de personas.
@@ -40,4 +49,4 @@ Medir de forma transparente la presencia, la participación y el protagonismo de
 
 ## Marco
 
-El proyecto se ha diseñado teniendo en cuenta el código ético europeo de la IA y la normativa de protección de datos. El plan de puesta en producción (permisos, RGPD y Reglamento de IA) se completa el 28 de octubre de 2026 y parte de esta guía.
+El proyecto se ha diseñado teniendo en cuenta el código ético europeo de la IA y la normativa de protección de datos. El plan de puesta en producción (permisos, RGPD y Reglamento de IA) se completa el 28 de octubre de 2026 y parte de esta guía; hay un **borrador sin validar jurídicamente** en `docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`.

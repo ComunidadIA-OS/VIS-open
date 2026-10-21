@@ -6,6 +6,10 @@ Qué hay que construir en la etapa 7 del plan (responsable: Veru). Es **una sola
 streamlit run dashboard/app.py
 ```
 
+## Asistente de voz y accesibilidad
+
+La ventana del asistente, el modo manos libres y la validación por voz están descritos en [`ACCESIBILIDAD.md`](ACCESIBILIDAD.md); lo que cumple y lo que no, en [`DECLARACION_ACCESIBILIDAD.md`](DECLARACION_ACCESIBILIDAD.md).
+
 ## De dónde salen los datos
 
 El panel no calcula nada con IA. Solo lee los ficheros que deja el análisis de cada sesión en `data/processed/<sesión>/`:

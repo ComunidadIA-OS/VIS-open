@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: documentación del asistente de voz y de cumplimiento: `docs/PROVEEDORES.md` (qué servicios reciben qué datos), `docs/DECLARACION_ACCESIBILIDAD.md`, `docs/BORRADOR_PRODUCCION_RGPD_AIACT.md` (borrador para Veru, sin validar jurídicamente); README, fichas de modelo y de datos, uso responsable, licencias, preguntas frecuentes y memoria del proyecto al día. La ventana del asistente avisa de que es una IA.
 - 21 oct 2026: prueba de humo del ajuste de Qwen en OVH: el 4B (9,3 GB) y el 9B (19 GB) caben y entrenan sin NaN en una V100S de 32 GB; resultados en `docs/M09_PREGUNTAS.md`. El ajuste real espera a la anotación de Ivette.
 - 21 oct 2026: pasada de lector de pantalla: página en español (`lang=es`), descripción en español con cifras para cada gráfico, encabezados para todas las secciones y nombres para vídeos y la ventana del asistente.
 - 21 oct 2026: con un vídeo sonando, parar es más fácil: valen «puedes parar el vídeo», «páralo», «detenlo», «pon pausa», «apaga el vídeo»… y, como en ese momento solo cabe parar, también una frase corta mal oída con «para», «pausa», «stop» o «vídeo» («¿por qué para?»). Se guarda más audio antes de empezar a hablar (600 ms) para no perder la primera palabra.
