@@ -75,6 +75,13 @@ export default function (component) {
   const s = (window.__vozHf = window.__vozHf || {
     phase: 'off', ctx: null, stream: null, vad: null, timer: null, sentSeq: 0,
   })
+  s.mutedUntil = s.mutedUntil || 0
+  s.keyAt = s.keyAt || 0
+  if (!s.keyListener) {
+    // si pulsas teclas, el sonido del teclado no puede ser una orden
+    s.keyListener = () => { s.keyAt = Date.now(); s.mutedUntil = s.keyAt + 1500 }
+    document.addEventListener('keydown', s.keyListener, true)
+  }
   s.btn = parentElement.querySelector('#tg')
   s.status = parentElement.querySelector('#st')
   s.level = parentElement.querySelector('#lv i')
@@ -143,14 +150,17 @@ export default function (component) {
     proc.onaudioprocess = (e) => {
       const input = new Float32Array(e.inputBuffer.getChannelData(0))
       s.level.style.width = Math.min(100, rms(input) * 400) + '%'
-      if (s.phase !== 'listen' || speaking() || videoPlaying()) {
+      if (s.phase !== 'listen' || speaking() || videoPlaying() || Date.now() < s.mutedUntil) {
         if (s.vad) s.vad.reset()
         return
       }
       for (const ev of s.vad.push(input)) {
-        if (ev.type === 'start') { say('hear') }
+        if (ev.type === 'start') { s.startedAt = Date.now(); say('hear') }
         else if (ev.type === 'discard') { say('listen') }
-        else if (ev.type === 'end') { send(ev.samples) }
+        else if (ev.type === 'end') {
+          if (s.keyAt >= s.startedAt - 600) { say('listen') } // había teclas: no es una orden
+          else send(ev.samples)
+        }
       }
     }
     s.btn.setAttribute('aria-pressed', 'true')
