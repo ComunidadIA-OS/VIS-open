@@ -113,6 +113,56 @@ if not sessions:
     st.warning("No hay sesiones procesadas.")
     st.stop()
 
+
+def voice_assistant() -> None:
+    """Órdenes habladas (o escritas) -> acción en el panel + respuesta en voz alta."""
+    from dashboard import voice
+
+    ids = [x.session_id for x in sessions]
+    box = st.sidebar.expander(
+        "Asistente de voz", expanded=bool(st.session_state.get("voz_respuesta"))
+    )
+    with box:
+        st.caption(
+            "Pulsa, di una orden y para. Ejemplo: «enséñame la sesión cuatro», «cuántas mujeres "
+            "hablaron», «dame el resumen», «ve a Human in the loop». Di «ayuda» para oír todas."
+        )
+        audio = st.audio_input("Dí una orden", key="voz_audio")
+        typed = st.text_input("o escríbela", key="voz_texto")
+    text = ""
+    if audio is not None and st.session_state.get("voz_hecha") != audio.file_id:
+        st.session_state["voz_hecha"] = audio.file_id
+        try:
+            text = voice.transcribe(audio.getvalue())
+        except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
+            st.session_state["voz_respuesta"] = f"No he podido oír la orden ({type(exc).__name__})."
+    elif typed and st.session_state.get("voz_escrita") != typed:
+        st.session_state["voz_escrita"] = typed
+        text = typed
+    if text:
+        cmd = voice.parse_command(text, ids)
+        current = cmd.session if cmd and cmd.session else st.session_state.get("sesion", ids[0])
+        if cmd is None:
+            reply = "No te he entendido. " + voice.HELP
+        else:
+            st.session_state["sesion"] = current
+            if cmd.action == "go_minute" and cmd.minute is not None and cmd.minute >= 0:
+                st.session_state[f"minuto_{current}"] = cmd.minute
+            st.session_state["voz_ancla"] = cmd.section or (
+                "sec-video" if cmd.action == "go_minute" else None
+            )
+            reply = voice.answer(cmd, next(x for x in sessions if x.session_id == current))
+        st.session_state["voz_texto_oido"] = text
+        st.session_state["voz_respuesta"] = reply
+        st.session_state["voz_nueva"] = True
+    if st.session_state.get("voz_respuesta"):
+        with box:
+            st.text(f"Has dicho: {st.session_state.get('voz_texto_oido', '')}")  # texto plano
+            st.text(f"Respuesta: {st.session_state['voz_respuesta']}")
+
+
+voice_assistant()
+
 if screen == "Sesión":
     with st.container(key="hero"):
         st.markdown(
@@ -120,7 +170,9 @@ if screen == "Sesión":
             unsafe_allow_html=True,
         )
         title_col, pick_col = st.columns([3, 1])
-        chosen = pick_col.selectbox("Cambiar de vídeo", [s.session_id for s in sessions])
+        chosen = pick_col.selectbox(
+            "Cambiar de vídeo", [s.session_id for s in sessions], key="sesion"
+        )
         s = next(x for x in sessions if x.session_id == chosen)
         title_col.title(f"Sesión {s.session_id}")
         if s.synthetic:
@@ -441,3 +493,34 @@ else:
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
     evo = evolution_table(sessions).astype(object).fillna("no concluyente")
     st.table(evo.style.hide(axis="index").format(precision=2, na_rep="-"))
+
+
+def speak_and_scroll() -> None:
+    """Dice la respuesta en voz alta (voz del navegador, es-ES) y lleva la vista a la sección."""
+    import json as _json
+
+    import streamlit.components.v1 as components
+
+    def _safe(value) -> str:  # JSON sin «<»: nada puede cerrar el <script>
+        return _json.dumps(value).replace("<", "\\u003c")
+
+    reply = st.session_state.get("voz_respuesta")
+    if not reply:
+        return
+    if not st.session_state.pop("voz_nueva", False):
+        return
+    anchor = st.session_state.get("voz_ancla")
+    components.html(
+        "<script>"
+        f"const t={_safe(reply)},a={_safe(anchor)};"
+        "const d=window.parent.document;"
+        "if(a){setTimeout(()=>{const e=d.getElementById(a);"
+        "if(e)e.scrollIntoView({behavior:'smooth'})},400)}"
+        "const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';"
+        "window.parent.speechSynthesis.cancel();window.parent.speechSynthesis.speak(u);"
+        "</script>",
+        height=0,
+    )
+
+
+speak_and_scroll()
