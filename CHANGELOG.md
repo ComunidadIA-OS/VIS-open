@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: el botón «Abrir el asistente de voz» es azul, ancho y con icono de micrófono, para que se vea a primera vista.
 - 21 oct 2026: el asistente de voz resume de qué se habló en la sesión (Qwen por API, transcripción como dato, aviso de IA); «resumen de los datos» da las cifras. Las palabras clave solo encajan al principio de palabra («devolución» ya no se confunde con «evolución») y los errores del micrófono muestran su motivo.
 - 21 oct 2026: el avatar del asistente de voz pasa a ser una bola de cristal oscura (hilos de luz desde una chispa central, velos de seda que giran, borde azul y violeta; shader WebGL propio, sin librerías), que se ve entera y sin fondo. Sin WebGL o con «reducir movimiento», queda quieta.
 - 21 oct 2026: el asistente de voz se abre en una ventana delante de la página (avatar de orbe azul sereno que reacciona al hablar y al escuchar, micrófono, caja de texto y conversación transcrita por escrito); la página de fondo se actualiza con cada orden. Corregido: el panel ahora carga el `.env` para transcribir con el micrófono y muestra el motivo si falla.
