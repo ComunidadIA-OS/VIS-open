@@ -97,15 +97,10 @@ export default function (component) {
     [...document.querySelectorAll('[role=dialog] video')].some(playing)
   const pageVideos = () =>
     [...document.querySelectorAll('video')].filter((v) => !v.closest('[role=dialog]') && playing(v))
-  const duck = (on) => {
-    s.ducked = s.ducked || new Map()
-    if (on) {
-      pageVideos().forEach((v) => {
-        if (!s.ducked.has(v)) { s.ducked.set(v, v.volume); v.volume = 0.12 }
-      })
-    }
-    else { s.ducked.forEach((vol, v) => { v.volume = vol }); s.ducked.clear() }
-  }
+  // Si hablas con un vídeo sonando, se pausa para oírte limpio; si no era «para el vídeo»,
+  // vuelve a sonar al terminar.
+  const hold = () => { s.held = pageVideos(); s.held.forEach((v) => v.pause()) }
+  const release = () => { (s.held || []).forEach((v) => v.play().catch(() => {})); s.held = [] }
   const speaking = () =>
     window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)
 
@@ -133,6 +128,7 @@ export default function (component) {
   function send(samples) {
     const wav = encodeWav(downsample(samples, s.ctx.sampleRate, 16000), 16000)
     s.sentSeq = s.data.seq
+    s.vstopAtSend = s.data.vstop
     s.t0 = Date.now()
     s.phase = 'processing'
     say('processing')
@@ -166,18 +162,16 @@ export default function (component) {
       s.level.style.width = Math.min(100, rms(input) * 400) + '%'
       if (s.phase !== 'listen' || speaking() || clipPlaying() || Date.now() < s.mutedUntil) {
         if (s.vad) s.vad.reset()
-        duck(false)
         return
       }
       const withVideo = pageVideos().length > 0
       s.vad.setStrict(withVideo)
       for (const ev of s.vad.push(input)) {
         if (ev.type === 'start') {
-          s.startedAt = Date.now(); s.hadVideo = withVideo; say('hear'); duck(true)
-        } else if (ev.type === 'discard') { duck(false); say('listen') }
+          s.startedAt = Date.now(); s.hadVideo = withVideo; say('hear'); if (withVideo) hold()
+        } else if (ev.type === 'discard') { release(); say('listen') }
         else if (ev.type === 'end') {
-          duck(false)
-          if (s.keyAt >= s.startedAt - 600) { say('listen') } // había teclas: no es una orden
+          if (s.keyAt >= s.startedAt - 600) { release(); say('listen') } // teclas: no es una orden
           else send(ev.samples)
         }
       }
@@ -195,8 +189,11 @@ export default function (component) {
         }
       }
       if (s.phase === 'processing') {
-        if (s.data.seq > s.sentSeq) { s.phase = 'await'; s.t1 = now }
-        else if (now - s.t0 > 25000) resume()
+        if (s.data.seq > s.sentSeq) {
+          if (s.data.vstop !== s.vstopAtSend) s.held = [] // pediste parar: se queda parado
+          else release()
+          s.phase = 'await'; s.t1 = now
+        } else if (now - s.t0 > 25000) { release(); resume() }
       } else if (s.phase === 'await') {
         if (speaking()) { s.phase = 'speaking'; say('speaking') }
         else if (now - s.t1 > 1200) resume() // no hay respuesta hablada
@@ -224,11 +221,16 @@ export default function (component) {
 _COMPONENT = st.components.v2.component("voz_manos_libres", html=_HTML, css=_CSS, js=_JS)
 
 
-def handsfree(*, key: str, silence_s: float, seq: int, force_off: int, on_audio, on_on):
+def handsfree(*, key: str, silence_s: float, seq: int, force_off: int, vstop: int, on_audio, on_on):
     """Monta el componente. `seq` sube con cada frase atendida; `force_off`, al apagarlo por voz."""
     return _COMPONENT(
         key=key,
-        data={"silence_s": float(silence_s), "seq": int(seq), "force_off": int(force_off)},
+        data={
+            "silence_s": float(silence_s),
+            "seq": int(seq),
+            "force_off": int(force_off),
+            "vstop": int(vstop),  # sube al pedir «para el vídeo»
+        },
         on_audio_change=on_audio,
         on_on_change=on_on,
     )
