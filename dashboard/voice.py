@@ -129,6 +129,9 @@ JUNK_EXACT = (
     "verdad",
     "gracias",
     "seguimos",
+    "y ya esta",
+    "ya esta",
+    "no he dicho nada",
     "musica",
     "aplausos",
 )  # lo que más inventa con ruido
