@@ -39,6 +39,7 @@ class Turn:
     text: str
     context_before: str
     gender: str
+    start_s: float = 0.0
 
 
 def build_turns(timeline: AnalysisTimeline) -> list[Turn]:
@@ -68,6 +69,7 @@ def build_turns(timeline: AnalysisTimeline) -> list[Turn]:
                     e.text.strip(),
                     context,
                     gender.get(e.speaker_id, "desconocido"),
+                    e.start_s,
                 )
             )
         last_end = e.end_s
