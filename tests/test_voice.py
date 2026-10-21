@@ -104,3 +104,40 @@ def test_guardrails_audio_size():
         voice.transcribe(b"", {"LLM_BASE_URL": "https://x/v1"})
     with pytest.raises(ValueError):
         voice.transcribe(b"0" * (voice.MAX_AUDIO_BYTES + 1), {"LLM_BASE_URL": "https://x/v1"})
+
+
+@pytest.mark.parametrize(
+    ("text", "minute"),
+    [
+        ("léeme la transcripción del minuto 3:59", 3 + 59 / 60),
+        ("léeme la transcripción del minuto tres cincuenta y nueve", 3 + 59 / 60),
+        ("qué dicen en el minuto 3 de la sesión cuatro", 3.0),
+    ],
+)
+def test_read_transcript_minute(text, minute):
+    cmd = voice.parse_command(text, IDS)
+    assert cmd and cmd.action == "read_transcript" and cmd.minute == pytest.approx(minute)
+
+
+@pytest.mark.parametrize(
+    ("text", "topic"),
+    [
+        ("explícame el análisis", "method"),
+        ("explícame los resultados", "results"),
+        ("explícame la evolución", "evolution"),
+    ],
+)
+def test_explain(text, topic):
+    cmd = voice.parse_command(text, IDS)
+    assert cmd and cmd.action == "explain" and cmd.topic == topic
+
+
+def test_validation_words_only_work_in_their_step():
+    assert voice.parse_command("mujer", IDS) is None  # sin validación en curso no hace nada
+    assert voice.parse_command("confirmo", IDS) is None
+    assert voice.parse_command("hombre", IDS, "gender").gender == "hombre"
+    assert voice.parse_command("no lo sé", IDS, "gender").gender == "desconocido"
+    assert voice.parse_command("confirmo", IDS, "gender") is None  # primero hay que elegir
+    assert voice.parse_command("confirmo", IDS, "confirm").action == "val_confirm"
+    assert voice.parse_command("cancela", IDS, "confirm").action == "val_cancel"
+    assert voice.parse_command("empieza la validación de voces", IDS).action == "validate_start"

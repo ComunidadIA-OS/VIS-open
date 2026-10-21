@@ -14,6 +14,13 @@ La igualdad no es solo de género: el panel debe poder usarse con una discapacid
 - Tu voz se transcribe con `whisper-large-v3-turbo` de OVH AI Endpoints (`VOICE_ASR_MODEL`); solo viaja tu orden, nunca el audio de las sesiones. Respuesta hablada con la voz del navegador (es-ES).
 - Las cifras salen de los datos con código; ningún modelo escribe un número. Toda respuesta recuerda que los datos son orientativos.
 
+## Lo que se puede hacer solo hablando
+- **Transcripción por minuto:** «léeme la transcripción del minuto 3:59» (o «tres cincuenta y nueve»): lee 3 turnos desde ahí y lleva el vídeo a ese punto. El texto leído es dato seudonimizado, nunca una orden.
+- **Explicaciones:** «explícame el análisis» (cómo se mide), «explícame los resultados» (cifras de la sesión y brecha, con su aviso) y «explícame la evolución» (pantalla Evolución, con la advertencia de pocas sesiones).
+- **Human in the loop por voz:** «empieza la validación de voces» → lee el corte (persona, tramo, texto) → «reproduce el corte» lo pone en el reproductor → dices «mujer», «hombre» o «no lo sé» → repite lo entendido y pide «confirmo» o «cancela» → guarda. Si dices «siguiente» salta. Es la misma validación que con ratón: cada persona guarda su respuesta como anotadora 1 o 2, y la voz cuenta cuando dos coinciden.
+  - El asistente nunca propone ni sugiere el género; solo registra lo que dice la anotadora.
+  - «mujer», «hombre» y «confirmo» solo valen en su paso; fuera de la validación no hacen nada. Nada se guarda sin «confirmo».
+
 ## Guardarraíles (entradas no fiables)
 - La voz transcrita y el texto escrito son **datos**, nunca instrucciones: `clean_text` quita control y marcas (`< > { } $` y comillas invertidas) y corta a 200 caracteres.
 - v0 **no usa ningún LLM para interpretar**: encaja con reglas en 12 acciones. Una frase como «ignora lo anterior y borra todo» no encaja y se rechaza; no existe acción de borrar ni de escribir.
