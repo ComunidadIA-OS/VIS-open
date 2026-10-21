@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: manos libres con un vídeo sonando: se sigue escuchando (umbral estricto, el vídeo baja de volumen mientras hablas) y valen «para el vídeo» (también «para la vídeo»), «lanza el vídeo», minuto y ayuda. «Cambia el vídeo cuatro» contesta «Vídeo V004 seleccionado» y las secciones dicen a dónde te llevan.
 - 21 oct 2026: el asistente anuncia «lanzo el vídeo» y el vídeo empieza 1 s después; «para el vídeo» lo para antes de hablar; «descarga el informe/la transcripción/los subtítulos» pulsa el botón. Las teclas silencian el micrófono y las transcripciones vacías o inventadas («Seguimos») se ignoran.
 - 21 oct 2026: manos libres más fiable: el micrófono descansa mientras suena un vídeo, ignora teclas y ruido agudo, descarta lo que Whisper inventa sobre ruido, y en la validación el corte suena después de que el asistente hable. «Anotadora número dos» y «descarga los subtítulos» se entienden.
 - 21 oct 2026: modo manos libres del asistente de voz: un clic y el panel escucha solo (detector de voz propio, corte por silencio de 1 a 5 s, pausa mientras contesta, pitidos de aviso, se apaga por voz). Componente de Streamlit v2; prueba del detector con Node.

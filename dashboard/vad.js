@@ -40,6 +40,7 @@ export function createVad(options) {
     noiseFactor: 3.5,
     ...options,
   }
+  const base = { noiseFactor: cfg.noiseFactor, minThreshold: cfg.minThreshold }
   const filt = { y1: 0, y2: 0 }
   let state = 'wait'
   let noise = 0.008
@@ -135,6 +136,11 @@ export function createVad(options) {
     reset,
     setSilence(value) {
       cfg.silenceMs = value
+    },
+    // Con un vídeo sonando: la voz tiene que destacar mucho más sobre el ruido.
+    setStrict(on) {
+      cfg.noiseFactor = on ? 7 : base.noiseFactor
+      cfg.minThreshold = on ? 0.04 : base.minThreshold
     },
     get state() {
       return state

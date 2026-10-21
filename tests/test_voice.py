@@ -276,3 +276,31 @@ def test_download_commands():
     assert voice.parse_command("descarga la transcripción", IDS).topic == "transcripcion"
     assert voice.parse_command("descarga los subtítulos", IDS).topic == "subtitulos"
     assert voice.parse_command("puedes lanzar la descarga", IDS).topic is None
+
+
+@pytest.mark.parametrize(
+    "text",
+    ["para el vídeo", "para la vídeo", "para vídeo", "pausa", "detén el vídeo", "stop video"],
+)
+def test_stop_video_variants(text):
+    assert voice.parse_command(text, IDS).action == "stop_video"
+
+
+def test_para_as_preposition_is_not_stop():
+    assert voice.parse_command("lanza el vídeo para comprobar", IDS).action == "play_video"
+    cmd = voice.parse_command("activa el vídeo de la persona 2 para validar", IDS)
+    assert cmd.action == "validate_person"
+
+
+def test_change_video_and_confirmation_wording():
+    for text in ("cambia el vídeo cuatro", "ok, puedes cambiar a la vídeo número 2"):
+        cmd = voice.parse_command(text, IDS)
+        assert cmd.action == "show_session" and cmd.session in ("V004", "V002")
+    from pathlib import Path
+
+    from dashboard.data import load_sessions
+
+    sessions = load_sessions(Path("data"))
+    if sessions:
+        out = voice.answer(voice.Command("show_session", sessions[0].session_id), sessions[0])
+        assert "seleccionado" in out

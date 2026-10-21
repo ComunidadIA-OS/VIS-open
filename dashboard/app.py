@@ -243,8 +243,15 @@ def run_voice(cmd, ids: list[str]) -> str:
     return voice.answer(cmd, sess)
 
 
-def _process_voice(text: str) -> None:
-    """Encaja lo dicho en una orden, la ejecuta y apunta la conversación."""
+VIDEO_COMMANDS = ("stop_video", "play_video", "handsfree_off", "help", "go_minute", "repeat")
+
+
+def _process_voice(text: str, during_video: bool = False) -> None:
+    """Encaja lo dicho en una orden, la ejecuta y apunta la conversación.
+
+    Con un vídeo sonando solo valen las órdenes de controlarlo: lo demás es, casi seguro, el audio
+    del vídeo, y se ignora sin contestar.
+    """
     from dashboard import voice
 
     ss = st.session_state
@@ -252,6 +259,8 @@ def _process_voice(text: str) -> None:
     if voice.is_echo(text, ss.get("voz_respuesta", "")):
         return  # el micrófono recogió la voz del propio asistente
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
+    if during_video and (cmd is None or cmd.action not in VIDEO_COMMANDS):
+        return
     reply = "No te he entendido. Di «ayuda»." if cmd is None else run_voice(cmd, ids)
     ss["voz_respuesta"] = reply
     ss["voz_nueva"] = True  # el avatar habla en el próximo dibujo
@@ -272,7 +281,8 @@ def on_voice_handsfree() -> None:
 
     ss = st.session_state
     try:
-        _hear(handsfree.decode_audio(ss["voz_hf"].audio))
+        payload = ss["voz_hf"].audio
+        _hear(handsfree.decode_audio(payload), bool(payload.get("video")))
     except Exception as exc:  # noqa: BLE001 - un audio roto no debe parar el modo
         reply = f"No he podido oír la orden: {exc}."[:160]
         ss["voz_respuesta"] = reply
@@ -286,7 +296,7 @@ def on_handsfree_on() -> None:
         st.session_state["voz_abierto"] = True  # se abre la ventana: se ve lo que se dice
 
 
-def _hear(audio: bytes) -> None:
+def _hear(audio: bytes, during_video: bool = False) -> None:
     """Voz -> texto (Whisper de OVH) -> orden."""
     from dashboard import voice
     from pipeline.envfile import load_dotenv
@@ -302,7 +312,7 @@ def _hear(audio: bytes) -> None:
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
         return
     if text.strip():  # una transcripción vacía (ruido, teclas) no es una orden: se ignora
-        _process_voice(text)
+        _process_voice(text, during_video)
 
 
 def on_voice_text() -> None:
