@@ -10,6 +10,9 @@ La igualdad no es solo de género: el panel debe poder usarse con una discapacid
 | No poder usar ratón | Todo se puede pedir por voz o escribir la orden en una caja de texto. |
 
 ## Asistente de voz (v0)
+- **Ventana delante de la página:** el botón «Abrir el asistente de voz» (barra lateral) abre una ventana con el avatar, el micrófono, una caja para escribir y la conversación por escrito (lo que dices, ya transcrito, y lo que responde). La página queda de fondo y se actualiza con cada orden sin cerrar la ventana.
+- **Avatar:** un orbe azul luminoso (los colores del panel), sereno, abstracto y sin rasgos de género. Reposo: brillo suave; escuchando: se aviva mientras graba el micrófono; hablando: pulsa con cada palabra. Con «reducir movimiento» del sistema, queda quieto.
+- El `.env` (`LLM_BASE_URL`, `LLM_API_KEY`) se carga al usar el micrófono; si falta, el asistente lo dice.
 - Órdenes de una lista **cerrada** (`dashboard/voice.py`): enséñame la sesión cuatro, ve a Human in the loop, cuántas mujeres hablaron, dame el resumen, cuál es la brecha, quién habló más, cuántas voces faltan, cuántas manos levantadas, lleva el vídeo al minuto 40, ayuda.
 - Tu voz se transcribe con `whisper-large-v3-turbo` de OVH AI Endpoints (`VOICE_ASR_MODEL`); solo viaja tu orden, nunca el audio de las sesiones. Respuesta hablada con la voz del navegador (es-ES).
 - Las cifras salen de los datos con código; ningún modelo escribe un número. Toda respuesta recuerda que los datos son orientativos.
