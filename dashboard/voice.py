@@ -222,15 +222,9 @@ def es_num(value: float, decimals: int = 1) -> str:
     return f"{value:.{decimals}f}".replace(".", ",")
 
 
-HELP_MORE = (
-    " También: léeme la transcripción del minuto tres cincuenta y nueve; explícame el análisis; "
-    "explícame los resultados; explícame la evolución; empieza la validación de voces."
-)
 HELP = (
-    "Puedes decir: enséñame la sesión cuatro; ve a Human in the loop; ve al análisis de vídeo; "
-    "cuántas mujeres hablaron; cuál es la brecha; dame el resumen; quién habló más; "
-    "cuántas voces faltan por confirmar; cuántas manos levantadas hubo; "
-    "lleva el vídeo al minuto cuarenta." + HELP_MORE
+    "Puedo enseñarte una sesión, leer un minuto, explicar resultados y validar voces. "
+    "Di, por ejemplo: dame el resumen."
 )
 NOTE = "Datos orientativos: el género solo cuenta cuando está confirmado o sale del texto."
 
