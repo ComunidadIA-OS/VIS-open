@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: escala tipográfica única en `dashboard/style.css` (héroe > título 1 > título 2 > texto 1 > texto 2 > mínimo); ningún texto baja del tamaño de la barra lateral, incluida la letra de los gráficos.
 - 21 oct 2026: subtítulos para personas sordas en el vídeo de la sesión y en los cortes de Human in the loop (WebVTT generado de la transcripción, con «Persona N:» al cambiar de voz; botón CC) y descarga del `.vtt`. Son automáticos y pueden tener errores.
 - 21 oct 2026: nuevo diseño del panel (editorial y sobrio): papel cálido, tinta y un acento, títulos con serifa, secciones como tarjetas, navegación fija, aparición suave y efectos al pasar el ratón, barra de progreso de validación, tema común en `.streamlit/config.toml`; paleta de género más sobria en gráficos y PDF. Sin estadísticas de uso ni recursos externos.
 - 21 oct 2026: el análisis usa solo el tramo del manifiesto (`tramo_inicio`/`tramo_fin`) en audio y en vídeo, sin recortar el original y con los tiempos del vídeo entero. Pensado para analizar solo el bloque de preguntas de cada sesión.

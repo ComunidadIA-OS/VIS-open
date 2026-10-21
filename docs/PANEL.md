@@ -39,6 +39,10 @@ Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluat
 
 El vídeo de la sesión y los cortes de «Human in the loop» llevan una pista de subtítulos (WebVTT, «Español (automático)») que sale de la transcripción: líneas de hasta 42 caracteres, dos por subtítulo, con «Persona N:» al cambiar de voz. Se activan y desactivan con el botón «CC» del reproductor, y se pueden descargar (`.vtt`). Límites: son automáticos (Whisper) y pueden tener errores (WER aún sin medir); los nombres propios salen como «Persona N» por la seudonimización; solo cubren el español transcrito. Para cumplir de verdad con accesibilidad en una publicación final, habría que revisarlos a mano.
 
+## Escala tipográfica
+
+De mayor a menor: **héroe** (título de la sesión, hasta 70 px), **título 1** (secciones, 50 px), **título 2** (subsecciones, 35 px), **texto 1** (párrafos y formularios, 27 px), **texto 2** (pies, tablas, transcripción, 22 px) y el **mínimo** (20 px: barra lateral, etiquetas, chips y letra de los gráficos). Nada baja del tamaño de la barra lateral. Los tamaños se definen una sola vez, como variables `--fs-*` al principio de `dashboard/style.css` (en pantalla estrecha se reducen solos, sin bajar del mínimo legible).
+
 ## Diseño del panel
 
 Estilo editorial y sobrio, pensado para proyectar: fondo de papel cálido, tinta oscura, un solo acento (verde azulado) y títulos con tipografía con serifa. Los colores de género (ciruela y verde azulado) se reservan para los gráficos. Cada parte de la sesión (vídeo, Human in the loop, métricas, audio, análisis de vídeo, descargas) es una tarjeta, con una barra de navegación fija arriba, desplazamiento suave, aparición progresiva y efectos al pasar el ratón (se desactivan si el sistema pide menos movimiento). Todo vive en `dashboard/style.css` y en `.streamlit/config.toml` (tema), sin fuentes ni recursos externos. En móvil la navegación se desliza en una sola línea.

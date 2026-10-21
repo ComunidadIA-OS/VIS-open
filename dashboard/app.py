@@ -51,8 +51,8 @@ from decision.pseudonymize import speaker_codes
 
 def big(chart: alt.Chart) -> alt.Chart:
     """Letra de ejes y leyendas legible en pantalla grande."""
-    return chart.configure_axis(labelFontSize=16, titleFontSize=18).configure_legend(
-        labelFontSize=16, titleFontSize=18
+    return chart.configure_axis(labelFontSize=20, titleFontSize=22).configure_legend(
+        labelFontSize=20, titleFontSize=22
     )
 
 
