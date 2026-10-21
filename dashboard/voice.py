@@ -30,6 +30,14 @@ ASR_HINT = (
 MAX_AUDIO_BYTES = 4_000_000  # una orden dura segundos; más es un abuso o un error
 MAX_TEXT_CHARS = 200  # una orden es corta; el resto se descarta
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f<>{}`$\\]")
+SECTION_NAMES = {
+    "sec-video": "el vídeo",
+    "sec-hitl": "Human in the loop",
+    "sec-metricas": "las métricas",
+    "sec-audio": "el audio y la transcripción",
+    "sec-vanalisis": "el análisis de vídeo",
+    "sec-descargas": "las descargas",
+}
 SECTIONS = {  # palabra dicha -> ancla de la sección (ver `dashboard/app.py`)
     "analisis de video": "sec-vanalisis",
     "human in the loop": "sec-hitl",
@@ -265,7 +273,9 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
             else None
         )  # fmt: skip
         return Command("download", session, topic=what)
-    if has("para el video", "pausa", "deten el video", "parar el video"):
+    verbs = r"(?:para|parar|pausa|pausar|deten|detener|stop)"
+    stop = rf"\b{verbs}\s+(?:el\s+|la\s+|este\s+|ese\s+)?video"
+    if re.search(stop, norm) or has("pausa", "silencio"):
         return Command("stop_video", session)
     if has("lanza", "lanzar", "reproduce", "reproducir", "pon ", "activa", "inicia", "arranca"):
         if has("video") and not has("corte") and "minuto" not in norm:
@@ -326,6 +336,8 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
         minute = time_in(norm.split("minuto", 1)[1])
         if minute is not None:
             return Command("go_minute", session, minute=minute)
+    if session is not None and has("cambia", "cambiar", "selecciona", "seleccionar", "elige"):
+        return Command("show_session", session)  # «cambia el vídeo cuatro»
     for words, anchor in SECTIONS.items():  # orden: lo más específico primero
         if words in norm:
             return Command("go_section", session, section=anchor)
@@ -364,9 +376,10 @@ def answer(cmd: Command, session, pending: int | None = None) -> str:
         return HELP
     if cmd.action == "show_session":
         minutes = session.timeline.duration_s / 60
-        return f"Sesión {sid}. Dura {minutes:.0f} minutos y tiene {len(voices)} voces."
+        return f"Vídeo {sid} seleccionado. Dura {minutes:.0f} minutos y tiene {len(voices)} voces."
     if cmd.action == "go_section":
-        return "Aquí tienes la sección."
+        where = SECTION_NAMES.get(cmd.section or "", "la sección")
+        return (f"Vídeo {sid} seleccionado. " if cmd.session else "") + f"Te llevo a {where}."
     if cmd.action == "go_minute":
         return (
             "Hecho."

@@ -53,7 +53,7 @@ const TEXT = {
   hear: 'Te oigo…',
   processing: 'Procesando…',
   speaking: 'El asistente contesta…',
-  video: 'Hay un vídeo sonando: el micrófono descansa',
+  video: 'Suena el corte: el micrófono descansa',
 }
 
 function beep(ctx, hz, ms) {
@@ -90,8 +90,22 @@ export default function (component) {
   s.setTriggerValue = setTriggerValue
 
   const say = (key) => { s.status.textContent = TEXT[key] }
-  const videoPlaying = () =>
-    [...document.querySelectorAll('video')].some((v) => !v.paused && !v.ended)
+  const playing = (v) => !v.paused && !v.ended
+  // Corte de la validación (ventana): el micrófono descansa. Vídeo de la página: se sigue
+  // escuchando, con umbral estricto y bajando su volumen mientras hablas.
+  const clipPlaying = () =>
+    [...document.querySelectorAll('[role=dialog] video')].some(playing)
+  const pageVideos = () =>
+    [...document.querySelectorAll('video')].filter((v) => !v.closest('[role=dialog]') && playing(v))
+  const duck = (on) => {
+    s.ducked = s.ducked || new Map()
+    if (on) {
+      pageVideos().forEach((v) => {
+        if (!s.ducked.has(v)) { s.ducked.set(v, v.volume); v.volume = 0.12 }
+      })
+    }
+    else { s.ducked.forEach((vol, v) => { v.volume = vol }); s.ducked.clear() }
+  }
   const speaking = () =>
     window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)
 
@@ -123,7 +137,7 @@ export default function (component) {
     s.phase = 'processing'
     say('processing')
     beep(s.ctx, 880, 80)
-    s.setTriggerValue('audio', { b64: toBase64(wav), id: Date.now() })
+    s.setTriggerValue('audio', { b64: toBase64(wav), id: Date.now(), video: !!s.hadVideo })
   }
 
   async function start() {
@@ -150,14 +164,19 @@ export default function (component) {
     proc.onaudioprocess = (e) => {
       const input = new Float32Array(e.inputBuffer.getChannelData(0))
       s.level.style.width = Math.min(100, rms(input) * 400) + '%'
-      if (s.phase !== 'listen' || speaking() || videoPlaying() || Date.now() < s.mutedUntil) {
+      if (s.phase !== 'listen' || speaking() || clipPlaying() || Date.now() < s.mutedUntil) {
         if (s.vad) s.vad.reset()
+        duck(false)
         return
       }
+      const withVideo = pageVideos().length > 0
+      s.vad.setStrict(withVideo)
       for (const ev of s.vad.push(input)) {
-        if (ev.type === 'start') { s.startedAt = Date.now(); say('hear') }
-        else if (ev.type === 'discard') { say('listen') }
+        if (ev.type === 'start') {
+          s.startedAt = Date.now(); s.hadVideo = withVideo; say('hear'); duck(true)
+        } else if (ev.type === 'discard') { duck(false); say('listen') }
         else if (ev.type === 'end') {
+          duck(false)
           if (s.keyAt >= s.startedAt - 600) { say('listen') } // había teclas: no es una orden
           else send(ev.samples)
         }
@@ -170,8 +189,8 @@ export default function (component) {
     s.timer = setInterval(() => {
       const now = Date.now()
       if (s.phase === 'listen') {
-        if (videoPlaying() && !s.paused) { s.paused = true; say('video') }
-        else if (!videoPlaying() && s.paused) {
+        if (clipPlaying() && !s.paused) { s.paused = true; say('video') }
+        else if (!clipPlaying() && s.paused) {
           s.paused = false; say('listen'); beep(s.ctx, 600, 70)
         }
       }

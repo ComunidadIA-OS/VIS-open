@@ -77,3 +77,14 @@ console.log('vad: ok')
   assert.ok(!events.some((e) => e.type === 'start'), 'las teclas no inician una frase')
 }
 console.log('vad teclado: ok')
+
+// 9) con un vídeo sonando (modo estricto): el residuo del vídeo no cuenta, tu voz fuerte sí
+{
+  const vad = createVad({ sampleRate: SR })
+  vad.setStrict(true)
+  let events = run(vad, [[1, 0.004], [2, 0.03], [3, 0.004]]) // residuo bajo del vídeo
+  assert.ok(!events.some((e) => e.type === 'start'), 'el residuo del vídeo no es voz')
+  events = run(vad, [[1.2, 0.3], [3, 0.004]]) // hablas cerca del micrófono
+  assert.deepEqual(events.map((e) => e.type), ['start', 'end'])
+}
+console.log('vad estricto: ok')
