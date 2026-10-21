@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: el asistente de voz se abre en una ventana delante de la página (avatar de orbe de plasma que reacciona al hablar y al escuchar, micrófono, caja de texto y conversación transcrita por escrito); la página de fondo se actualiza con cada orden. Corregido: el panel ahora carga el `.env` para transcribir con el micrófono y muestra el motivo si falla.
 - 21 oct 2026: asistente de voz del panel (v0) para personas ciegas o sin ratón: órdenes habladas de lista cerrada (transcripción con Whisper de OVH, respuestas de plantilla con cifras calculadas por código, voz del navegador), con guardarraíles de entrada; `docs/ACCESIBILIDAD.md`. Incluye leer la transcripción de un minuto, explicar el análisis, los resultados y la evolución, y validar voces (Human in the loop) hablando, con confirmación antes de guardar.
 - 21 oct 2026: `finetune/train_lora.py`, ajuste ligero (LoRA, float16) de Qwen para detectar preguntas en las V100S de OVH: prueba de humo, entrenamiento y medida del antes y el después en la misma ejecución. Extra `[finetune]` y licencias de las nuevas librerías (todas Apache-2.0).
 - 21 oct 2026: andamiaje de M09 (definición provisional, pendiente de Ivette): detectores de preguntas por reglas y por modelo, evaluación contra anotación (`evaluation/questions_eval.py`), hoja para anotar preguntas y datos del ajuste de Qwen (`evaluation/prepare_questions.py`), y `docs/M09_PREGUNTAS.md`.

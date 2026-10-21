@@ -181,60 +181,97 @@ def run_voice(cmd, ids: list[str]) -> str:
     return voice.answer(cmd, sess)
 
 
-def voice_assistant() -> None:
-    """Órdenes habladas (o escritas) -> acción en el panel + respuesta en voz alta."""
+def _process_voice(text: str) -> None:
+    """Encaja lo dicho en una orden, la ejecuta y apunta la conversación."""
     from dashboard import voice
 
     ss = st.session_state
     ids = [x.session_id for x in sessions]
-    box = st.sidebar.expander("Asistente de voz", expanded=bool(ss.get("voz_respuesta")))
-    with box:
-        st.caption(
-            "Pulsa, di una orden y para. Ejemplos: «enséñame la sesión cuatro», «cuántas mujeres "
-            "hablaron», «léeme la transcripción del minuto 3:59», «explícame los resultados», "
-            "«empieza la validación de voces». Di «ayuda» para oír todas."
+    cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
+    reply = "No te he entendido. " + voice.HELP if cmd is None else run_voice(cmd, ids)
+    ss["voz_respuesta"] = reply
+    ss["voz_nueva"] = True  # el avatar habla en el próximo dibujo
+    ss["voz_refrescar"] = True  # la página de fondo se vuelve a dibujar con la orden cumplida
+    ss["voz_historial"] = [*ss.get("voz_historial", []), [text, reply]][-30:]
+
+
+def on_voice_audio() -> None:
+    """Cuando acaba la grabación: voz -> texto (Whisper de OVH) -> orden."""
+    from dashboard import voice
+    from pipeline.envfile import load_dotenv
+
+    load_dotenv()  # LLM_BASE_URL y LLM_API_KEY del .env (nunca del repo)
+    ss = st.session_state
+    audio = ss.get("voz_audio")
+    if audio is None:
+        return
+    try:
+        text = voice.transcribe(audio.getvalue())
+    except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
+        why = str(exc) if isinstance(exc, ValueError) else type(exc).__name__
+        reply = f"No he podido oír la orden: {why}."
+        ss["voz_respuesta"] = reply
+        ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
+        return
+    _process_voice(text)
+
+
+def on_voice_text() -> None:
+    text = st.session_state.get("voz_texto", "")
+    st.session_state["voz_texto"] = ""
+    if text.strip():
+        _process_voice(text)
+
+
+def _voice_closed() -> None:
+    st.session_state["voz_abierto"] = False
+
+
+@st.dialog("Asistente de voz", width="medium", on_dismiss=_voice_closed)
+def voice_dialog() -> None:
+    """Ventana delante de la página: avatar, micrófono y la conversación por escrito."""
+    import streamlit.components.v1 as components
+
+    from dashboard.avatar import avatar_html
+
+    ss = st.session_state
+    if ss.pop("voz_refrescar", False):
+        st.rerun()  # dibuja la página de fondo con la orden cumplida y reabre esta ventana
+    components.html(
+        avatar_html(ss.get("voz_respuesta"), ss.get("voz_ancla"), ss.pop("voz_nueva", False)),
+        height=290,
+    )
+    st.audio_input("Pulsa, habla y para", key="voz_audio", on_change=on_voice_audio)
+    st.text_input("o escribe la orden", key="voz_texto", on_change=on_voice_text)
+    st.caption("Di «ayuda» para oír todo lo que puedo hacer.")
+    for said, reply in reversed(ss.get("voz_historial", [])[-6:]):
+        st.text(f"Tú: {said}")  # texto plano: nunca se interpreta
+        st.text(f"Asistente: {reply}")
+    cut = ss.pop("voz_play", None)
+    current = ss.get("sesion", sessions[0].session_id)
+    clip_src = video_path(next(x for x in sessions if x.session_id == current), DATA_DIR)
+    if cut and clip_src:
+        mp4 = make_clip(
+            clip_src,
+            float(cut["start"]),
+            float(cut["stop"]),
+            DATA_DIR / "clips",
+            f"{current}_{cut['speaker_id']}",
         )
-        audio = st.audio_input("Dí una orden", key="voz_audio")
-        typed = st.text_input("o escríbela", key="voz_texto")
-    text = ""
-    if audio is not None and ss.get("voz_hecha") != audio.file_id:
-        ss["voz_hecha"] = audio.file_id
-        try:
-            text = voice.transcribe(audio.getvalue())
-        except Exception as exc:  # noqa: BLE001 - sin red o sin clave: se dice, no se cae
-            ss["voz_respuesta"] = f"No he podido oír la orden ({type(exc).__name__})."
-    elif typed and ss.get("voz_escrita") != typed:
-        ss["voz_escrita"] = typed
-        text = typed
-    if text:
-        cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
-        ss["voz_texto_oido"] = text
-        ss["voz_respuesta"] = (
-            "No te he entendido. " + voice.HELP if cmd is None else run_voice(cmd, ids)
-        )
-        ss["voz_nueva"] = True
-    if ss.get("voz_respuesta"):
-        with box:
-            st.text(f"Has dicho: {ss.get('voz_texto_oido', '')}")  # texto plano
-            st.text(f"Respuesta: {ss['voz_respuesta']}")
-            cut = ss.pop("voz_play", None)
-            current = ss.get("sesion", ids[0])
-            clip_src = video_path(next(x for x in sessions if x.session_id == current), DATA_DIR)
-            if cut and clip_src:
-                mp4 = make_clip(
-                    clip_src,
-                    float(cut["start"]),
-                    float(cut["stop"]),
-                    DATA_DIR / "clips",
-                    f"{current}_{cut['speaker_id']}",
-                )
-                if mp4:
-                    st.video(mp4, autoplay=True)
+        if mp4:
+            st.video(mp4, autoplay=True)
+
+
+def voice_button() -> None:
+    st.sidebar.button(
+        "Abrir el asistente de voz",
+        on_click=lambda: st.session_state.update(voz_abierto=True),
+        help="Habla con el panel: te responde en voz alta y por escrito.",
+    )
 
 
 if sessions:
-    voice_assistant()
-
+    voice_button()
 screen = st.sidebar.radio("Pantalla", ["Sesión", "Evolución"], key="pantalla")
 st.sidebar.info(METHOD_NOTICE)
 if current_user:
@@ -586,32 +623,5 @@ else:
     st.table(evo.style.hide(axis="index").format(precision=2, na_rep="-"))
 
 
-def speak_and_scroll() -> None:
-    """Dice la respuesta en voz alta (voz del navegador, es-ES) y lleva la vista a la sección."""
-    import json as _json
-
-    import streamlit.components.v1 as components
-
-    def _safe(value) -> str:  # JSON sin «<»: nada puede cerrar el <script>
-        return _json.dumps(value).replace("<", "\\u003c")
-
-    reply = st.session_state.get("voz_respuesta")
-    if not reply:
-        return
-    if not st.session_state.pop("voz_nueva", False):
-        return
-    anchor = st.session_state.get("voz_ancla")
-    components.html(
-        "<script>"
-        f"const t={_safe(reply)},a={_safe(anchor)};"
-        "const d=window.parent.document;"
-        "if(a){setTimeout(()=>{const e=d.getElementById(a);"
-        "if(e)e.scrollIntoView({behavior:'smooth'})},400)}"
-        "const u=new SpeechSynthesisUtterance(t);u.lang='es-ES';"
-        "window.parent.speechSynthesis.cancel();window.parent.speechSynthesis.speak(u);"
-        "</script>",
-        height=0,
-    )
-
-
-speak_and_scroll()
+if sessions and st.session_state.get("voz_abierto"):
+    voice_dialog()
