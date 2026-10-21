@@ -29,6 +29,9 @@ def test_handsfree_off_commands():
 
 
 @pytest.mark.skipif(shutil.which("node") is None, reason="Node no está instalado")
+@pytest.mark.skipif(
+    not (Path(__file__).parent / "fixtures" / "voz").is_dir(), reason="faltan las frases de prueba"
+)
 def test_voice_activity_detector_with_synthetic_audio():
     root = Path(__file__).parent
     run = subprocess.run(

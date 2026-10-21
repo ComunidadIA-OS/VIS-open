@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: detector de voz del modo manos libres más fiable: espectro, periodicidad del tono y variación de sílabas; rechaza teclas, tráfico, motores, bocinas, sirenas, viento y portazos (probado con 8 ruidos sintéticos y 4 frases sintetizadas, también con tráfico de fondo). Reacciona antes tras cada respuesta.
 - 21 oct 2026: en manos libres, lo que no es una orden se contesta con «Si necesitas algo, indícamelo» en vez de «No te he entendido»; «Y ya está», «No he dicho nada» y similares (inventos de Whisper con ruido) se ignoran.
 - 21 oct 2026: con un vídeo sonando el vídeo ya no se para solo: «pausa» y «silencio» dentro de una frase (el discurso del vídeo) no cuentan, y solo valen órdenes cortas de parar el vídeo o desactivar el modo.
 - 21 oct 2026: manos libres con un vídeo sonando: se sigue escuchando (umbral estricto, el vídeo baja de volumen mientras hablas) y valen «para el vídeo» (también «para la vídeo»), «lanza el vídeo», minuto y ayuda. «Cambia el vídeo cuatro» contesta «Vídeo V004 seleccionado» y las secciones dicen a dónde te llevan.
