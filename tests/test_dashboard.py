@@ -404,3 +404,31 @@ def test_every_session_page_has_the_same_sections(tmp_path, monkeypatch):
         titles = [t.value for t in at.title] + [h.value for h in at.header]
         layouts[s.session_id] = [re.sub(r"\(\d+ voces.*\)|Sesión .*", "X", t) for t in titles]
     assert len({tuple(v) for v in layouts.values()}) == 1, layouts
+
+
+def test_subtitles_are_webvtt_with_speaker_names_and_clip_offset():
+    from contracts import AnalysisEvent, AnalysisTimeline, Speaker
+    from dashboard.data import Session, subtitles_vtt
+
+    def ev(i, start, end, spk, text):
+        return AnalysisEvent(
+            event_id=f"e{i}", type="speech", start_s=start, end_s=end, speaker_id=spk,
+            text=text, provenance="ai_inferred",
+        )  # fmt: skip
+
+    tl = AnalysisTimeline(
+        video_id="V", duration_s=100,
+        speakers=[Speaker(speaker_id="SPEAKER_00"), Speaker(speaker_id="SPEAKER_01")],
+        events=[
+            ev(0, 10, 14, "SPEAKER_00", "Buenos días a todas y a todos, empezamos la sesión."),
+            ev(1, 14, 20, "SPEAKER_01", "Gracias presidenta."),
+        ],
+    )  # fmt: skip
+    s = Session("V", tl)
+    full = subtitles_vtt(s)
+    assert full.startswith("WEBVTT\n\n00:00:10.000 --> ")
+    assert "Persona 1:" in full and "Persona 2:" in full
+    assert all(len(line) <= 42 for line in full.splitlines() if "-->" not in line)
+    clip = subtitles_vtt(s, 12.0, 18.0)  # el clip empieza en 0: tiempos desplazados
+    assert clip.splitlines()[2].startswith("00:00:00.000 -->")
+    assert "Gracias presidenta." in clip and "00:01:" not in clip
