@@ -247,7 +247,7 @@ VIDEO_COMMANDS = ("stop_video", "handsfree_off")  # el resto sería el audio del
 VIDEO_MAX_WORDS = 5  # una orden es corta; el discurso del vídeo, no
 
 
-def _process_voice(text: str, during_video: bool = False) -> None:
+def _process_voice(text: str, during_video: bool = False, handsfree: bool = False) -> None:
     """Encaja lo dicho en una orden, la ejecuta y apunta la conversación.
 
     Con un vídeo sonando solo valen las órdenes de controlarlo: lo demás es, casi seguro, el audio
@@ -266,7 +266,10 @@ def _process_voice(text: str, during_video: bool = False) -> None:
         or len(voice.normalize(text).split()) > VIDEO_MAX_WORDS
     ):
         return
-    reply = "No te he entendido. Di «ayuda»." if cmd is None else run_voice(cmd, ids)
+    if cmd is None:  # en manos libres puede ser ruido o una charla ajena: sin regañar
+        reply = "Si necesitas algo, indícamelo." if handsfree else "No te he entendido. Di «ayuda»."
+    else:
+        reply = run_voice(cmd, ids)
     ss["voz_respuesta"] = reply
     ss["voz_nueva"] = True  # el avatar habla en el próximo dibujo
     ss["voz_refrescar"] = True  # la página de fondo se vuelve a dibujar con la orden cumplida
@@ -287,7 +290,7 @@ def on_voice_handsfree() -> None:
     ss = st.session_state
     try:
         payload = ss["voz_hf"].audio
-        _hear(handsfree.decode_audio(payload), bool(payload.get("video")))
+        _hear(handsfree.decode_audio(payload), bool(payload.get("video")), handsfree=True)
     except Exception as exc:  # noqa: BLE001 - un audio roto no debe parar el modo
         reply = f"No he podido oír la orden: {exc}."[:160]
         ss["voz_respuesta"] = reply
@@ -301,7 +304,7 @@ def on_handsfree_on() -> None:
         st.session_state["voz_abierto"] = True  # se abre la ventana: se ve lo que se dice
 
 
-def _hear(audio: bytes, during_video: bool = False) -> None:
+def _hear(audio: bytes, during_video: bool = False, handsfree: bool = False) -> None:
     """Voz -> texto (Whisper de OVH) -> orden."""
     from dashboard import voice
     from pipeline.envfile import load_dotenv
@@ -317,7 +320,7 @@ def _hear(audio: bytes, during_video: bool = False) -> None:
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
         return
     if text.strip():  # una transcripción vacía (ruido, teclas) no es una orden: se ignora
-        _process_voice(text, during_video)
+        _process_voice(text, during_video, handsfree)
 
 
 def on_voice_text() -> None:

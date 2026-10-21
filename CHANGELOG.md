@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: en manos libres, lo que no es una orden se contesta con «Si necesitas algo, indícamelo» en vez de «No te he entendido»; «Y ya está», «No he dicho nada» y similares (inventos de Whisper con ruido) se ignoran.
 - 21 oct 2026: con un vídeo sonando el vídeo ya no se para solo: «pausa» y «silencio» dentro de una frase (el discurso del vídeo) no cuentan, y solo valen órdenes cortas de parar el vídeo o desactivar el modo.
 - 21 oct 2026: manos libres con un vídeo sonando: se sigue escuchando (umbral estricto, el vídeo baja de volumen mientras hablas) y valen «para el vídeo» (también «para la vídeo»), «lanza el vídeo», minuto y ayuda. «Cambia el vídeo cuatro» contesta «Vídeo V004 seleccionado» y las secciones dicen a dónde te llevan.
 - 21 oct 2026: el asistente anuncia «lanzo el vídeo» y el vídeo empieza 1 s después; «para el vídeo» lo para antes de hablar; «descarga el informe/la transcripción/los subtítulos» pulsa el botón. Las teclas silencian el micrófono y las transcripciones vacías o inventadas («Seguimos») se ignoran.

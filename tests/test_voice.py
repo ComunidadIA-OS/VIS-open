@@ -311,3 +311,9 @@ def test_speech_with_pausa_or_silencio_is_not_stop():
     assert voice.parse_command(speech, IDS) is None
     assert voice.parse_command("pausa", IDS).action == "stop_video"
     assert voice.parse_command("Pará el video.", IDS).action == "stop_video"
+
+
+def test_more_keyboard_phantoms_are_junk():
+    for phrase in ("Y ya está.", "No he dicho nada.", "Ya está"):
+        assert voice.looks_hallucinated(phrase)
+    assert not voice.looks_hallucinated("sí")  # «sí» y «vale» confirman en la validación
