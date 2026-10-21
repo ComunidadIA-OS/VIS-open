@@ -416,7 +416,10 @@ def voice_dialog() -> None:
     )
     st.audio_input("Pulsa, habla y para", key="voz_audio", on_change=on_voice_audio)
     st.text_input("o escribe la orden", key="voz_texto", on_change=on_voice_text)
-    st.caption("Di «ayuda» para oír todo lo que puedo hacer.")
+    st.caption(
+        "Di «ayuda» para oír todo lo que puedo hacer. Soy un asistente de IA: las cifras las "
+        "calcula el código y los resúmenes pueden tener errores."
+    )
     for said, reply in reversed(ss.get("voz_historial", [])[-6:]):
         st.text(f"Tú: {said}")  # texto plano: nunca se interpreta
         st.text(f"Asistente: {reply}")

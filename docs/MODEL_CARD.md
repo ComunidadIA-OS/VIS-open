@@ -15,6 +15,10 @@ VIS Open es una herramienta de código abierto (Apache-2.0) que combina modelos 
 | Diarización (quién habla) | pyannote `speaker-diarization-3.1` | MIT | Acceso restringido en Hugging Face: exige aceptar condiciones y un token |
 | Embeddings de voz | pyannote `wespeaker-voxceleb-resnet34-LM` | CC-BY-4.0 | Exige atribución |
 | Gestos de levantar la mano | MediaPipe / OpenCV | pendiente de verificar | Sin reconocimiento facial |
+| Órdenes de voz (asistente) | `whisper-large-v3-turbo` por API (OVHcloud AI Endpoints) | **por verificar en la fuente** | Solo transcribe la orden hablada; el audio no se guarda en el equipo |
+| Resumen del contenido y M09 | Qwen3.5 (4B o 9B) por API compatible con OpenAI | Apache-2.0 (etiqueta de Hugging Face, 21 oct 2026) | Salida cerrada con esquema; el resumen se marca como IA |
+| Detector de voz (manos libres) | **No es un modelo entrenado**: reglas de señal (volumen, espectro, periodicidad del tono, variación de sílabas) | Código propio, Apache-2.0 | `dashboard/vad.js`; probado con 8 ruidos sintéticos y 4 frases sintetizadas |
+| Voz del asistente y avatar | Síntesis de voz del navegador (es-ES) y un shader WebGL propio | Función del navegador / código propio | Sin servicios en la nube |
 | Motor de decisión (opcional) | LLM abierto por API compatible con OpenAI (p. ej. Qwen3) | pendiente de verificar en el repositorio oficial | El sistema es agnóstico del modelo; por defecto funciona sin LLM (motor de reglas) |
 
 Quedan fuera `nimble-v3` (licencia no comercial) y cualquier API de pago.
@@ -37,6 +41,13 @@ Medir, en debates grabados, la presencia, la participación y el protagonismo de
 ## Cómo se trata el género
 
 Ningún modelo lo infiere de la cara ni de la voz. Decisión del 16 oct (pendiente de implementar): la IA lo toma del lenguaje de la transcripción («la señora / el señor X» de la Presidencia, concordancias) con la frase y el minuto como evidencia; sin pista o con pistas contradictorias queda `desconocido` y pasa a revisión humana. No se usa el tono de voz: sería categorización biométrica (AI Act, Anexo III 1.b). En la evaluación se mide el acuerdo con dos anotadoras (kappa de Cohen). `desconocido` siempre es visible.
+
+## Asistente de voz
+
+**Uso previsto:** manejar el panel sin ver la pantalla ni usar el ratón: cambiar de sesión, escuchar un corte, explicar resultados, validar voces con confirmación y descargar informes.
+**Uso no previsto:** decidir el género de nadie, dar cifras que no calcule el código, usarlo conduciendo o como único control de acceso.
+**Transparencia (AI Act, art. 50):** el asistente se presenta como IA; lo que genera un modelo va marcado.
+**Limitaciones medidas en pruebas:** con ruido, vídeo o teclado, Whisper puede inventar frases («Gracias por ver el vídeo», «¿Qué es lo que se hace?»); se filtran con la probabilidad de «no es voz» de cada segmento, la confianza, las repeticiones y una lista de muletillas, y con un detector de voz previo. Con un vídeo sonando, solo se atienden órdenes cortas de pararlo. No está probado con muchas voces distintas ni con acentos variados.
 
 ## Limitaciones conocidas
 

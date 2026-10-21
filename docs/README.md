@@ -6,6 +6,9 @@
 - [`COSTES_API.md`](COSTES_API.md): cómo se mide y se evalúa el coste de la API del modelo de lenguaje.
 - [`PANEL.md`](PANEL.md): especificación del panel en Streamlit.
 - [`MODEL_CARD.md`](MODEL_CARD.md), [`DATASET_CARD.md`](DATASET_CARD.md) y [`RESPONSIBLE_USE.md`](RESPONSIBLE_USE.md): modelos, datos y uso responsable.
+- [`PROVEEDORES.md`](PROVEEDORES.md): qué servicios externos reciben qué datos.
+- [`ACCESIBILIDAD.md`](ACCESIBILIDAD.md) y [`DECLARACION_ACCESIBILIDAD.md`](DECLARACION_ACCESIBILIDAD.md): asistente de voz, manos libres, lector de pantalla y qué falta.
+- [`BORRADOR_PRODUCCION_RGPD_AIACT.md`](BORRADOR_PRODUCCION_RGPD_AIACT.md): borrador (sin validar jurídicamente) del plan de producción para Veru.
 - [`FUENTE_CONGRESO.md`](FUENTE_CONGRESO.md), [`GENERO_LENGUAJE.md`](GENERO_LENGUAJE.md), [`METRICAS_MARCO.md`](METRICAS_MARCO.md), [`MOTORES_DECISION.md`](MOTORES_DECISION.md), [`DATOS_SINTETICOS.md`](DATOS_SINTETICOS.md) y [`PRUEBA_GPU.md`](PRUEBA_GPU.md): documentación técnica de cada componente.
 
-Pendiente: se añadirán la propuesta, el PRD, el libro de códigos de anotación y el informe RGPD/AI Act.
+Pendiente: la propuesta, el PRD, el libro de códigos de anotación y la versión final del plan de producción (RGPD y AI Act), que parte del borrador.

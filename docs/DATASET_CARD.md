@@ -12,6 +12,9 @@ El repositorio **no contiene datos reales**: ni audio, ni vídeo, ni transcripci
 | Línea de tiempo (JSON) | Generada por el pipeline | Fuera del repo | No |
 | Tabla de revisión de voces y de gestos (CSV) | Generada por el pipeline; la rellenan personas en los casos dudosos y, en la evaluación, dos anotadoras | Fuera del repo | No; solo se publican resultados agregados |
 | Datos sintéticos de prueba | Creados a mano en `tests/` | En el repo | Sí |
+| Frases de prueba del detector de voz | Cuatro frases **sintetizadas** con una voz de síntesis de Windows (no hay voz de ninguna persona), 16 kHz mono | `tests/fixtures/voz/` | Sí (publicación aprobada por Sabrina el 21 oct 2026) |
+| Audio de una orden hablada | Tu voz diciendo una orden al asistente (segundos) | Memoria del navegador y del panel; no se guarda | Sale a la API de transcripción (OVHcloud AI Endpoints) |
+| Respuestas de las anotadoras | Género, confianza e ID de conexión por voz | `data/processed/<sesión>/` (no se sube) | No |
 
 ## Tipos de datos que no usamos
 
@@ -26,7 +29,7 @@ El repositorio **no contiene datos reales**: ni audio, ni vídeo, ni transcripci
 | Etiquetas de género atribuido, rol y gestos (pistas del lenguaje y revisión humana) | Sí, derivadas | Se publican solo agregadas. |
 | Datos sintéticos de prueba | Sí | Creados por el equipo, en `tests/`. |
 
-El único texto que lee un LLM opcional es la transcripción de un debate; por eso se valida su salida (ver `MODEL_CARD.md`, limitaciones).
+El único texto que lee un LLM opcional es la transcripción seudonimizada de un debate (para M09 y para el resumen del contenido del asistente de voz); por eso se valida su salida (ver `MODEL_CARD.md`, limitaciones). Qué servicios reciben qué datos: `docs/PROVEEDORES.md`.
 
 ## Separación de los datos (entrenamiento, validación, prueba)
 

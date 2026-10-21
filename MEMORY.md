@@ -37,6 +37,7 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Presentaciones: citar la fuente de cada sesión (Congreso de los Diputados, órgano, fecha, «vídeo sin alterar» y fecha de última consulta), el aviso legal del Congreso y las licencias de terceros. La consulta legal a la Organización y los formularios de consentimiento son opcionales.
 
 ## Para la presentación (lo que Sabrina pide que aparezca)
+- Innovación y accesibilidad (21 oct): asistente de voz de lista cerrada, validación Human in the loop por voz, modo manos libres con detector de voz propio (rechaza teclas, tráfico, bocinas y el audio del vídeo), subtítulos para sordos, lector de pantalla. Todo en local salvo la transcripción de órdenes y Qwen en OVH. Datos en `docs/PROVEEDORES.md`; límites en `docs/DECLARACION_ACCESIBILIDAD.md`.
 - Término literal «Human in the loop»: el panel pide confirmar a dos anotadoras el género de las voces `desconocido`, viendo el vídeo y la transcripción; solo cuenta si coinciden dos personas (procedencia `anotacion_percibida`).
 - El género nunca sale del sonido ni de la cara: pyannote solo separa voces; el género sale del texto (pistas del lenguaje) o de la confirmación humana. MediaPipe solo da puntos del cuerpo (presencia, tiempo en pantalla, manos); el género en pantalla se hereda de la voz.
 - Panel: vídeo a la izquierda, transcripción (con ▶ a cada minuto) y Human in the loop a la derecha; cambio de vídeo arriba a la derecha; responsive (escritorio y móvil); letra grande para proyectar.
