@@ -1,0 +1,15 @@
+# Tema común del panel (colores a juego con dashboard/style.css). Sin secretos.
+[theme]
+base = "light"
+primaryColor = "#1f6f7d"
+backgroundColor = "#f7f4ee"
+secondaryBackgroundColor = "#efeae0"
+textColor = "#1d2330"
+font = "sans serif"
+baseRadius = "large"
+
+[client]
+toolbarMode = "minimal"
+
+[browser]
+gatherUsageStats = false  # no se envían estadísticas de uso a nadie

@@ -1,0 +1,150 @@
+/* VIS Open · estilo del panel. Editorial y sobrio: papel cálido, tinta, un solo acento.
+   Los colores de género (morado ciruela y verde azulado) quedan solo para los gráficos.
+   Sin fuentes ni recursos externos: todo en local. */
+
+:root {
+  --ink: #1d2330;
+  --ink-soft: #5b6270;
+  --paper: #f7f4ee;
+  --card: #ffffff;
+  --line: #e6e1d6;
+  --accent: #1f6f7d;
+  --accent-soft: #e3eff1;
+  --sand: #f3ead7;
+  --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  --radius: 18px;
+  --shadow: 0 1px 2px rgba(29, 35, 48, 0.05), 0 8px 24px rgba(29, 35, 48, 0.06);
+  --shadow-up: 0 2px 4px rgba(29, 35, 48, 0.06), 0 16px 36px rgba(29, 35, 48, 0.1);
+}
+
+html { scroll-behavior: smooth; }
+[data-testid="stMain"], section.stMain { scroll-behavior: smooth; }
+.stApp { background: var(--paper); color: var(--ink); }
+[data-testid="stHeader"] { background: transparent; }
+
+/* ---------- Texto: tamaños grandes para proyectar, con jerarquía clara ---------- */
+.stApp p, .stApp li, .stApp label, [data-testid="stAlertContainer"] p,
+[data-testid="stCaptionContainer"], [data-testid="stMetricLabel"] p {
+  font-size: clamp(1rem, 2.4vw, 2rem);
+  line-height: 1.5;
+}
+[data-testid="stCaptionContainer"] { color: var(--ink-soft); }
+
+.stApp h1, .stApp h2, .stApp h3 { font-family: var(--serif); letter-spacing: -0.01em; color: var(--ink); }
+.stApp h1 { font-size: clamp(2.4rem, 5vw, 4rem); font-weight: 600; line-height: 1.05; padding: 0.2rem 0 0.4rem; }
+.stApp h2 {
+  font-size: clamp(1.8rem, 3.6vw, 2.8rem); font-weight: 600;
+  margin: 0 0 0.6rem; padding: 0 0 0.6rem; border-bottom: 1px solid var(--line);
+}
+.stApp h3 { font-size: clamp(1.4rem, 2.8vw, 2.2rem); font-weight: 600; color: var(--accent); margin-top: 1.8rem; }
+
+/* ---------- Cabecera ---------- */
+.eyebrow {
+  font-size: clamp(0.8rem, 1.2vw, 1rem); letter-spacing: 0.14em; text-transform: uppercase;
+  color: var(--accent); font-weight: 600; margin-bottom: 0.2rem;
+}
+.chips { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.4rem 0 0.2rem; }
+.chips span {
+  font-size: clamp(0.85rem, 1.3vw, 1.05rem); padding: 0.25rem 0.8rem; border-radius: 999px;
+  background: var(--card); border: 1px solid var(--line); color: var(--ink-soft);
+}
+
+/* ---------- Navegación de la página (fija arriba) ---------- */
+[data-testid="stElementContainer"]:has(.st-key-nav), [data-testid="stLayoutWrapper"]:has(> .st-key-nav) {
+  position: sticky; top: 0; z-index: 60;
+}
+.st-key-nav {
+  background: rgba(247, 244, 238, 0.94); backdrop-filter: blur(6px);
+  border-bottom: 1px solid var(--line); padding: 0.5rem 0; margin: 0 0 0.4rem;
+}
+.secnav { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.secnav a {
+  text-decoration: none; color: var(--ink); font-size: clamp(0.85rem, 1.4vw, 1.1rem);
+  padding: 0.3rem 0.9rem; border-radius: 999px; border: 1px solid var(--line); background: var(--card);
+  transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
+}
+.secnav a:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px); }
+.anchor { display: block; position: relative; top: -4.5rem; visibility: hidden; }
+
+/* ---------- Secciones como tarjetas que aparecen suavemente ---------- */
+[class*="st-key-sec_"] {
+  background: var(--card); border: 1px solid var(--line); border-radius: var(--radius);
+  box-shadow: var(--shadow); padding: clamp(1rem, 2.4vw, 2rem);
+  animation: rise 0.6s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  transition: box-shadow 0.3s ease;
+}
+[class*="st-key-sec_"]:hover { box-shadow: var(--shadow-up); }
+.st-key-sec_hitl { background: linear-gradient(180deg, var(--accent-soft), var(--card) 14rem); }
+@keyframes rise { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: none; } }
+[data-testid="stMainBlockContainer"] [data-testid="stVerticalBlock"] { gap: 1.2rem; }
+[data-testid="stMainBlockContainer"] { padding-top: 2.2rem; max-width: 1280px; }
+
+/* ---------- Métricas ---------- */
+[data-testid="stMetric"] {
+  background: var(--paper); border: 1px solid var(--line); border-radius: 14px;
+  padding: 1rem 1.2rem; transition: transform 0.25s ease, box-shadow 0.25s ease, border-color 0.25s ease;
+}
+[data-testid="stMetric"]:hover { transform: translateY(-3px); box-shadow: var(--shadow-up); border-color: var(--accent); }
+[data-testid="stMetricValue"] { font-family: var(--serif); font-size: clamp(2rem, 4.5vw, 3.6rem); color: var(--ink); }
+[data-testid="stMetricLabel"], [data-testid="stMetricLabel"] * {
+  overflow: visible !important; white-space: normal !important; text-overflow: clip !important;
+}
+[data-testid="stMetricLabel"] { min-height: 2.6em; color: var(--ink-soft); }
+
+/* ---------- Controles ---------- */
+.stButton > button, .stDownloadButton > button, [data-testid="stFormSubmitButton"] > button {
+  border-radius: 999px; border: 1px solid var(--accent); color: var(--accent); background: transparent;
+  transition: background 0.2s ease, color 0.2s ease, transform 0.15s ease;
+}
+.stButton > button:hover, .stDownloadButton > button:hover, [data-testid="stFormSubmitButton"] > button:hover {
+  background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px);
+}
+[data-testid="stDownloadButton"] { margin-top: 1rem; }
+[data-testid="stTab"] p, .stButton p { font-size: clamp(0.9rem, 1.5vw, 1.4rem); }
+[data-testid="stSelectbox"] input, [data-testid="stSelectbox"] [role="group"],
+[role="listbox"] [role="option"], [role="listbox"] [role="option"] * { font-size: clamp(1.2rem, 2.2vw, 1.8rem); }
+[data-testid="stSelectbox"] [role="group"] { min-height: 3.2rem; border-radius: 12px; }
+[data-testid="stProgress"] > div > div { background: var(--line); }
+[data-testid="stProgress"] [role="progressbar"] > div { background: var(--accent); transition: width 0.6s ease; }
+.st-key-genero_filtro, .st-key-genero_filtro > div { flex-direction: row !important; flex-wrap: wrap; gap: 0.4rem 2rem; }
+[data-testid="stForm"] { border: 1px solid var(--line); border-radius: 14px; background: var(--paper); }
+[data-testid="stExpander"] { border: 1px solid var(--line); border-radius: 14px; background: var(--card); overflow: hidden; }
+[data-testid="stExpander"] summary { transition: background 0.2s ease; }
+[data-testid="stExpander"] summary:hover { background: var(--accent-soft); }
+video { border-radius: 14px; }
+
+/* ---------- Avisos ---------- */
+[data-testid="stAlert"] { border-radius: 14px; border: 1px solid var(--line); }
+[data-testid="stAlertContainer"] { background: var(--sand); }
+[data-testid="stAlertContainer"] p, [data-testid="stAlertContainer"] li { color: var(--ink); }
+
+/* ---------- Tablas ---------- */
+[data-testid="stTable"] table { border-collapse: separate; border-spacing: 0; width: 100%; }
+[data-testid="stTable"] th {
+  font-size: clamp(0.8rem, 1.3vw, 1rem); text-transform: uppercase; letter-spacing: 0.08em;
+  color: var(--ink-soft); background: var(--paper); border-bottom: 1px solid var(--line);
+}
+[data-testid="stTable"] td, [data-testid="stTable"] th { font-size: clamp(1.1rem, 2vw, 1.6rem); padding: 0.55rem 0.8rem; }
+[data-testid="stTable"] tbody tr { transition: background 0.15s ease; }
+[data-testid="stTable"] tbody tr:hover { background: var(--accent-soft); }
+
+/* ---------- Barra lateral ---------- */
+[data-testid="stSidebar"] { background: #efeae0; border-right: 1px solid var(--line); }
+[data-testid="stSidebar"] p, [data-testid="stSidebar"] label { font-size: clamp(0.9rem, 1.4vw, 1.3rem); }
+
+/* ---------- Texto con tamaño propio en bloques concretos ---------- */
+.st-key-transcript_box p, .st-key-voices_box [data-testid="stExpanderDetails"] p {
+  font-size: clamp(0.85rem, 1.2vw, 1.15rem);
+}
+.st-key-video_box p, .st-key-video_box li, .st-key-video_box [data-testid="stCaptionContainer"],
+.st-key-video_box [data-testid="stAlertContainer"] p { font-size: clamp(0.85rem, 2vw, 1.7rem); }
+
+@media (max-width: 640px) {
+  .secnav { flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; }
+  .secnav a { white-space: nowrap; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html, [data-testid="stMain"] { scroll-behavior: auto; }
+  [class*="st-key-sec_"], [data-testid="stMetric"], .secnav a, .stButton > button { animation: none; transition: none; }
+}

@@ -45,10 +45,10 @@ from dashboard.data import (
 
 WIDTH = A4[0] - 4 * cm  # ancho útil
 GENDER_COLORS = {
-    "mujer": colors.HexColor("#7b3fa0"),
-    "hombre": colors.HexColor("#2f7f8f"),
-    "desconocido": colors.HexColor("#9a9a9a"),
-    "sin_atribuir": colors.HexColor("#d9d9d9"),
+    "mujer": colors.HexColor("#8e4b8b"),
+    "hombre": colors.HexColor("#2a7b8c"),
+    "desconocido": colors.HexColor("#a7a39b"),
+    "sin_atribuir": colors.HexColor("#d9d5cc"),
 }
 INK, MUTED, LINE = (
     colors.HexColor("#222222"),
