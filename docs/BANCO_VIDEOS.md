@@ -2,6 +2,8 @@
 
 Fecha: 16 oct 2026 (corregido: la Organización no ofrece vídeos) · Estado: **propuesta, pendiente de aprobación del equipo**
 
+> **ACTUALIZACIÓN (Sabrina, 21 oct 2026): no se usa Google Drive para los vídeos de las sesiones.** Se descargan a mano y se guardan en local y en el espacio del equipo en OVHcloud (`/workspace/equipo6/…/raw`). Drive solo se usa, de momento, para vídeos de trabajo (por ejemplo, un recap) compartidos entre las tres. Las secciones de abajo que hablan del Drive son la propuesta original y **ya no aplican**.
+
 > **DECISIÓN (Sabrina, 16 oct 2026):** el banco se forma solo con **sesiones del Congreso**, y los vídeos **no se modifican ni se alteran**. El fichero original se guarda tal cual (con su `sha256`); el tramo analizado se marca con `tramo_inicio` y `tramo_fin` en el manifiesto, sin cortar ni recodificar el vídeo. El dashboard muestra los resultados aparte, junto al vídeo, sin superponer nada sobre la imagen. Las demás fuentes de la tabla quedan como referencia y no se usan.
 
 > **ALCANCE (Sabrina, 16 oct 2026, decisión "Observatorio MVP"):** VIS Open pasa a ser un observatorio de las mujeres en el Congreso. Incluye una muestra histórica de 6 a 10 plenos comparables (uno por año o por legislatura), una descarga automática de prueba con una sesión nueva y un dashboard de evolución con datos agregados. Procesar todo el archivo queda como hoja de ruta. Hay que preguntar a la Organización si se permite la descarga automática.

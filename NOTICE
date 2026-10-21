@@ -1,0 +1,38 @@
+VIS Open
+Copyright 2026 Equipo 6 del reto «Mujeres por la IA Abierta» (Sabrina, Ivette y Veru)
+
+Este proyecto se distribuye bajo la licencia Apache-2.0 (ver LICENSE).
+
+VIS Open no redistribuye código ni pesos de terceros: se instalan desde PyPI o se descargan en
+tiempo de ejecución desde sus fuentes oficiales, y cada componente mantiene su licencia. La lista
+completa, con versiones, fuentes y fechas de verificación, está en THIRD_PARTY_LICENSES.md; los
+textos de los tipos de licencia, en LICENSES/.
+
+ATRIBUCIONES QUE EXIGE LA LICENCIA
+----------------------------------
+
+Modelo «wespeaker-voxceleb-resnet34-LM» (embeddings de voz usados por la separación de voces)
+  Creador:   pyannote
+  Fuente:    https://huggingface.co/pyannote/wespeaker-voxceleb-resnet34-LM
+  Licencia:  Creative Commons Attribution 4.0 International (CC BY 4.0)
+             https://creativecommons.org/licenses/by/4.0/  (texto en LICENSES/CC-BY-4.0.txt)
+  Cambios:   ninguno; se descarga sin modificar en tiempo de ejecución.
+
+Modelo «speaker-diarization-community-1» (alternativa opcional de separación de voces, no usada
+por defecto)
+  Creador:   pyannote
+  Fuente:    https://huggingface.co/pyannote/speaker-diarization-community-1
+  Licencia:  Creative Commons Attribution 4.0 International (CC BY 4.0)
+  Cambios:   ninguno.
+
+RECONOCIMIENTOS (licencias permisivas; ver THIRD_PARTY_LICENSES.md)
+--------------------------------------------------------------------
+
+faster-whisper (MIT), WhisperX (BSD-2-Clause), pyannote.audio (MIT), MediaPipe (Apache-2.0),
+OpenCV (Apache-2.0), Streamlit (Apache-2.0), Altair (BSD-3-Clause), pandas (BSD-3-Clause),
+Pydantic (MIT), ReportLab (BSD), PyTorch (BSD-3-Clause y otras), PyAV (BSD-3-Clause),
+Transformers, PEFT y Accelerate (Apache-2.0), FFmpeg (LGPL-2.1+, binario externo).
+
+Modelos: Whisper large-v3-turbo (MIT), Whisper large-v3 y sus conversiones de Systran (ver
+THIRD_PARTY_LICENSES.md), Qwen3.5 (Apache-2.0), pyannote/segmentation-3.0 y
+pyannote/speaker-diarization-3.1 (MIT).
