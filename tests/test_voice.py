@@ -214,3 +214,11 @@ def test_misheard_words_in_validation():
     assert voice.parse_command("Est-ce un nombre ?", IDS, "gender").gender == "hombre"
     assert voice.parse_command("est-ce une femme", IDS, "gender").gender == "mujer"
     assert voice.parse_command("Est-ce un nombre ?", IDS) is None  # fuera de la validación, nada
+
+
+def test_annotator_and_redo_commands():
+    cmd = voice.parse_command("cambia a la anotadora 2", IDS)
+    assert (cmd.action, cmd.person) == ("set_annotator", 2)
+    assert voice.parse_command("anotadora tres", IDS) is None
+    cmd = voice.parse_command("valida la persona 1 otra vez", IDS)
+    assert (cmd.action, cmd.person, cmd.topic) == ("validate_person", 1, "redo")

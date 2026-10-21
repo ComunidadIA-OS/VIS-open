@@ -152,10 +152,26 @@ def run_voice(cmd, ids: list[str]) -> str:
         return f"Validación de la sesión {current} como anotadora {who}. " + voice.describe_cut(
             cuts[0], 1, len(cuts)
         )
+    if act == "set_annotator":
+        ss["anotadora"] = cmd.person  # la misma elección que los botones 1 y 2 de la página
+        ss["voz_estado"], ss["voz_cortes"] = None, None
+        return f"Ahora validas como anotadora {cmd.person}."
     if act == "validate_person":
-        cuts = voice.pending_cuts(sess, folder, who)
+        redo = cmd.topic == "redo"
+        cuts = voice.pending_cuts(sess, folder, who, redo=redo)
         mine = [c for c in cuts if c["code"] == f"Persona {cmd.person}"]
         if not mine:
+            from dashboard.data import annotator_answers
+
+            done = annotator_answers(folder, who)
+            again = [c for c in voice.pending_cuts(sess, folder, who, redo=True) if c not in cuts]
+            old = [c for c in again if c["code"] == f"Persona {cmd.person}"]
+            if old:
+                return (
+                    f"Persona {cmd.person} ya la validaste como {done[str(old[0]['speaker_id'])]} "
+                    f"(anotadora {who}). Para corregirla di «otra vez»; para validar como la "
+                    "otra anotadora di «anotadora 2» o «anotadora 1»."
+                )
             return f"Persona {cmd.person} no tiene voz pendiente de validar en la sesión {current}."
         ss.update(
             voz_cortes=mine + [c for c in cuts if c not in mine],
