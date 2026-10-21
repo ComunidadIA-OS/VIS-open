@@ -188,7 +188,7 @@ def _process_voice(text: str) -> None:
     ss = st.session_state
     ids = [x.session_id for x in sessions]
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
-    reply = "No te he entendido. " + voice.HELP if cmd is None else run_voice(cmd, ids)
+    reply = "No te he entendido. Di «ayuda»." if cmd is None else run_voice(cmd, ids)
     ss["voz_respuesta"] = reply
     ss["voz_nueva"] = True  # el avatar habla en el próximo dibujo
     ss["voz_refrescar"] = True  # la página de fondo se vuelve a dibujar con la orden cumplida
