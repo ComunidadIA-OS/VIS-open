@@ -60,28 +60,29 @@ void main(){
  if(rr<1.){
   float z=sqrt(1.-rr*rr);
   // cristal oscuro, con borde que brilla en azul y un toque violeta
-  vec3 body=mix(vec3(.015,.045,.15),vec3(.01,.02,.08),rr);
+  vec3 body=mix(vec3(.0,.012,.045),vec3(.0,.006,.025),rr);
   float vio=smoothstep(-.2,.9,dot(normalize(uv+.0001),normalize(vec2(.6,-.7))));
-  body+=mix(vec3(.2,.34,1.),vec3(.5,.28,1.),vio)*pow(1.-z,4.)*.7;
+  body+=mix(vec3(.4,.72,1.),vec3(.6,.28,1.),vio)*pow(1.-z,4.)*.75;
   col+=body;a=.95;
   // hilos radiales finos que fluyen desde el centro
   float rc=rr;
   float spin=uT*.35;
-  float tl=tendrils(ang,rc,22.,spin,uT,0.)*.8+tendrils(ang,rc,37.,-spin*.7,uT,3.1)*.5;
+  float tl=tendrils(ang,rc,22.,spin,uT,0.)*.8+tendrils(ang,rc,37.,spin*.8,uT,3.1)*.55
+    +tendrils(ang,rc,61.,spin*.6,uT,6.2)*.3;
   float fade=exp(-rc*1.6)*smoothstep(.97,.55,rc)*smoothstep(.015,.14,rc);
-  col+=mix(vec3(.35,.55,1.),vec3(.85,.93,1.),exp(-rc*3.))*tl*fade*(.55+.5*uE);
-  // velos de seda
+  col+=mix(vec3(.5,.7,1.),vec3(.92,.96,1.),exp(-rc*3.))*tl*fade*(.7+.5*uE);
+  // flujos de azules distintos, girando en sentido contrario a los hilos
+  float phi=-uT*.22,cp=cos(phi),sp2=sin(phi);
+  vec2 u2=mat2(cp,-sp2,sp2,cp)*uv;
   for(int s=0;s<2;s++){
-   vec3 p=vec3(uv,s==0?z:-z);
-   float sp=uT*.2,cs=cos(sp),sn=sin(sp);
-   p=vec3(p.x*cs+p.z*sn,p.y,-p.x*sn+p.z*cs);
-   for(int i=0;i<2;i++){
+   vec3 p=vec3(u2,s==0?z:-z);
+   for(int i=0;i<4;i++){
     float fi=float(i);
-    vec3 nrm=normalize(vec3(sin(uT*(.19+.07*fi)+fi*2.1),cos(uT*(.15+.05*fi)+fi*1.3),
-                            sin(uT*(.11+.06*fi)+fi*3.7)));
+    vec3 nrm=normalize(vec3(sin(uT*(.17+.06*fi)+fi*2.1),cos(uT*(.13+.05*fi)+fi*1.3),
+                            sin(uT*(.1+.05*fi)+fi*3.7)));
     vec2 b=ribbon(p,nrm,uT,uE);
-    vec3 hue=i==0?vec3(.28,.34,1.):vec3(.55,.35,1.);
-    col+=hue*b.y*(.1+.1*uE)*(s==0?1.:.6)+vec3(.6,.72,1.)*b.x*(.32+.25*uE)*(s==0?1.:.5);
+    vec3 hue=i==0?vec3(.1,.3,.95):i==1?vec3(.2,.6,1.):i==2?vec3(.32,.26,.92):vec3(.58,.3,.95);
+    col+=hue*b.y*(.14+.12*uE)*(s==0?1.:.6)+mix(hue,vec3(1.),.55)*b.x*(.3+.22*uE)*(s==0?1.:.5);
    }
   }
   // partículas en el borde
@@ -96,7 +97,7 @@ void main(){
   col=min(col,vec3(a));
  }
  float ring=exp(-pow((rr-.995)*40.,2.))*.9;
- col+=vec3(.5,.62,1.)*ring;a=max(a,ring);
+ col+=vec3(.6,.82,1.)*ring;a=max(a,ring);
  gl_FragColor=vec4(min(col,vec3(a)),a); // color premultiplicado
 }
 </script>
