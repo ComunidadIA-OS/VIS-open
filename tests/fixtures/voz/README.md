@@ -9,5 +9,4 @@ comprobar que el detector acepta voz real y rechaza teclas, tráfico y bocinas.
 - `resumen.wav`: «Dame el resumen de la sesión cuatro»
 - `es_un_hombre.wav`: «Es un hombre, con confianza media»
 
-Pendiente de Sabrina: confirmar que la licencia de la voz de Windows permite publicarlas; si no, se
-borran y la prueba se salta.
+Publicación aprobada por Sabrina (21 oct 2026). Si algún día se retiran, la prueba se salta sola.
