@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 21 oct 2026: el selector de vídeo y sus opciones tienen letra grande; jerarquía de tamaños coherente (título principal > secciones > subtítulos > texto) y espacio uniforme entre secciones.
 - 21 oct 2026: más espacio entre las secciones del panel (títulos, bloques y botones de descarga).
 - 21 oct 2026: tarjetas de métricas con título corto (el nombre completo, al pasar el ratón), en filas de 3 y con los valores alineados; más espacio entre bloques; filtro de género de Intervenciones en horizontal; el aviso «no concluyente» ya no repite el texto.
 - 20 oct 2026: en el panel y el PDF los tiempos van en formato m:ss (inicio y duración de las intervenciones, tiempo de palabra, tiempo en pantalla) y los porcentajes con «%»; el filtro de género de Intervenciones es una lista de casillas a la izquierda; las tablas tienen texto más grande. Análisis de vídeo pasado también por V002 y V003 (datos locales).
