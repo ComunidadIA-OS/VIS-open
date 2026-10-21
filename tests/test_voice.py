@@ -304,3 +304,10 @@ def test_change_video_and_confirmation_wording():
     if sessions:
         out = voice.answer(voice.Command("show_session", sessions[0].session_id), sessions[0])
         assert "seleccionado" in out
+
+
+def test_speech_with_pausa_or_silencio_is_not_stop():
+    speech = "tras un silencio y una pausa muy larga el Gobierno decidió seguir"
+    assert voice.parse_command(speech, IDS) is None
+    assert voice.parse_command("pausa", IDS).action == "stop_video"
+    assert voice.parse_command("Pará el video.", IDS).action == "stop_video"

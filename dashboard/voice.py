@@ -275,7 +275,8 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
         return Command("download", session, topic=what)
     verbs = r"(?:para|parar|pausa|pausar|deten|detener|stop)"
     stop = rf"\b{verbs}\s+(?:el\s+|la\s+|este\s+|ese\s+)?video"
-    if re.search(stop, norm) or has("pausa", "silencio"):
+    # «pausa» o «stop» solos valen; dentro de una frase larga son parte de lo que se oye
+    if re.search(stop, norm) or norm in ("pausa", "stop", "para", "silencio"):
         return Command("stop_video", session)
     if has("lanza", "lanzar", "reproduce", "reproducir", "pon ", "activa", "inicia", "arranca"):
         if has("video") and not has("corte") and "minuto" not in norm:

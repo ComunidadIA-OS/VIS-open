@@ -243,7 +243,8 @@ def run_voice(cmd, ids: list[str]) -> str:
     return voice.answer(cmd, sess)
 
 
-VIDEO_COMMANDS = ("stop_video", "play_video", "handsfree_off", "help", "go_minute", "repeat")
+VIDEO_COMMANDS = ("stop_video", "handsfree_off")  # el resto sería el audio del vídeo
+VIDEO_MAX_WORDS = 5  # una orden es corta; el discurso del vídeo, no
 
 
 def _process_voice(text: str, during_video: bool = False) -> None:
@@ -259,7 +260,11 @@ def _process_voice(text: str, during_video: bool = False) -> None:
     if voice.is_echo(text, ss.get("voz_respuesta", "")):
         return  # el micrófono recogió la voz del propio asistente
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
-    if during_video and (cmd is None or cmd.action not in VIDEO_COMMANDS):
+    if during_video and (
+        cmd is None
+        or cmd.action not in VIDEO_COMMANDS
+        or len(voice.normalize(text).split()) > VIDEO_MAX_WORDS
+    ):
         return
     reply = "No te he entendido. Di «ayuda»." if cmd is None else run_voice(cmd, ids)
     ss["voz_respuesta"] = reply
