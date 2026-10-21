@@ -14,14 +14,16 @@ VIS Open es una herramienta de código abierto (Apache-2.0) que combina modelos 
 | Alineado de palabras | WhisperX | BSD-2-Clause | Opcional (`WHISPER_ALIGN`) |
 | Diarización (quién habla) | pyannote `speaker-diarization-3.1` | MIT | Acceso restringido en Hugging Face: exige aceptar condiciones y un token |
 | Embeddings de voz | pyannote `wespeaker-voxceleb-resnet34-LM` | CC-BY-4.0 | Exige atribución |
-| Gestos de levantar la mano | MediaPipe / OpenCV | pendiente de verificar | Sin reconocimiento facial |
-| Órdenes de voz (asistente) | `whisper-large-v3-turbo` por API (OVHcloud AI Endpoints) | **por verificar en la fuente** | Solo transcribe la orden hablada; el audio no se guarda en el equipo |
+| Gestos de levantar la mano | MediaPipe y OpenCV | Apache-2.0 (verificada el 20 y el 21 oct 2026) | Sin reconocimiento facial; el modelo de pose es para una persona a menos de ~4 m: no apto para reconocer identidad |
+| Órdenes de voz (asistente) | `whisper-large-v3-turbo` por API (OVHcloud AI Endpoints) | MIT (etiqueta de Hugging Face, 21 oct 2026) | Solo transcribe la orden hablada; el audio no se guarda en el equipo |
 | Resumen del contenido y M09 | Qwen3.5 (4B o 9B) por API compatible con OpenAI | Apache-2.0 (etiqueta de Hugging Face, 21 oct 2026) | Salida cerrada con esquema; el resumen se marca como IA |
 | Detector de voz (manos libres) | **No es un modelo entrenado**: reglas de señal (volumen, espectro, periodicidad del tono, variación de sílabas) | Código propio, Apache-2.0 | `dashboard/vad.js`; probado con 8 ruidos sintéticos y 4 frases sintetizadas |
 | Voz del asistente y avatar | Síntesis de voz del navegador (es-ES) y un shader WebGL propio | Función del navegador / código propio | Sin servicios en la nube |
-| Motor de decisión (opcional) | LLM abierto por API compatible con OpenAI (p. ej. Qwen3) | pendiente de verificar en el repositorio oficial | El sistema es agnóstico del modelo; por defecto funciona sin LLM (motor de reglas) |
+| Motor de decisión (opcional) | LLM abierto por API compatible con OpenAI (Qwen3.5 4B y 9B) | Apache-2.0 (etiqueta de Hugging Face, 21 oct 2026) | El sistema es agnóstico del modelo; por defecto funciona sin LLM (motor de reglas) |
 
 Quedan fuera `nimble-v3` (licencia no comercial) y cualquier API de pago.
+
+Los textos de las licencias están en `LICENSES/` y la atribución que exige CC-BY-4.0 (modelo `wespeaker`), en `NOTICE`. Versión y fecha de verificación de cada componente: `THIRD_PARTY_LICENSES.md`.
 
 ## Datos de los modelos
 

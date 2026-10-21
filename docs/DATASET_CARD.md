@@ -8,7 +8,7 @@ El repositorio **no contiene datos reales**: ni audio, ni vídeo, ni transcripci
 
 | Dato | Origen | Dónde vive | ¿Se publica? |
 |---|---|---|---|
-| Vídeos de sesiones del Congreso | Archivo audiovisual del Congreso de los Diputados, reutilizado según su aviso legal (sin alterar, citando fuente y fecha, sin la interpretación simultánea). La Organización no ofrece vídeos | Fuera del repo (`data/`, ignorado por git) y en una unidad compartida solo del equipo, con un manifiesto por vídeo | No |
+| Vídeos de sesiones del Congreso | Archivo audiovisual del Congreso de los Diputados, reutilizado según su aviso legal (sin alterar, citando fuente y fecha, sin la interpretación simultánea). La Organización no ofrece vídeos | Fuera del repo (`data/`, ignorado por git) y en el espacio del equipo en OVHcloud (`/workspace/equipo6/…/raw`); no se guardan en Google Drive, con un manifiesto por vídeo | No |
 | Línea de tiempo (JSON) | Generada por el pipeline | Fuera del repo | No |
 | Tabla de revisión de voces y de gestos (CSV) | Generada por el pipeline; la rellenan personas en los casos dudosos y, en la evaluación, dos anotadoras | Fuera del repo | No; solo se publican resultados agregados |
 | Datos sintéticos de prueba | Creados a mano en `tests/` | En el repo | Sí |
@@ -47,11 +47,12 @@ Usamos modelos preentrenados de terceros tal cual, salvo el ajuste ligero de Qwe
 |---|---|---|---|
 | `Systran/faster-whisper-large-v3` | Transcripción | MIT | Conversión a CTranslate2 (float16) de `openai/whisper-large-v3`, entrenado con 1 millón de horas de audio con etiquetado débil y 4 millones de horas de audio con pseudoetiquetas generadas con large-v2. La ficha avisa de rendimiento desigual según idioma, acento y dialecto, y de posible mayor tasa de error según género, raza y edad. |
 | `Systran/faster-whisper-small` | Transcripción en pruebas en CPU | MIT | Pendiente de verificar. |
+| `openai/whisper-large-v3-turbo` | Transcripción de las órdenes de voz (por API) | MIT (21 oct 2026) | Pendiente de verificar en su ficha. |
 | `pyannote/segmentation-3.0` | Segmentación de voces | MIT (acceso restringido) | AISHELL, AliMeeting, AMI, AVA-AVD, DIHARD, Ego4D, MSDWild, REPERE y VoxConverse (conjuntos de entrenamiento). |
 | `pyannote/speaker-diarization-3.1` | Diarización | MIT (acceso restringido) | Mismo pipeline que la versión 3.0, en PyTorch puro; se evalúa (no se entrena aquí) en AISHELL-4, AliMeeting, AMI, AVA-AVD, DIHARD 3, MSDWild, REPERE y VoxConverse. |
 | `pyannote/wespeaker-voxceleb-resnet34-LM` | Embeddings de voz | CC-BY-4.0 | Pendiente de verificar. |
-| MediaPipe / OpenCV (gestos) | Detección de manos | Pendiente de verificar | Pendiente de verificar. |
-| Qwen3 (motor LLM opcional) | Decisión de roles | Pendiente de verificar | Pendiente de verificar. |
+| MediaPipe / OpenCV (gestos) | Detección de manos | Apache-2.0 | Pendiente de verificar. |
+| Qwen3.5 4B y 9B (motor LLM opcional) | Preguntas (M09) y resumen del asistente de voz | Apache-2.0 (21 oct 2026) | Pendiente de verificar. |
 
 Implicaciones: los modelos de voz se entrenaron con corpus mayoritariamente de reuniones y debates y pueden rendir peor con ciertos acentos, idiomas o perfiles de voz. Por eso medimos el error por grupo y mantenemos la revisión humana.
 

@@ -87,7 +87,7 @@ El vídeo debe tener su fila completa en el manifiesto (ver `docs/FUENTE_CONGRES
 
 ## Componentes de terceros y licencias
 
-La lista completa, con versiones y fuentes, está en [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md). Componentes principales:
+La lista completa, con versiones, fuentes y fecha de verificación (última revisión: 21 oct 2026), está en [`THIRD_PARTY_LICENSES.md`](THIRD_PARTY_LICENSES.md). Los textos de las licencias están en [`LICENSES/`](LICENSES/) y la atribución que exige CC-BY-4.0, en [`NOTICE`](NOTICE). VIS Open no redistribuye ningún componente: se instalan o se descargan desde sus fuentes. Componentes principales:
 
 | Componente | Uso | Licencia |
 |---|---|---|
@@ -98,9 +98,11 @@ La lista completa, con versiones y fuentes, está en [`THIRD_PARTY_LICENSES.md`]
 | FFmpeg | Extracción de audio (binario externo) | LGPL-2.1+ |
 | pandas | Métricas | BSD-3-Clause |
 | Pydantic | Formatos de datos | MIT |
-| `whisper-large-v3-turbo` (vía API de OVHcloud) | Transcribir las órdenes de voz | Por verificar en la fuente |
+| `whisper-large-v3-turbo` (vía API de OVHcloud) | Transcribir las órdenes de voz | MIT |
 | Detector de voz, avatar y componentes del panel | Modo manos libres y asistente | Código propio (Apache-2.0); usa funciones del navegador (Web Audio, WebGL, síntesis de voz), sin librerías de terceros |
-| OpenCV, MediaPipe, Streamlit, Qwen | Gestos, panel y modelo de lenguaje | Consultar `THIRD_PARTY_LICENSES.md` |
+| OpenCV y MediaPipe | Gestos (manos levantadas) | Apache-2.0 |
+| Streamlit y Altair | Panel y gráficos | Apache-2.0 y BSD-3-Clause |
+| Qwen3.5 (4B y 9B) | Modelo de lenguaje (M09 y resumen) | Apache-2.0 |
 
 ## Hoja de ruta
 
@@ -121,4 +123,4 @@ Sabrina (dirección, arquitectura y modelo de IA), Ivette (definición y validac
 
 ## Licencia
 
-Apache-2.0. Ver [`LICENSE`](LICENSE).
+Apache-2.0. Ver [`LICENSE`](LICENSE), el aviso en [`NOTICE`](NOTICE) y los textos de las licencias de terceros en [`LICENSES/`](LICENSES/).
