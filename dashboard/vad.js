@@ -95,7 +95,15 @@ export function spectralShape(chunk, sr) {
 // 80 a 300 Hz). Las vocales valen 0,6-0,95; el ruido, el tráfico y las teclas, menos de 0,35.
 function periodicity(chunk, sr) {
   const x = new Float32Array(chunk.length - 1)
-  for (let i = 1; i < chunk.length; i++) x[i - 1] = chunk[i] - 0.97 * chunk[i - 1]
+  // banda del tono: se quita el rumor grave (diferencia) y el siseo agudo (dos pasos bajos a 1 kHz)
+  const k = 1 - Math.exp((-2 * Math.PI * 1000) / sr)
+  let y1 = 0
+  let y2 = 0
+  for (let i = 1; i < chunk.length; i++) {
+    y1 += k * (chunk[i] - 0.97 * chunk[i - 1] - y1)
+    y2 += k * (y1 - y2)
+    x[i - 1] = y2
+  }
   const lo = Math.floor(sr / 300)
   const hi = Math.min(Math.floor(sr / 80), x.length - 2)
   let best = 0
@@ -247,14 +255,15 @@ export function createVad(options) {
     } else {
       buf.push(chunk)
       bufMs += d
-      if (level > threshold() * 0.7 && (shape.periodicity > 0.3 || shape.speechRatio > 0.5)) {
-        sinceVoiceMs = 0
-        voicedMs += d
+      const loud = level > threshold() * 0.7
+      if (loud && (shape.periodicity > 0.3 || shape.speechRatio > 0.5)) {
+        voicedMs += d // cuenta para decidir si es voz
         energies.push(level)
         if (shape.centroid > 0) centroids.push(shape.centroid)
-      } else {
-        sinceVoiceMs += d
       }
+      // solo la voz periódica reinicia la espera: el ruido de la sala no retrasa el corte
+      if (loud && shape.periodicity > cfg.minPeriodicity) sinceVoiceMs = 0
+      else sinceVoiceMs += d
       if (sinceVoiceMs >= cfg.silenceMs || bufMs >= cfg.maxUtteranceMs) finish(events)
     }
     return events

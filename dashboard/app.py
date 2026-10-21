@@ -297,6 +297,8 @@ def on_voice_handsfree() -> None:
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
     finally:
         ss["voz_seq"] = ss.get("voz_seq", 0) + 1
+        # esta orden ya provoca un redibujado completo: no hace falta un segundo (ahorra ~1 s)
+        ss.pop("voz_refrescar", None)
 
 
 def on_handsfree_on() -> None:
