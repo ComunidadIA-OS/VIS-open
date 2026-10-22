@@ -1,3 +1,5 @@
+import json
+
 import pytest
 
 from contracts import AnalysisEvent, AnalysisTimeline, EventType, Provenance, Speaker
@@ -11,7 +13,14 @@ from decision.roles import (
     find_chair,
     question_blocks,
 )
-from metrics.m09 import Judgement, compute_m06, compute_m09, is_head_of_government, judge_blocks
+from metrics.m09 import (
+    Judgement,
+    compute_m06,
+    compute_m09,
+    is_head_of_government,
+    judge_blocks,
+    main,
+)
 
 CHAIR, A1, A2, A3, MIN_F, MIN_M = (f"SPEAKER_0{i}" for i in range(6))
 GRANT = "Tiene la palabra la señora diputada."
@@ -153,3 +162,13 @@ def test_named_addressee_that_differs_from_who_answers_is_flagged(timeline):
     flag = m.details["destinatario_distinto_de_quien_responde"]
     assert [f["pregunta"] for f in flag] == [3]
     assert m.details["preguntas_por_persona"][MIN_M]["recibidas"] == 1  # cuenta quien responde
+
+
+def test_cli_writes_m09_json_next_to_the_timeline(tmp_path, capsys):
+    timeline = _timeline([(Q_MIN, A1, MIN_F), (Q_MAN, A2, MIN_M)])
+    path = tmp_path / "timeline.json"
+    path.write_text(timeline.model_dump_json(), encoding="utf-8")
+    main([str(path)])
+    out = json.loads((tmp_path / "m09.json").read_text(encoding="utf-8"))
+    assert out["preguntas"] == 2 and {"M09", "M06"} <= set(out)
+    assert json.loads(capsys.readouterr().out) == out
