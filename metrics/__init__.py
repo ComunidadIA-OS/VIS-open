@@ -1,4 +1,5 @@
 from metrics import borrador, example  # noqa: F401  (registran las métricas)
+from metrics.contexto import enriquecer_frame
 from metrics.frame import (
     Sample,
     sample_of,
@@ -22,6 +23,7 @@ __all__ = [
     "MetricResult",
     "MetricSpec",
     "Sample",
+    "enriquecer_frame",
     "gap_is_conclusive",
     "get_metric",
     "list_metrics",
