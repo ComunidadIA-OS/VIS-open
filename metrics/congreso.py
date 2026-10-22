@@ -1,4 +1,4 @@
-"""Métricas de la sesión de control del Congreso, según `docs/metricas.md` (Ivette).
+"""M01, M02 (con M02b), M03 y M13 de la sesión de control, según `docs/metricas.md` (Ivette).
 
 Cada función es pura: DataFrame de eventos → `MetricOutput`, y todas las cifras salen de pandas
 (regla 3). El frame debe venir de `metrics.contexto.enriquecer_frame`, que añade `block_role`
@@ -13,13 +13,17 @@ from __future__ import annotations
 import pandas as pd
 
 from contracts import GenderValue
-from decision.roles import ROLE_ASK, ROLE_GOV
+from decision.roles import MERGE_GAP_S, ROLE_ASK, ROLE_GOV
 from metrics.frame import GENDER_ORDER, UNATTRIBUTED, speech, speech_time_by_gender
 from metrics.registry import MetricOutput, metric
 
 W, M, UNKNOWN = GenderValue.WOMAN.value, GenderValue.MAN.value, GenderValue.UNKNOWN.value
 MAX_UNATTRIBUTED_PCT = 20.0  # % de tiempo sin atribuir a partir del cual se avisa
-DRAFT = "pendiente de ajustar a Ivette"  # solo M03 y M04 (commits siguientes)
+QUESTION_SECONDS = 150.0  # §4: ~150 s para quien pregunta y ~150 s para quien responde
+TOLERANCE_S = 10.0  # §4: la Presidencia deja terminar la frase
+MIN_PEOPLE_PER_GROUP = 2  # §4 ter: dos voces por grupo para comparar
+TURN_RANGE = (3, 6)  # §4 ter: turnos por pregunta fuera de este rango = revisar las voces
+DRAFT = "pendiente de ajustar a Ivette"  # solo M04 (commit siguiente)
 
 
 def _seconds_by_gender(frame: pd.DataFrame) -> dict[str, float]:
@@ -109,20 +113,132 @@ def speaking_time(frame: pd.DataFrame) -> MetricOutput:
 
 
 @metric(
+    metric_id="M02b",
+    name="M02b Uso del tiempo asignado por pregunta",
+    min_speakers_known_gender=4,
+    min_known_gender_seconds=300,
+)
+def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
+    """% de uso del tiempo de cada persona en cada pregunta (150 s) y excesos (§M02b).
+
+    Se agrupa por persona y pregunta: quien pregunta tiene ~150 s para pregunta + réplica y quien
+    responde otros ~150 s para respuesta + dúplica. Se considera exceso pasar de 160 s (150 s más
+    10 s de tolerancia). La Presidencia no entra y las voces sin rol no se comparan.
+    """
+    if "block_role" not in frame.columns:
+        return MetricOutput(
+            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+        )
+    s = _without_chair(frame)
+    s = s[s["speaker_id"].notna() & s["block_index"].notna()]
+    s = s[s["block_role"].isin([ROLE_ASK, ROLE_GOV])]
+    if s.empty:
+        return MetricOutput(
+            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+        )
+    people = s.drop_duplicates("speaker_id")["gender"].value_counts()
+    short = [f"{g}: {int(people.get(g, 0))}" for g in (W, M)
+             if people.get(g, 0) < MIN_PEOPLE_PER_GROUP]  # fmt: skip
+    if short:
+        return MetricOutput(
+            value=0.0,
+            reason=f"no concluyente: menos de {MIN_PEOPLE_PER_GROUP} voces por grupo "
+            f"({', '.join(short)})",
+        )
+    units = (
+        s.groupby(["block_index", "speaker_id"], as_index=False)
+        .agg(gender=("gender", "first"), role=("block_role", "first"),
+             seconds=("duration_s", "sum"))  # fmt: skip
+    )
+    units["use"] = 100 * units["seconds"] / QUESTION_SECONDS
+    over = units["seconds"] > QUESTION_SECONDS + TOLERANCE_S
+    use = {
+        role: {
+            g: round(units.loc[(units["role"] == role) & (units["gender"] == g), "use"].mean(), 2)
+            if ((units["role"] == role) & (units["gender"] == g)).any()
+            else None
+            for g in (W, M)
+        }
+        for role in (ROLE_ASK, ROLE_GOV)
+    }
+    excess = {
+        g: {
+            "n": int(over[units["gender"] == g].sum()),
+            "intervenciones": int((units["gender"] == g).sum()),
+            "porcentaje": round(100 * over[units["gender"] == g].mean(), 2)
+            if (units["gender"] == g).any()
+            else 0.0,
+        }
+        for g in (W, M, UNKNOWN)
+    }
+    return MetricOutput(
+        value=round(100 * over.mean(), 2),
+        details={
+            "uso_medio_%": use,
+            "excesos_por_genero": excess,
+            "intervenciones": int(len(units)),
+            "umbral_exceso_s": QUESTION_SECONDS + TOLERANCE_S,
+        },
+    )
+
+
+@metric(
     metric_id="M03",
-    name=f"M03 Turnos por género ({DRAFT})",
+    name="M03 Turnos por pregunta (control de calidad)",
     min_speakers_known_gender=2,
     min_known_gender_seconds=60,
 )
 def turns(frame: pd.DataFrame) -> MetricOutput:
-    """Turnos = rachas consecutivas de eventos de habla de una misma voz; se cuentan por género."""
-    s = speech(frame).sort_values(["start_s", "end_s"])
-    s = s[s["speaker_id"].notna()]
-    run = (s["speaker_id"] != s["speaker_id"].shift()).cumsum()
-    per_turn = s.groupby(run).first()
-    counts = per_turn["gender"].value_counts().to_dict()
+    """Turnos por pregunta = turnos sin Presidencia / preguntas válidas (§M03).
+
+    Un turno son intervenciones seguidas de la misma persona con menos de 1 s de pausa. Se esperan
+    unos 4 por pregunta y el rango correcto es 3–6; fuera de él se avisa de que hay que revisar la
+    separación de voces. Si el orden del día dice cuántas preguntas válidas hay, se puede fijar en
+    `frame.attrs["preguntas_validas"]`; si no, se usan los bloques detectados.
+    """
+    if "block_index" not in frame.columns:
+        return MetricOutput(
+            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+        )
+    s = _without_chair(frame)
+    s = s[s["speaker_id"].notna() & s["block_index"].notna()]
+    s = s.sort_values(["block_index", "start_s", "end_s"])
+    if s.empty:
+        return MetricOutput(
+            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+        )
+    new = (
+        (s["block_index"] != s["block_index"].shift())
+        | (s["speaker_id"] != s["speaker_id"].shift())
+        | (s["start_s"] - s["end_s"].shift() >= MERGE_GAP_S)
+    )
+    per_turn = s.assign(turn=new.cumsum()).groupby("turn", as_index=False).agg(
+        gender=("gender", "first"), seconds=("duration_s", "sum")
+    )
+    questions = int(frame.attrs.get("preguntas_validas") or s["block_index"].nunique())
+    counts = per_turn["gender"].value_counts().to_dict()  # fmt: skip
     by = {g: int(counts.get(g, 0)) for g in (W, M, UNKNOWN)}
-    return MetricOutput(value=float(sum(by.values())), details={"por_genero": by})
+    value = len(per_turn) / questions
+    inside = TURN_RANGE[0] <= value <= TURN_RANGE[1]
+    return MetricOutput(
+        value=round(value, 2),
+        details={
+            "turnos": int(len(per_turn)),
+            "preguntas": questions,
+            "por_genero": by,
+            "duracion_media_turno_s": {
+                g: round(per_turn.loc[per_turn["gender"] == g, "seconds"].mean(), 2)
+                if (per_turn["gender"] == g).any()
+                else None
+                for g in (W, M, UNKNOWN)
+            },
+            "rango_correcto": list(TURN_RANGE),
+            "dentro_del_rango": inside,
+            "aviso": None
+            if inside
+            else f"fuera del rango {TURN_RANGE[0]}–{TURN_RANGE[1]}: revisar la separación de voces",
+        },
+    )
 
 
 @metric(

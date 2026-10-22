@@ -106,7 +106,7 @@ def test_example_metric_is_registered_and_marked_as_example():
     spec = get_metric("X00_EJEMPLO")
     assert spec.is_example and "EJEMPLO" in spec.name
     ids = {m.metric_id for m in list_metrics()}
-    assert ids == {"X00_EJEMPLO", "M01", "M02", "M03", "M04", "M13"}  # M01-M04 y M13 = borrador
+    assert ids == {"X00_EJEMPLO", "M01", "M02", "M02b", "M03", "M04", "M13"}
 
 
 def test_example_metric_value_and_sample_always_present(mixed):
