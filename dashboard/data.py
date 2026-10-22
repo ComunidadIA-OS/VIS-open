@@ -29,6 +29,9 @@ from contracts import (
 )
 from decision.pseudonymize import speaker_codes
 from metrics import MetricResult, enriquecer_frame, run_metric, timeline_to_frame
+from metrics.diputadas import DatosCamara
+from metrics.diputadas import cargar as cargar_camara
+from sources.congreso import parse_session_url
 
 CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
 PENDING_METRICS = {
@@ -51,6 +54,8 @@ class Session:
     summary: dict | None = None
     video: dict | None = None
     m09: dict | None = None  # salida de `python -m metrics.m09` (M09 y M06 con IA)
+    referencia: dict | None = None  # composición de la cámara (M04 c), si hay datos
+    camara_aviso: str | None = None
     confirmed: dict[str, str] = field(default_factory=dict)  # voz → género de 2 anotadoras
     synthetic: bool = False
     metrics: dict[str, MetricResult] = field(default_factory=dict)
@@ -60,9 +65,22 @@ def _read_json(path: Path) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
 
 
+def _referencia_camara(source: dict | None, carpeta: Path):
+    """Composición de la cámara de esa sesión y, si no se puede, el motivo."""
+    if not source or not source.get("fecha_evento") or not source.get("url_origen"):
+        return None, None
+    try:
+        leg = parse_session_url(source["url_origen"]).legislatura
+        return cargar_camara(carpeta, source["fecha_evento"], leg), None
+    except (ValueError, DatosCamara) as exc:
+        return None, str(exc)
+
+
 def load_sessions(data_dir: Path | None = None) -> list[Session]:
     """Sesiones de `<data_dir>/processed/*/`; si no hay ninguna, las SINTÉTICAS del repositorio."""
-    processed = Path(data_dir or "data") / "processed"
+    base = Path(data_dir or "data")
+    processed = base / "processed"
+    camara = base / "externos" / "congreso"
     sessions = []
     for folder in sorted(p for p in processed.glob("*") if (p / "timeline.json").is_file()):
         tl = AnalysisTimeline.model_validate_json((folder / "timeline.json").read_text("utf-8"))
@@ -85,6 +103,10 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
             s.confirmed = agreed_genders(processed / s.session_id)
             s.timeline = apply_confirmed(s.timeline, s.confirmed)
         frame = enriquecer_frame(s.timeline, timeline_to_frame(s.timeline))
+        referencia, s.camara_aviso = _referencia_camara(s.source, camara)
+        if referencia:
+            s.referencia = referencia.resumen()
+            frame.attrs.update(referencia.attrs())
         s.metrics = {m: run_metric(m, frame) for m in CARD_METRICS}
         for key in ("M09", "M06"):  # vienen del LLM, ya contados en m09.json
             if s.m09 and key in s.m09:

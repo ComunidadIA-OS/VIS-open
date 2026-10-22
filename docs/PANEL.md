@@ -18,6 +18,9 @@ El panel no calcula nada con IA. Solo lee los ficheros que deja el análisis de 
 - `timeline.json`: línea de tiempo (quién habla, desde qué segundo hasta cuál, y su género con la evidencia).
 - `m09.json`: M09 y M06 calculadas con IA sobre los bloques de pregunta (si existe; lo genera `python -m metrics.m09`).
 - `resumen.json` y los resultados de las métricas de `metrics/`.
+- `data/externos/congreso/`: datos abiertos de composición de la cámara (M04 c). Se descargan
+  con `python -m sources.diputados` y no se versionan; si faltan, el panel lo dice y M04 c) se
+  queda sin dato (la brecha de tiempo a) y el ratio b) se siguen calculando).
 - Los gestos de mano levantada (tabla de gestos de `contracts/`).
 
 Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluation/synthetic/muestras/` (`make synthetic`).
@@ -31,7 +34,9 @@ Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluat
    - M02 Tiempo de palabra: minutos y porcentaje por género.
    - M02b Uso del tiempo: porcentaje del tiempo asignado en cada pregunta y excesos.
    - M03 Turnos: turnos por pregunta (rango correcto 3–6).
-   - M04 Brecha de paridad: % de tiempo de las mujeres − % de mujeres entre quienes intervienen.
+   - M04 Brecha de paridad: % de tiempo de las mujeres − % de mujeres entre quienes intervienen;
+     debajo, el % de diputadas ese día (A) y en la legislatura (B) para la brecha de preguntas.
+     Si la composición no cuadra con 350 escaños, se avisa y no se usa hasta revisarla.
    - M06 Preguntas al Presidente del Gobierno: % formuladas por mujeres.
    - M09 Preguntas recibidas: por ministra y por ministro.
    - M13 Sin atribuir: porcentaje de tiempo en que no se sabe quién habla.
