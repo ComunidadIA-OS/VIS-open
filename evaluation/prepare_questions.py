@@ -5,7 +5,8 @@
      python -m evaluation.prepare_questions hoja --sesion V004 --desde 0:10:00 --hasta 0:30:00
    Escribe `data/anotacion/preguntas_para_anotar.csv` con
    `turn_id,t_inicio,context_before,text,es_pregunta` (`es_pregunta` vacío: si | no) y, opcional,
-   `frase` (la frase que formula la pregunta, si quiere indicarla).
+   `frase` (la frase que formula la pregunta, copiada literal) y `cargo_destinatario` (el cargo al
+   que se dirige, copiado literal, p. ej. «señora ministra de Hacienda»).
 
 2) Datos de ajuste (Sabrina): con la hoja ya anotada, escribe los JSONL de entrenamiento y de
    evaluación en el formato cerrado que usa el motor (`decision/questions.py`):
@@ -30,7 +31,9 @@ from evaluation.prepare_annotation import build_turns
 from evaluation.questions_eval import read_rows
 from sources.manifest import parse_hms
 
-SHEET_COLUMNS = ["turn_id", "t_inicio", "context_before", "text", "es_pregunta", "frase"]
+SHEET_COLUMNS = [
+    "turn_id", "t_inicio", "context_before", "text", "es_pregunta", "frase", "cargo_destinatario",
+]  # fmt: skip
 
 
 def write_sheet(timeline: AnalysisTimeline, start_s: float, end_s: float, out: Path) -> int:
@@ -44,7 +47,7 @@ def write_sheet(timeline: AnalysisTimeline, start_s: float, end_s: float, out: P
         w = csv.writer(fh)
         w.writerow(SHEET_COLUMNS)
         for i, t in enumerate(turns, 1):
-            w.writerow([f"Q{i:03d}", fmt_time(t.start_s), t.context_before, t.text, "", ""])
+            w.writerow([f"Q{i:03d}", fmt_time(t.start_s), t.context_before, t.text, "", "", ""])
     return len(turns)
 
 
