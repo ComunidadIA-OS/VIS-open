@@ -1,7 +1,7 @@
 """Capa de datos del panel: lee los ficheros del análisis y calcula las cifras con `metrics/`.
 
 Sin Streamlit aquí, para poder probarla. Nunca muestra nombres: cada voz es «Persona N».
-Si falta una métrica (M09, M14), se informa como «no disponible todavía».
+Si falta una métrica (M14), se informa como «no disponible todavía».
 """
 
 from __future__ import annotations
@@ -28,12 +28,11 @@ from contracts import (
     write_rows,
 )
 from decision.pseudonymize import speaker_codes
-from metrics import MetricResult, run_metric, timeline_to_frame
+from metrics import MetricResult, enriquecer_frame, run_metric, timeline_to_frame
 
-CARD_METRICS = ["M01", "M02", "M03", "M04", "M13"]
+CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
 PENDING_METRICS = {
     "M14": "Peticiones de palabra con la mano (vídeo)",
-    "M09": "Preguntas recibidas (IA)",
 }
 METHOD_NOTICE = (
     "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
@@ -51,6 +50,7 @@ class Session:
     source: dict | None = None
     summary: dict | None = None
     video: dict | None = None
+    m09: dict | None = None  # salida de `python -m metrics.m09` (M09 y M06 con IA)
     confirmed: dict[str, str] = field(default_factory=dict)  # voz → género de 2 anotadoras
     synthetic: bool = False
     metrics: dict[str, MetricResult] = field(default_factory=dict)
@@ -73,6 +73,7 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
                 _read_json(folder / "source.json"),
                 _read_json(folder / "resumen.json"),
                 video=_read_json(folder / "video.json"),
+                m09=_read_json(folder / "m09.json"),
             )
         )
     if not sessions:
@@ -83,8 +84,11 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
         if not s.synthetic:
             s.confirmed = agreed_genders(processed / s.session_id)
             s.timeline = apply_confirmed(s.timeline, s.confirmed)
-        frame = timeline_to_frame(s.timeline)
+        frame = enriquecer_frame(s.timeline, timeline_to_frame(s.timeline))
         s.metrics = {m: run_metric(m, frame) for m in CARD_METRICS}
+        for key in ("M09", "M06"):  # vienen del LLM, ya contados en m09.json
+            if s.m09 and key in s.m09:
+                s.metrics[key] = MetricResult.model_validate(s.m09[key])
     return sessions
 
 
@@ -438,12 +442,12 @@ def apply_confirmed(timeline: AnalysisTimeline, confirmed: dict[str, str]) -> An
 
 
 def inconclusive_reason(session: Session) -> str:
-    """Por qué hay métricas «no concluyentes» (vacío si todas lo son por otra cosa o ninguna)."""
+    """Por qué hay métricas «no concluyentes» (las que no aplican no cuentan como fallo)."""
     reasons = sorted(
         {
             r.reason.removeprefix("no concluyente: ")
             for r in session.metrics.values()
-            if not r.conclusive and r.reason
+            if not r.conclusive and r.reason and not r.reason.startswith("no aplica:")
         }
     )
     if not reasons:
@@ -456,9 +460,10 @@ def inconclusive_reason(session: Session) -> str:
 
 
 def metric_card(result: MetricResult) -> dict:
-    """Texto de una tarjeta: cifra o «no concluyente»; la muestra siempre se ve."""
+    """Texto de una tarjeta: cifra, «no aplica» o «no concluyente»; la muestra siempre se ve."""
     if not result.conclusive:
-        return {"titulo": result.name, "valor": "no concluyente", "detalle": result.reason or ""}
+        valor = "no aplica" if (result.reason or "").startswith("no aplica:") else "no concluyente"
+        return {"titulo": result.name, "valor": valor, "detalle": result.reason or ""}
     return {
         "titulo": result.name,
         "valor": f"{result.value:g}",
@@ -641,7 +646,9 @@ def evolution_table(sessions: list[Session]) -> pd.DataFrame:
         for m in CARD_METRICS:
             r = s.metrics[m]
             row[m] = r.value if r.conclusive else None
-        row["M14"] = row["M09"] = None  # aún no disponibles
+        for m in ("M09", "M06", "M14"):
+            r = s.metrics.get(m)
+            row[m] = r.value if r and r.conclusive else None
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["fecha", "sesion"], ignore_index=True)
 

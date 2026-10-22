@@ -101,8 +101,11 @@ SUBTITLE_LABEL = "Español (automático)"
 SHORT_TITLES = {
     "M01": "M01 Presencia",
     "M02": "M02 Tiempo de palabra",
+    "M02b": "M02b Uso del tiempo",
     "M03": "M03 Turnos",
     "M04": "M04 Brecha de paridad",
+    "M06": "M06 Preguntas al Presidente",
+    "M09": "M09 Preguntas recibidas",
     "M13": "M13 Sin atribuir",
 }
 

@@ -140,14 +140,14 @@ def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
     """
     if "block_role" not in frame.columns:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     s = _without_chair(frame)
     s = s[s["speaker_id"].notna() & s["block_index"].notna()]
     s = s[s["block_role"].isin([ROLE_ASK, ROLE_GOV])]
     if s.empty:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     people = s.drop_duplicates("speaker_id")["gender"].value_counts()
     short = [f"{g}: {int(people.get(g, 0))}" for g in (W, M)
@@ -211,14 +211,14 @@ def turns(frame: pd.DataFrame) -> MetricOutput:
     """
     if "block_index" not in frame.columns:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     s = _without_chair(frame)
     s = s[s["speaker_id"].notna() & s["block_index"].notna()]
     s = s.sort_values(["block_index", "start_s", "end_s"])
     if s.empty:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     new = (
         (s["block_index"] != s["block_index"].shift())

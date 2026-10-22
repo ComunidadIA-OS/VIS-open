@@ -16,6 +16,7 @@ El panel no calcula nada con IA. Solo lee los ficheros que deja el análisis de 
 
 - `source.json`: ficha de la sesión (fecha, legislatura, enlace, fuente y huella digital).
 - `timeline.json`: línea de tiempo (quién habla, desde qué segundo hasta cuál, y su género con la evidencia).
+- `m09.json`: M09 y M06 calculadas con IA sobre los bloques de pregunta (si existe; lo genera `python -m metrics.m09`).
 - `resumen.json` y los resultados de las métricas de `metrics/`.
 - Los gestos de mano levantada (tabla de gestos de `contracts/`).
 
@@ -26,14 +27,17 @@ Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluat
 1. **Selector de sesión** (lista de las sesiones procesadas).
 2. **Ficha de la sesión**: fecha, legislatura, tipo de sesión, enlace a la fuente y aviso «Fuente: Congreso de los Diputados, vídeo sin alterar».
 3. **Cifras principales**, una tarjeta por métrica, separando siempre mujer / hombre / desconocido:
-   - M01 Presencia: personas que intervienen, por género.
+   - M01 Presencia: personas que intervienen, por género y rol.
    - M02 Tiempo de palabra: minutos y porcentaje por género.
-   - M03 Turnos: número de intervenciones por género.
-   - M04 Brecha de paridad: diferencia en puntos entre el porcentaje de tiempo de mujeres y el de hombres.
+   - M02b Uso del tiempo: porcentaje del tiempo asignado en cada pregunta y excesos.
+   - M03 Turnos: turnos por pregunta (rango correcto 3–6).
+   - M04 Brecha de paridad: % de tiempo de las mujeres − % de mujeres entre quienes intervienen.
+   - M06 Preguntas al Presidente del Gobierno: % formuladas por mujeres.
+   - M09 Preguntas recibidas: por ministra y por ministro.
    - M13 Sin atribuir: porcentaje de tiempo en que no se sabe quién habla.
-   - M14 Peticiones de palabra con la mano, por género.
-   - M09 Preguntas recibidas, por género.
-   Si una métrica no tiene muestra suficiente, la tarjeta dice «no concluyente» en lugar de la cifra.
+   - M14 Peticiones de palabra con la mano, por género: pendiente del módulo de vídeo.
+   Si una métrica no tiene muestra suficiente, la tarjeta dice «no concluyente» en lugar de la
+   cifra; si no se aplica a la sesión (por ejemplo, no hay bloques de pregunta), dice «no aplica».
 4. **Gráfico de barras** del tiempo de palabra por género.
 5. **Línea de tiempo** de la sesión: una franja horizontal coloreada según el género de quien habla en cada momento, con las manos levantadas marcadas.
 6. **Tabla de intervenciones**: código anónimo de la persona (Persona 1, Persona 2…), minuto de inicio, duración, género y la evidencia del género (la frase y el minuto, con el nombre sustituido por el código, por ejemplo «tiene la palabra la señora [Persona 3]»). Las voces sin pista aparecen como `desconocido`. Nunca se muestran nombres.
@@ -85,7 +89,7 @@ La transcripción completa no va en el PDF: se descarga aparte en un CSV («Desc
 Compara las 3 sesiones de esta entrega, ordenadas por fecha:
 
 - **Gráfico** del porcentaje de tiempo de palabra de las mujeres y de la brecha de paridad (M04) en cada sesión.
-- **Tabla resumen**: una fila por sesión con fecha, M01, M02, M03, M04, M13, M14 y M09.
+- **Tabla resumen**: una fila por sesión con fecha, M01, M02, M02b, M03, M04, M13, M14, M06 y M09.
 - Aviso: «Con 3 sesiones no se pueden sacar tendencias; el gráfico muestra cómo funcionará con más sesiones.»
 
 ## Lo que no debe hacer
