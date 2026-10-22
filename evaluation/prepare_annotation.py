@@ -6,7 +6,8 @@ ficheros en la carpeta de salida (fuera del repo, `data/` está ignorado):
 
   turnos_para_anotar.csv   turn_id,video_id,desde,hasta,context_before,text,label
                            → es lo único que ve quien anota (desde/hasta: mm:ss en el vídeo)
-  clave_interna.csv        turn_id,video_id,event_id,genero_sistema → no se enseña a quien anota
+  clave_interna.csv        turn_id,video_id,desde,hasta,event_id,genero_sistema
+                           → no se enseña a quien anota
 
 La hoja no lleva el género que asignó el sistema, para no sesgar. El género del sistema solo
 sirve para repartir la muestra (por defecto 60 mujer, 60 hombre, 30 desconocido = 150, con los
@@ -120,9 +121,11 @@ def write_sheets(turns: Sequence[Turn], out: Path) -> None:
             )
     with (out / "clave_interna.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["turn_id", "video_id", "event_id", "genero_sistema"])
+        w.writerow(["turn_id", "video_id", "desde", "hasta", "event_id", "genero_sistema"])
         for i, t in enumerate(turns, 1):
-            w.writerow([f"T{i:03d}", t.video_id, t.event_id, t.gender])
+            w.writerow(
+                [f"T{i:03d}", t.video_id, clock(t.start_s), clock(t.end_s), t.event_id, t.gender]
+            )
 
 
 def main(argv: Sequence[str] | None = None) -> None:

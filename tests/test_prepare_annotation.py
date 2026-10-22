@@ -62,4 +62,5 @@ def test_cli_sheet_has_no_system_gender_and_key_is_separate(tmp_path):
     assert all(r["label"] == "" for r in sheet)
     key = list(csv.DictReader((out / "clave_interna.csv").open(encoding="utf-8")))
     assert {r["genero_sistema"] for r in key} <= {"mujer", "hombre", "desconocido"}
+    assert list(key[0])[:4] == ["turn_id", "video_id", "desde", "hasta"]
     assert "genero_sistema" not in (out / "turnos_para_anotar.csv").read_text(encoding="utf-8")
