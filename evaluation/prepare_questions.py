@@ -64,6 +64,7 @@ def _example(row: dict[str, str]) -> dict | None:
         "is_question": asked,
         "confidence": 1.0,
         "evidence": evidence,
+        "cargo_destinatario": (row.get("cargo_destinatario") or "").strip() or None,
         "reason": "anotación humana",
     }
     return {
