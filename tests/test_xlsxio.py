@@ -36,3 +36,13 @@ def test_roundtrip_through_excel_keeps_the_text(tmp_path):
     back = xlsx_to_csv(csv_to_xlsx(src), tmp_path / "vuelta.csv")
     with back.open(newline="", encoding="utf-8") as fh:
         assert list(csv.reader(fh)) == ROWS
+
+
+def test_label_sheet_has_instructions_and_roundtrip_ignores_them(tmp_path):
+    src = tmp_path / "t.csv"
+    src.write_text("turn_id,label\nT001,\n", encoding="utf-8")
+    xlsx = csv_to_xlsx(src)
+    wb = load_workbook(xlsx)
+    assert wb.sheetnames == ["hoja", "Instrucciones"]
+    assert any("desconocido" in str(c.value) for c in wb["Instrucciones"]["A"])
+    assert xlsx_to_csv(xlsx).read_text(encoding="utf-8").splitlines() == ["turn_id,label", "T001,"]

@@ -25,10 +25,30 @@ DROPDOWNS = {
     "label": ["mujer", "hombre", "desconocido"],
 }
 WIDTHS = {
+    "desde": 9, "hasta": 9,
     "turn_id": 9, "t_inicio": 10, "context_before": 60, "text": 90, "frase": 50,
     "cargo_destinatario": 34, "label": 14, "es_pregunta": 14, "video_id": 10, "event_id": 14,
     "genero_sistema": 16,
 }  # fmt: skip
+INSTRUCTIONS = {
+    "label": [
+        "Cómo rellenar «label» (género de quien habla en ese turno)",
+        "Pon mujer, hombre o desconocido, SOLO por pistas del lenguaje del texto:",
+        "- Tratamiento o cargo en femenino/masculino: «señora», «diputada», «ministra», «señor».",
+        "- Concordancia al hablar de sí misma/o: «estoy convencida», «me siento orgulloso».",
+        "- context_before: si la Presidencia dice «tiene la palabra la señora X», habla una mujer.",
+        "Si no hay ninguna pista clara, pon desconocido. Es una respuesta válida y esperada.",
+        "NO uses la voz, la cara, el nombre propio ni lo que sepas de la persona.",
+        "Duda entre dos: desconocido. Mira desde/hasta solo si necesitas oír el vídeo.",
+    ],
+    "es_pregunta": [
+        "Cómo rellenar «es_pregunta»",
+        "si: el turno formula alguna pregunta (con o sin signos ¿?) al Gobierno o a otra persona.",
+        "no: solo afirma, exclama o cita lo que otra persona preguntó.",
+        "frase: copia literal la frase de la pregunta.",
+        "cargo_destinatario: copia literal el cargo de a quien se pregunta, si lo dice.",
+    ],
+}
 WRAPPED = {"context_before", "text", "frase", "cargo_destinatario"}
 
 
@@ -75,6 +95,14 @@ def csv_to_xlsx(csv_path: Path, xlsx_path: Path | None = None) -> Path:
             for r in range(2, len(rows) + 1):
                 ws.cell(row=r, column=col).fill = PatternFill("solid", fgColor="FFF4CC")
     ws.freeze_panes = "A2"
+    for col in DROPDOWNS:
+        if col in header and col in INSTRUCTIONS:
+            help_ws = wb.create_sheet("Instrucciones")
+            for line in INSTRUCTIONS[col]:
+                help_ws.append([line])
+            help_ws["A1"].font = Font(bold=True)
+            help_ws.column_dimensions["A"].width = 110
+            break
     wb.save(out)
     return out
 
