@@ -30,7 +30,7 @@ RECONOCIMIENTOS (licencias permisivas; ver THIRD_PARTY_LICENSES.md)
 
 faster-whisper (MIT), WhisperX (BSD-2-Clause), pyannote.audio (MIT), MediaPipe (Apache-2.0),
 OpenCV (Apache-2.0), Streamlit (Apache-2.0), Altair (BSD-3-Clause), pandas (BSD-3-Clause),
-Pydantic (MIT), ReportLab (BSD), PyTorch (BSD-3-Clause y otras), PyAV (BSD-3-Clause),
+Pydantic (MIT), openpyxl (MIT), ReportLab (BSD), PyTorch (BSD-3-Clause y otras), PyAV (BSD-3-Clause),
 Transformers, PEFT y Accelerate (Apache-2.0), FFmpeg (LGPL-2.1+, binario externo).
 
 Modelos: Whisper large-v3-turbo (MIT), Whisper large-v3 y sus conversiones de Systran (ver
