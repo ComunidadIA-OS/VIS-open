@@ -4,7 +4,8 @@ Lee los `timeline.json` ya seudonimizados de `data/processed/*/`, junta los segm
 una misma voz en turnos y saca una muestra equilibrada, mezclada y sin etiquetar. Escribe dos
 ficheros en la carpeta de salida (fuera del repo, `data/` está ignorado):
 
-  turnos_para_anotar.csv   turn_id,context_before,text,label   → es lo único que ve quien anota
+  turnos_para_anotar.csv   turn_id,video_id,desde,hasta,context_before,text,label
+                           → es lo único que ve quien anota (desde/hasta: mm:ss en el vídeo)
   clave_interna.csv        turn_id,video_id,event_id,genero_sistema → no se enseña a quien anota
 
 La hoja no lleva el género que asignó el sistema, para no sesgar. El género del sistema solo
@@ -40,6 +41,13 @@ class Turn:
     context_before: str
     gender: str
     start_s: float = 0.0
+    end_s: float = 0.0
+
+
+def clock(seconds: float) -> str:
+    m, s = divmod(int(seconds), 60)
+    h, m = divmod(m, 60)
+    return f"{h}:{m:02d}:{s:02d}" if h else f"{m:02d}:{s:02d}"
 
 
 def build_turns(timeline: AnalysisTimeline) -> list[Turn]:
@@ -70,9 +78,10 @@ def build_turns(timeline: AnalysisTimeline) -> list[Turn]:
                     context,
                     gender.get(e.speaker_id, "desconocido"),
                     e.start_s,
+                    e.end_s,
                 )
             )
-        last_end = e.end_s
+        turns[-1].end_s = last_end = e.end_s
     return turns
 
 
@@ -96,9 +105,19 @@ def write_sheets(turns: Sequence[Turn], out: Path) -> None:
     out.mkdir(parents=True, exist_ok=True)
     with (out / "turnos_para_anotar.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
-        w.writerow(["turn_id", "context_before", "text", "label"])
+        w.writerow(["turn_id", "video_id", "desde", "hasta", "context_before", "text", "label"])
         for i, t in enumerate(turns, 1):
-            w.writerow([f"T{i:03d}", t.context_before, t.text, ""])
+            w.writerow(
+                [
+                    f"T{i:03d}",
+                    t.video_id,
+                    clock(t.start_s),
+                    clock(t.end_s),
+                    t.context_before,
+                    t.text,
+                    "",
+                ]
+            )
     with (out / "clave_interna.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.writer(fh)
         w.writerow(["turn_id", "video_id", "event_id", "genero_sistema"])
