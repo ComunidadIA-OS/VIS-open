@@ -126,7 +126,7 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 | Campo | Contenido |
 |---|---|
 | Pregunta | ¿Quién ocupa los turnos más visibles de la sesión? |
-| Tipo | Determinista (usa el destinatario detectado en M09) |
+| Tipo | Determinista (usa el cargo que cita Qwen en M09 para identificar las preguntas al Presidente del Gobierno) |
 | Fórmula | Nº y % de preguntas al Presidente del Gobierno formuladas por mujeres |
 | Por qué sustituye a «apertura y cierre» | En la sesión de control siempre abre la Presidencia. El turno de mayor visibilidad es la pregunta al Presidente, que suelen hacer las personas que lideran los grupos |
 | Muestra mínima | Hay 2 o 3 por sesión: solo descriptiva por sesión; la comparación se hace con las 3 sesiones juntas |
@@ -138,14 +138,14 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 |---|---|
 | Pregunta | ¿A quién se dirigen las preguntas: a ministras o a ministros? |
 | Tipo | IA (clasificación) + determinista (conteo) |
-| Definición | Una pregunta recibida es una intervención con rol PREGUNTA que formula una pregunta a un miembro del Gobierno. La destinataria es la persona que responde a continuación |
-| Papel de la IA | Qwen recibe cada turno y devuelve un JSON: `es_pregunta` (sí/no), `cargo_destinatario` (texto), `confianza` (0 a 1). La IA no calcula ninguna cifra |
+| Definición | Una pregunta recibida es una intervención con rol PREGUNTA que formula una pregunta a un miembro del Gobierno. **La destinataria es quien responde a continuación, y la decide el código por el orden de las voces**, no la IA |
+| Papel de la IA | Qwen recibe cada turno y devuelve un JSON con `is_question` (sí/no), `confidence` (0 a 1), `evidence` (la cita literal del turno en la que se basa) y el cargo al que se dirige la pregunta. El cargo sirve para dos cosas: separar las preguntas al Presidente del Gobierno (M09 c y M06) y **avisar si no coincide** con quien responde según el orden de las voces. La IA no calcula ninguna cifra. Implementado en el PR 104 |
 | Fórmulas | **a)** Nº de preguntas recibidas por persona y por género. **b) Normalizada** = preguntas recibidas por ministras / nº de ministras que responden, frente a lo mismo para ministros. Equivale a comparar el % de preguntas recibidas con el % de ministras. Sin normalizar, solo reflejaría la composición del Gobierno. **c) Presidencia del Gobierno aparte:** las preguntas a la persona que preside el Gobierno se cuentan por separado y no entran en b), porque recibe varias preguntas fijas por su cargo y desequilibraría la comparación |
 | Referencia | La igualdad (mismas preguntas por ministra que por ministro) es el punto de referencia, no lo esperado. Una diferencia es una señal para investigar, no una prueba de trato desigual |
 | Tabla descriptiva | Nº de preguntas recibidas por cada ministerio y género de quien lo ocupa, por sesión. Sale del orden del día. Permite ver si las preguntas se concentran en pocos ministerios |
 | Limitación: variable de confusión | Las preguntas dependen también de la actualidad de cada ministerio: un ministerio con un tema candente recibe más preguntas por el tema, no por el género de quien lo dirige. Con 17 a 20 preguntas por sesión no se puede separar ese efecto (quedarían 1 o 2 preguntas por ministerio). Se declara en el informe y en la presentación y no se sacan conclusiones de género a partir de M09 b) sin tenerlo en cuenta |
 | Casos límite | Pregunta «al Gobierno» sin cargo: cuenta para quien responde. Pregunta respondida por otro ministerio: cuenta para quien responde y se anota |
-| Revisión humana | Confianza < 0,7 → pasa a revisión |
+| Revisión humana | `confidence` < 0,7 → pasa a revisión. También pasa a revisión cualquier pregunta en la que el cargo citado por Qwen no coincida con quien responde. La cita `evidence` permite comprobar cada decisión sin volver a escuchar el audio |
 | Validación | Frente al orden del día y la anotación manual: F1 ≥ 0,85 en detectar preguntas y en el destinatario |
 | Test | 3 turnos PREGUNTA dirigidos a «la señora ministra» (2) y «el señor ministro» (1), con 1 ministra y 1 ministro → normalizada: 2,0 frente a 1,0 |
 
@@ -266,7 +266,7 @@ Limitación del marco que afecta a estas métricas: el código suma la duración
 | M06 original (apertura y cierre) | Siempre abre la Presidencia; sustituida por la nueva M06 |
 | M08 Palabra cedida por la moderación | El orden lo fija el orden del día, no la Presidencia |
 | M10 Distribución por cuartiles | El orden de las preguntas está fijado |
-| M14 Manos levantadas, M15 y M16 | En el pleno no se pide la palabra levantando la mano y las votaciones son electrónicas. **Pendiente de acordar con el equipo** |
+| M14 Manos levantadas, M15 y M16 | En el pleno no se pide la palabra levantando la mano y las votaciones son electrónicas. Descarte acordado por el equipo (22/10/2026) |
 | M17 Equidad | Incluida en M04 (ratio) |
 | Conteo de escaños ocupados desde el vídeo | Saber si cada asiento lo ocupa una mujer o un hombre mirando la imagen es inferir el género por la apariencia, que el proyecto prohíbe (RNF-05 y RNF-13). Además, la cámara enfoca a quien habla y no muestra los 350 escaños. Y no hace falta: M04 mide quién podía preguntar, no quién estaba sentada |
 
@@ -286,6 +286,6 @@ Limitación del marco que afecta a estas métricas: el código suma la duración
 - [x] % de diputadas de la legislatura completa (XV, XIV, XII) para la sensibilidad de M04.
 - [ ] Descargar los CSV de datos abiertos, confirmar las columnas y programar las medidas A y B (controles: 350 y buscador oficial).
 - [ ] Tabla de error: medida A frente a B y su efecto en la conclusión de M04, para la presentación.
-- [ ] Confirmar con el equipo la sustitución de M06 y el descarte de M14.
+- [x] Acordado con el equipo (22/10/2026): descartar M14, sustituir M06 y añadir M02b.
 - [ ] Ajustar `metrics/borrador.py` a estas definiciones y a los parámetros del apartado 4 ter (Veru), siguiendo los pasos de `docs/METRICAS_MARCO.md`.
 - [ ] Programar M09 con Qwen según esta definición (Sabrina).
