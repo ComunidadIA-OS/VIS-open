@@ -19,6 +19,7 @@ Regla: cada dependencia se registra aquí con la licencia verificada en el metad
 | tzdata | 2026.3 | runtime (dep. de pandas en Windows) | Apache-2.0 (metadato del paquete) |
 | streamlit | 1.66.0 | panel (extra `[dashboard]`, también en `[dev]` para probarlo) | Apache-2.0 (campo `License-Expression` del paquete instalado) |
 | altair | 6.3.0 | gráficos del panel (dep. de streamlit) | BSD-3-Clause (texto de licencia en el metadato; clasificador «OSI Approved :: BSD License») |
+| openpyxl | 3.1.5 | hojas de anotación en Excel (extra `[anotacion]`; solo herramienta, no entra en el análisis) | MIT (campo `License` y clasificador OSI del paquete instalado, 22 oct 2026) |
 | pytest | 9.1.1 | desarrollo | MIT |
 | ruff | 0.17.1 | desarrollo | MIT |
 | pluggy, iniconfig, packaging, pygments | varias | desarrollo (dep. de pytest) | MIT, MIT, Apache-2.0 OR BSD-2-Clause, BSD-2-Clause |

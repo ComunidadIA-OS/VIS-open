@@ -5,7 +5,7 @@ VIS Open es **Apache-2.0** (`../LICENSE`, copia en `Apache-2.0.txt`). Aquí est�
 | Licencia | Fichero | Componentes (resumen) |
 |---|---|---|
 | Apache-2.0 | `Apache-2.0.txt` | VIS Open; Streamlit, MediaPipe, OpenCV, Transformers, PEFT, Accelerate, Qwen3.5, tzdata |
-| MIT | `MIT.txt` | Pydantic, faster-whisper, pyannote.audio, Whisper large-v3-turbo, modelos pyannote de segmentación y diarización 3.1, Systran faster-whisper |
+| MIT | `MIT.txt` | Pydantic, openpyxl, faster-whisper, pyannote.audio, Whisper large-v3-turbo, modelos pyannote de segmentación y diarización 3.1, Systran faster-whisper |
 | BSD-2-Clause | `BSD-2-Clause.txt` | WhisperX |
 | BSD-3-Clause | `BSD-3-Clause.txt` | pandas, NumPy, Altair, PyAV, PyTorch (parte), ReportLab (variante BSD) |
 | CC-BY-4.0 | `CC-BY-4.0.txt` | Modelo `wespeaker-voxceleb-resnet34-LM` y `speaker-diarization-community-1` de pyannote (exige atribución: ver `../NOTICE`) |
