@@ -25,6 +25,28 @@ El panel no calcula nada con IA. Solo lee los ficheros que deja el análisis de 
 
 Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluation/synthetic/muestras/` (`make synthetic`).
 
+## Composición de la cámara (M04 c)
+
+M04 c) compara el % de preguntas formuladas por mujeres con el % de diputadas. Ese dato no está
+en la línea de tiempo: sale de los datos abiertos del Congreso y se calcula de dos maneras (apartado
+4 bis de la definición de métricas de Ivette):
+
+- **A, el día de la sesión:** quien tenía escaño ese día (`FECHAALTA <= fecha < FECHABAJA`). Debe
+  sumar 350; si no, se avisa y no se usa hasta revisarlo.
+- **B, la legislatura completa:** todas las personas que ocuparon escaño. Debe coincidir con el
+  buscador oficial (XV 412, XIV 407, XII 393).
+
+El sexo se cruza con las listas oficiales de diputadas y diputados, porque los CSV no traen
+columna de sexo; quien no aparece en ninguna lista queda como desconocido, informado aparte.
+
+Los CSV se descargan con `python -m sources.diputados` (quedan en `data/externos/congreso/`, con
+fecha y sha256 de cada fichero y sin volver a bajarlos si ya están). La tabla de error para la
+presentación se imprime con `python -m metrics.diputadas`: % A, % B, diferencia en puntos, brecha
+c) con A y con B, si cambia la conclusión y los avisos.
+
+Estado: XV y XII dan A = 350; **XIV da 349** (sesión del 05/10/2022) y está pendiente de revisar
+con Ivette, así que ese día la brecha c) no se calcula y el panel lo avisa.
+
 ## Pantalla 1 · Panel de una sesión
 
 1. **Selector de sesión** (lista de las sesiones procesadas).
