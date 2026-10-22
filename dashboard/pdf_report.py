@@ -277,17 +277,15 @@ def report_pdf(
         Paragraph("Métricas", st["h2"]),
     ]
     cards = [metric_card(r) for r in session.metrics.values()]
-    row = [
-        [
-            Paragraph(_t(c["titulo"].split(" (")[0]), st["card"]),
-            Paragraph(_t(c["valor"]), st["val"]),
-        ]
-        for c in cards
-    ]
-    metrics = Table(
-        [[c[0] for c in row], [c[1] for c in row]],
-        colWidths=[WIDTH / len(cards)] * len(cards),
-    )
+    per_row = 4  # con 6-8 métricas, una sola fila quedaría ilegible
+    chunks = [cards[i : i + per_row] for i in range(0, len(cards), per_row)]
+    empty = {"titulo": "", "valor": ""}
+    chunks = [c + [empty] * (per_row - len(c)) for c in chunks]
+    body = []
+    for chunk in chunks:
+        body.append([Paragraph(_t(c["titulo"].split(" (")[0]), st["card"]) for c in chunk])
+        body.append([Paragraph(_t(c["valor"]), st["val"]) for c in chunk])
+    metrics = Table(body, colWidths=[WIDTH / per_row] * per_row)
     metrics.setStyle(
         TableStyle(
             [

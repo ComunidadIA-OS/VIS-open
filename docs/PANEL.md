@@ -16,24 +16,55 @@ El panel no calcula nada con IA. Solo lee los ficheros que deja el análisis de 
 
 - `source.json`: ficha de la sesión (fecha, legislatura, enlace, fuente y huella digital).
 - `timeline.json`: línea de tiempo (quién habla, desde qué segundo hasta cuál, y su género con la evidencia).
+- `m09.json`: M09 y M06 calculadas con IA sobre los bloques de pregunta (si existe; lo genera `python -m metrics.m09`).
 - `resumen.json` y los resultados de las métricas de `metrics/`.
+- `data/externos/congreso/`: datos abiertos de composición de la cámara (M04 c). Se descargan
+  con `python -m sources.diputados` y no se versionan; si faltan, el panel lo dice y M04 c) se
+  queda sin dato (la brecha de tiempo a) y el ratio b) se siguen calculando).
 - Los gestos de mano levantada (tabla de gestos de `contracts/`).
 
 Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluation/synthetic/muestras/` (`make synthetic`).
+
+## Composición de la cámara (M04 c)
+
+M04 c) compara el % de preguntas formuladas por mujeres con el % de diputadas. Ese dato no está
+en la línea de tiempo: sale de los datos abiertos del Congreso y se calcula de dos maneras (apartado
+4 bis de la definición de métricas de Ivette):
+
+- **A, el día de la sesión:** quien tenía escaño ese día (`FECHAALTA <= fecha < FECHABAJA`). Debe
+  sumar 350; si no, se avisa y no se usa hasta revisarlo.
+- **B, la legislatura completa:** todas las personas que ocuparon escaño. Debe coincidir con el
+  buscador oficial (XV 412, XIV 407, XII 393).
+
+El sexo se cruza con las listas oficiales de diputadas y diputados, porque los CSV no traen
+columna de sexo; quien no aparece en ninguna lista queda como desconocido, informado aparte.
+
+Los CSV se descargan con `python -m sources.diputados` (quedan en `data/externos/congreso/`, con
+fecha y sha256 de cada fichero y sin volver a bajarlos si ya están). La tabla de error para la
+presentación se imprime con `python -m metrics.diputadas`: % A, % B, diferencia en puntos, brecha
+c) con A y con B, si cambia la conclusión y los avisos.
+
+Estado: XV y XII dan A = 350; **XIV da 349** (sesión del 05/10/2022) y está pendiente de revisar
+con Ivette, así que ese día la brecha c) no se calcula y el panel lo avisa.
 
 ## Pantalla 1 · Panel de una sesión
 
 1. **Selector de sesión** (lista de las sesiones procesadas).
 2. **Ficha de la sesión**: fecha, legislatura, tipo de sesión, enlace a la fuente y aviso «Fuente: Congreso de los Diputados, vídeo sin alterar».
 3. **Cifras principales**, una tarjeta por métrica, separando siempre mujer / hombre / desconocido:
-   - M01 Presencia: personas que intervienen, por género.
+   - M01 Presencia: personas que intervienen, por género y rol.
    - M02 Tiempo de palabra: minutos y porcentaje por género.
-   - M03 Turnos: número de intervenciones por género.
-   - M04 Brecha de paridad: diferencia en puntos entre el porcentaje de tiempo de mujeres y el de hombres.
+   - M02b Uso del tiempo: porcentaje del tiempo asignado en cada pregunta y excesos.
+   - M03 Turnos: turnos por pregunta (rango correcto 3–6).
+   - M04 Brecha de paridad: % de tiempo de las mujeres − % de mujeres entre quienes intervienen;
+     debajo, el % de diputadas ese día (A) y en la legislatura (B) para la brecha de preguntas.
+     Si la composición no cuadra con 350 escaños, se avisa y no se usa hasta revisarla.
+   - M06 Preguntas al Presidente del Gobierno: % formuladas por mujeres.
+   - M09 Preguntas recibidas: por ministra y por ministro.
    - M13 Sin atribuir: porcentaje de tiempo en que no se sabe quién habla.
-   - M14 Peticiones de palabra con la mano, por género.
-   - M09 Preguntas recibidas, por género.
-   Si una métrica no tiene muestra suficiente, la tarjeta dice «no concluyente» en lugar de la cifra.
+   - M14 Peticiones de palabra con la mano, por género: pendiente del módulo de vídeo.
+   Si una métrica no tiene muestra suficiente, la tarjeta dice «no concluyente» en lugar de la
+   cifra; si no se aplica a la sesión (por ejemplo, no hay bloques de pregunta), dice «no aplica».
 4. **Gráfico de barras** del tiempo de palabra por género.
 5. **Línea de tiempo** de la sesión: una franja horizontal coloreada según el género de quien habla en cada momento, con las manos levantadas marcadas.
 6. **Tabla de intervenciones**: código anónimo de la persona (Persona 1, Persona 2…), minuto de inicio, duración, género y la evidencia del género (la frase y el minuto, con el nombre sustituido por el código, por ejemplo «tiene la palabra la señora [Persona 3]»). Las voces sin pista aparecen como `desconocido`. Nunca se muestran nombres.
@@ -85,7 +116,7 @@ La transcripción completa no va en el PDF: se descarga aparte en un CSV («Desc
 Compara las 3 sesiones de esta entrega, ordenadas por fecha:
 
 - **Gráfico** del porcentaje de tiempo de palabra de las mujeres y de la brecha de paridad (M04) en cada sesión.
-- **Tabla resumen**: una fila por sesión con fecha, M01, M02, M03, M04, M13, M14 y M09.
+- **Tabla resumen**: una fila por sesión con fecha, M01, M02, M02b, M03, M04, M13, M14, M06 y M09.
 - Aviso: «Con 3 sesiones no se pueden sacar tendencias; el gráfico muestra cómo funcionará con más sesiones.»
 
 ## Lo que no debe hacer

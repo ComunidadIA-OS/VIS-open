@@ -56,6 +56,7 @@ También hay imágenes Docker para CPU y para GPU en `docker/` (ver `docs/PRUEBA
 make pipeline VIDEO=data/raw/sesion.mp4   # analiza una sesión
 make test                                 # pruebas con datos sintéticos
 make check                                # estilo del código y pruebas
+python -m sources.diputados                # composición de la cámara (M04 c), datos abiertos
 python -m streamlit run dashboard/app.py  # el panel y el asistente de voz
 node tests/vad.test.mjs                   # prueba del detector de voz (necesita Node)
 ```

@@ -1,4 +1,4 @@
-"""M01, M02 (con M02b), M03 y M13 de la sesión de control, según `docs/metricas.md` (Ivette).
+"""M01, M02 (con M02b), M03, M04 y M13 de la sesión de control, según `docs/metricas.md`.
 
 Cada función es pura: DataFrame de eventos → `MetricOutput`, y todas las cifras salen de pandas
 (regla 3). El frame debe venir de `metrics.contexto.enriquecer_frame`, que añade `block_role`
@@ -15,7 +15,7 @@ import pandas as pd
 from contracts import GenderValue
 from decision.roles import MERGE_GAP_S, ROLE_ASK, ROLE_GOV
 from metrics.frame import GENDER_ORDER, UNATTRIBUTED, speech, speech_time_by_gender
-from metrics.registry import MetricOutput, metric
+from metrics.registry import MetricOutput, gap_is_conclusive, metric
 
 W, M, UNKNOWN = GenderValue.WOMAN.value, GenderValue.MAN.value, GenderValue.UNKNOWN.value
 MAX_UNATTRIBUTED_PCT = 20.0  # % de tiempo sin atribuir a partir del cual se avisa
@@ -23,7 +23,8 @@ QUESTION_SECONDS = 150.0  # §4: ~150 s para quien pregunta y ~150 s para quien 
 TOLERANCE_S = 10.0  # §4: la Presidencia deja terminar la frase
 MIN_PEOPLE_PER_GROUP = 2  # §4 ter: dos voces por grupo para comparar
 TURN_RANGE = (3, 6)  # §4 ter: turnos por pregunta fuera de este rango = revisar las voces
-DRAFT = "pendiente de ajustar a Ivette"  # solo M04 (commit siguiente)
+MIN_QUESTIONS = 10  # §4 ter: M04 necesita 10 preguntas válidas para comparar
+GAP_THRESHOLD_POINTS = 15.0  # §3: la brecha debe superar 15 puntos
 
 
 def _seconds_by_gender(frame: pd.DataFrame) -> dict[str, float]:
@@ -37,6 +38,18 @@ def _without_chair(frame: pd.DataFrame) -> pd.DataFrame:
     if "is_chair" not in s.columns:
         return s
     return s[~s["is_chair"].astype(bool)]
+
+
+def _questions_by_gender(frame: pd.DataFrame) -> dict[str, int]:
+    """Preguntas de cada bloque según el género de quien pregunta (primera voz PREGUNTA)."""
+    if "block_role" not in frame.columns or "block_index" not in frame.columns:
+        return {g: 0 for g in (W, M, UNKNOWN)}
+    s = _without_chair(frame)
+    s = s[s["speaker_id"].notna() & s["block_index"].notna()]
+    s = s[s["block_role"].eq(ROLE_ASK)]
+    askers = s.sort_values(["block_index", "start_s"]).drop_duplicates("block_index")
+    counts = askers["gender"].value_counts()
+    return {g: int(counts.get(g, 0)) for g in (W, M, UNKNOWN)}
 
 
 @metric(
@@ -127,14 +140,14 @@ def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
     """
     if "block_role" not in frame.columns:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     s = _without_chair(frame)
     s = s[s["speaker_id"].notna() & s["block_index"].notna()]
     s = s[s["block_role"].isin([ROLE_ASK, ROLE_GOV])]
     if s.empty:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     people = s.drop_duplicates("speaker_id")["gender"].value_counts()
     short = [f"{g}: {int(people.get(g, 0))}" for g in (W, M)
@@ -198,14 +211,14 @@ def turns(frame: pd.DataFrame) -> MetricOutput:
     """
     if "block_index" not in frame.columns:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     s = _without_chair(frame)
     s = s[s["speaker_id"].notna() & s["block_index"].notna()]
     s = s.sort_values(["block_index", "start_s", "end_s"])
     if s.empty:
         return MetricOutput(
-            value=0.0, reason="no concluyente: no se han detectado bloques de pregunta"
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
     new = (
         (s["block_index"] != s["block_index"].shift())
@@ -243,24 +256,99 @@ def turns(frame: pd.DataFrame) -> MetricOutput:
 
 @metric(
     metric_id="M04",
-    name=f"M04 Brecha de paridad en el tiempo de palabra ({DRAFT})",
-    min_speakers_known_gender=2,
-    min_known_gender_seconds=60,
+    name="M04 Brecha y ratio de paridad",
+    min_speakers_known_gender=4,
+    min_known_gender_seconds=600,
 )
 def parity_gap(frame: pd.DataFrame) -> MetricOutput:
-    """Puntos porcentuales: % del tiempo de mujeres menos % del tiempo de hombres, ambos sobre el
-    total de palabra (negativo = hablan menos las mujeres). No decide si es «concluyente»:
-    el umbral lo fija Ivette (ver `gap_is_conclusive`)."""
-    sec = _seconds_by_gender(frame)
+    """Brecha de tiempo, ratio de paridad y brecha de preguntas (§M04).
+
+    a) Brecha de tiempo = % de tiempo de las mujeres − % de mujeres entre quienes intervienen.
+    b) Ratio = tiempo medio por mujer / tiempo medio por hombre (1 = equidad).
+    c) Brecha de preguntas = % de preguntas de mujeres − % de diputadas. El dato externo llega en
+       `frame.attrs["porcentaje_diputadas"]` (medida A) y, si está, `["porcentaje_diputadas_b"]`
+       (medida B de la legislatura) para comprobar si cambia la conclusión (§4 bis).
+    El umbral de 15 puntos no se aplica aquí: lo usa el panel con `gap_is_conclusive`.
+    """
+    s = _without_chair(frame)
+    sec = _seconds_by_gender(s)
     total = sum(sec.values())
-    w, m = (100 * sec[W] / total, 100 * sec[M] / total) if total else (0.0, 0.0)
-    unattributed = 100 * (sec[UNKNOWN] + sec[UNATTRIBUTED]) / total if total else 0
+    attributed = sec[W] + sec[M]
+    if attributed <= 0:
+        return MetricOutput(
+            value=0.0, reason="no concluyente: sin tiempo de palabra con género conocido"
+        )
+    people = s[s["speaker_id"].notna()].drop_duplicates("speaker_id")["gender"].value_counts()
+    short = [
+        f"{g}: {int(people.get(g, 0))}"
+        for g in (W, M)
+        if people.get(g, 0) < MIN_PEOPLE_PER_GROUP
+    ]
+    if short:
+        return MetricOutput(
+            value=0.0,
+            reason=f"no concluyente: menos de {MIN_PEOPLE_PER_GROUP} voces por grupo "
+            f"({', '.join(short)})",
+        )
+    blocks = int(frame["block_index"].nunique()) if "block_index" in frame.columns else 0
+    questions = int(frame.attrs.get("preguntas_validas") or blocks)
+    if questions < MIN_QUESTIONS:
+        return MetricOutput(
+            value=0.0,
+            reason=f"no concluyente: menos de {MIN_QUESTIONS} preguntas válidas ({questions})",
+        )
+    women_time = 100 * sec[W] / attributed
+    known = int(people.get(W, 0)) + int(people.get(M, 0))
+    women_people = 100 * int(people.get(W, 0)) / known
+    mean = {
+        g: round(sec[g] / int(people[g]), 2) if people.get(g, 0) else None for g in (W, M)
+    }
+    ratio = round(mean[W] / mean[M], 2) if mean[M] else None
+    unattributed = 100 * (sec[UNKNOWN] + sec[UNATTRIBUTED]) / total
+    asked = _questions_by_gender(frame)
+    detected = sum(asked.values())
+    preguntas = None
+    if detected:
+        women_asked = 100 * asked[W] / detected
+        external = frame.attrs.get("porcentaje_diputadas")
+        preguntas = {
+            "validas": questions,
+            "detectadas": detected,
+            "por_mujeres": asked[W],
+            "mujeres_%": round(women_asked, 2),
+            "diputadas_%": None if external is None else float(external),
+            "brecha_puntos": None
+            if external is None
+            else round(women_asked - float(external), 2),
+        }
+        external_b = frame.attrs.get("porcentaje_diputadas_b")
+        if external is not None and external_b is not None:
+            gap_a = women_asked - float(external)
+            gap_b = women_asked - float(external_b)
+            ok_a, _ = gap_is_conclusive(
+                gap_a, threshold=GAP_THRESHOLD_POINTS,
+                unattributed_share=unattributed, margin=None,
+            )  # fmt: skip
+            ok_b, _ = gap_is_conclusive(
+                gap_b, threshold=GAP_THRESHOLD_POINTS,
+                unattributed_share=unattributed, margin=None,
+            )  # fmt: skip
+            preguntas["diputadas_b_%"] = float(external_b)
+            preguntas["brecha_b_puntos"] = round(gap_b, 2)
+            preguntas["cambia_conclusion"] = ok_a != ok_b
+    gap = women_time - women_people
     return MetricOutput(
-        value=round(w - m, 2),
+        value=round(gap, 2),
+        margin=round(unattributed, 2),
         details={
-            "mujeres_%": round(w, 2),
-            "hombres_%": round(m, 2),
+            "brecha_tiempo_puntos": round(gap, 2),
+            "mujeres_tiempo_%": round(women_time, 2),
+            "mujeres_personas_%": round(women_people, 2),
+            "ratio_tiempo_medio": ratio,
+            "tiempo_medio_s": mean,
             "sin_atribuir_o_desconocido_%": round(unattributed, 2),
+            "preguntas": preguntas,
+            "umbral_puntos": GAP_THRESHOLD_POINTS,
         },
     )
 

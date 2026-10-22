@@ -1,4 +1,4 @@
-"""M01, M02, M02b y M03 con datos sintéticos: casos de Ivette y límites de cada métrica."""
+"""M01, M02, M02b, M03 y M04 con datos sintéticos: casos de Ivette y límites de cada métrica."""
 
 import pandas as pd
 import pytest
@@ -12,7 +12,14 @@ from contracts import (
     Provenance,
     Speaker,
 )
-from metrics.congreso import assigned_time_use, presence, speaking_time, turns, unattributed
+from metrics.congreso import (
+    assigned_time_use,
+    parity_gap,
+    presence,
+    speaking_time,
+    turns,
+    unattributed,
+)
 from metrics.contexto import enriquecer_frame
 from metrics.frame import GENDER_ORDER, timeline_to_frame
 from metrics.registry import run_metric
@@ -193,15 +200,6 @@ def plain_frame(spec: list[tuple[str | None, float]]) -> pd.DataFrame:
     return timeline_to_frame(tl)
 
 
-@pytest.fixture
-def draft_frame() -> pd.DataFrame:
-    """Mujer 30 + 30 s (dos turnos), hombre 60 s, género desconocido 20 s y 10 s sin voz."""
-    return plain_frame(
-        [("SPEAKER_00", 30), ("SPEAKER_02", 60), ("SPEAKER_00", 30), ("SPEAKER_05", 20),
-         (None, 10)]  # fmt: skip
-    )
-
-
 def four_turns_each() -> pd.DataFrame:
     """Dos preguntas con 4 turnos cada una: pregunta, respuesta, réplica y dúplica."""
     return frame_of(
@@ -302,15 +300,62 @@ def test_m02b_and_m03_without_blocks_are_not_conclusive():
     assert "bloques de pregunta" in turns(plain).reason
 
 
-def test_m04_gap_is_points_women_minus_men_over_total(draft_frame):
-    r = run_metric("M04", draft_frame)
-    assert r.value == 0.0  # 40 % - 40 %
-    assert r.details["sin_atribuir_o_desconocido_%"] == 20.0
+def big_parity_frame() -> pd.DataFrame:
+    """2 mujeres y 3 hombres (40 % de las personas) con el 30 % del tiempo en mujeres."""
+    df = plain_frame(
+        [("SPEAKER_01", 180), ("SPEAKER_03", 180), ("SPEAKER_02", 280),
+         ("SPEAKER_04", 280), ("SPEAKER_06", 280)]  # fmt: skip
+    )
+    df.attrs["preguntas_validas"] = 10
+    return df
 
 
-def test_only_m04_is_still_labelled_pending():
-    # M04 se ajusta en el commit siguiente; el resto ya sigue docs/metricas.md.
+def test_m04_ivette_case_minus_ten_points():
+    # 40 % de las personas y 30 % del tiempo → 30 − 40 = −10 puntos.
+    df = big_parity_frame()
+    out = parity_gap(df)
+    assert out.value == pytest.approx(-10.0)
+    assert out.details["mujeres_tiempo_%"] == pytest.approx(30.0)
+    assert out.details["mujeres_personas_%"] == pytest.approx(40.0)
+    assert out.details["ratio_tiempo_medio"] == pytest.approx(0.64)  # 180 / 280
+    assert run_metric("M04", df).conclusive is True
+
+
+def test_m04_needs_two_voices_in_each_group():
+    df = plain_frame([("SPEAKER_01", 300), ("SPEAKER_02", 300), ("SPEAKER_04", 300)])
+    df.attrs["preguntas_validas"] = 10
+    out = parity_gap(df)
+    assert "menos de 2 voces por grupo" in out.reason
+    assert "mujer: 1" in out.reason
+
+
+def test_m04_needs_ten_valid_questions():
+    df = big_parity_frame()
+    df.attrs["preguntas_validas"] = 9
+    assert "menos de 10 preguntas válidas" in parity_gap(df).reason
+
+
+def test_m04_question_gap_with_the_share_of_women_in_the_chamber():
+    df = balanced_questions()
+    df.attrs.update(preguntas_validas=10, porcentaje_diputadas=45.9)
+    q = parity_gap(df).details["preguntas"]
+    assert q["detectadas"] == 2 and q["por_mujeres"] == 2
+    assert q["mujeres_%"] == pytest.approx(100.0)
+    assert q["brecha_puntos"] == pytest.approx(54.1)  # 100 − 45,9
+    assert "cambia_conclusion" not in q
+
+
+def test_m04_question_gap_measures_the_error_between_measures_a_and_b():
+    df = balanced_questions()
+    df.attrs.update(
+        preguntas_validas=10, porcentaje_diputadas=45.9, porcentaje_diputadas_b=42.8
+    )
+    q = parity_gap(df).details["preguntas"]
+    assert q["brecha_b_puntos"] == pytest.approx(57.2)
+    assert q["cambia_conclusion"] is False  # con A y con B la brecha supera 15
+
+
+def test_no_metric_is_labelled_pending():
     frame = plain_frame([("SPEAKER_01", 4)])
-    assert "pendiente" not in run_metric("M02", balanced_questions()).name
-    assert "pendiente" not in run_metric("M03", frame).name
-    assert "pendiente" in run_metric("M04", frame).name
+    for metric_id in ("M01", "M02", "M02b", "M03", "M04", "M13"):
+        assert "pendiente" not in run_metric(metric_id, frame).name

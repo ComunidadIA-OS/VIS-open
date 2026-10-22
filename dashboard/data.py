@@ -1,7 +1,7 @@
 """Capa de datos del panel: lee los ficheros del análisis y calcula las cifras con `metrics/`.
 
 Sin Streamlit aquí, para poder probarla. Nunca muestra nombres: cada voz es «Persona N».
-Si falta una métrica (M09, M14), se informa como «no disponible todavía».
+Si falta una métrica (M14), se informa como «no disponible todavía».
 """
 
 from __future__ import annotations
@@ -28,12 +28,14 @@ from contracts import (
     write_rows,
 )
 from decision.pseudonymize import speaker_codes
-from metrics import MetricResult, run_metric, timeline_to_frame
+from metrics import MetricResult, enriquecer_frame, run_metric, timeline_to_frame
+from metrics.diputadas import DatosCamara
+from metrics.diputadas import cargar as cargar_camara
+from sources.congreso import parse_session_url
 
-CARD_METRICS = ["M01", "M02", "M03", "M04", "M13"]
+CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
 PENDING_METRICS = {
     "M14": "Peticiones de palabra con la mano (vídeo)",
-    "M09": "Preguntas recibidas (IA)",
 }
 METHOD_NOTICE = (
     "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
@@ -51,6 +53,9 @@ class Session:
     source: dict | None = None
     summary: dict | None = None
     video: dict | None = None
+    m09: dict | None = None  # salida de `python -m metrics.m09` (M09 y M06 con IA)
+    referencia: dict | None = None  # composición de la cámara (M04 c), si hay datos
+    camara_aviso: str | None = None
     confirmed: dict[str, str] = field(default_factory=dict)  # voz → género de 2 anotadoras
     synthetic: bool = False
     metrics: dict[str, MetricResult] = field(default_factory=dict)
@@ -60,9 +65,22 @@ def _read_json(path: Path) -> dict | None:
     return json.loads(path.read_text(encoding="utf-8")) if path.is_file() else None
 
 
+def _referencia_camara(source: dict | None, carpeta: Path):
+    """Composición de la cámara de esa sesión y, si no se puede, el motivo."""
+    if not source or not source.get("fecha_evento") or not source.get("url_origen"):
+        return None, None
+    try:
+        leg = parse_session_url(source["url_origen"]).legislatura
+        return cargar_camara(carpeta, source["fecha_evento"], leg), None
+    except (ValueError, DatosCamara) as exc:
+        return None, str(exc)
+
+
 def load_sessions(data_dir: Path | None = None) -> list[Session]:
     """Sesiones de `<data_dir>/processed/*/`; si no hay ninguna, las SINTÉTICAS del repositorio."""
-    processed = Path(data_dir or "data") / "processed"
+    base = Path(data_dir or "data")
+    processed = base / "processed"
+    camara = base / "externos" / "congreso"
     sessions = []
     for folder in sorted(p for p in processed.glob("*") if (p / "timeline.json").is_file()):
         tl = AnalysisTimeline.model_validate_json((folder / "timeline.json").read_text("utf-8"))
@@ -73,6 +91,7 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
                 _read_json(folder / "source.json"),
                 _read_json(folder / "resumen.json"),
                 video=_read_json(folder / "video.json"),
+                m09=_read_json(folder / "m09.json"),
             )
         )
     if not sessions:
@@ -83,8 +102,15 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
         if not s.synthetic:
             s.confirmed = agreed_genders(processed / s.session_id)
             s.timeline = apply_confirmed(s.timeline, s.confirmed)
-        frame = timeline_to_frame(s.timeline)
+        frame = enriquecer_frame(s.timeline, timeline_to_frame(s.timeline))
+        referencia, s.camara_aviso = _referencia_camara(s.source, camara)
+        if referencia:
+            s.referencia = referencia.resumen()
+            frame.attrs.update(referencia.attrs())
         s.metrics = {m: run_metric(m, frame) for m in CARD_METRICS}
+        for key in ("M09", "M06"):  # vienen del LLM, ya contados en m09.json
+            if s.m09 and key in s.m09:
+                s.metrics[key] = MetricResult.model_validate(s.m09[key])
     return sessions
 
 
@@ -438,12 +464,12 @@ def apply_confirmed(timeline: AnalysisTimeline, confirmed: dict[str, str]) -> An
 
 
 def inconclusive_reason(session: Session) -> str:
-    """Por qué hay métricas «no concluyentes» (vacío si todas lo son por otra cosa o ninguna)."""
+    """Por qué hay métricas «no concluyentes» (las que no aplican no cuentan como fallo)."""
     reasons = sorted(
         {
             r.reason.removeprefix("no concluyente: ")
             for r in session.metrics.values()
-            if not r.conclusive and r.reason
+            if not r.conclusive and r.reason and not r.reason.startswith("no aplica:")
         }
     )
     if not reasons:
@@ -456,9 +482,10 @@ def inconclusive_reason(session: Session) -> str:
 
 
 def metric_card(result: MetricResult) -> dict:
-    """Texto de una tarjeta: cifra o «no concluyente»; la muestra siempre se ve."""
+    """Texto de una tarjeta: cifra, «no aplica» o «no concluyente»; la muestra siempre se ve."""
     if not result.conclusive:
-        return {"titulo": result.name, "valor": "no concluyente", "detalle": result.reason or ""}
+        valor = "no aplica" if (result.reason or "").startswith("no aplica:") else "no concluyente"
+        return {"titulo": result.name, "valor": valor, "detalle": result.reason or ""}
     return {
         "titulo": result.name,
         "valor": f"{result.value:g}",
@@ -641,7 +668,9 @@ def evolution_table(sessions: list[Session]) -> pd.DataFrame:
         for m in CARD_METRICS:
             r = s.metrics[m]
             row[m] = r.value if r.conclusive else None
-        row["M14"] = row["M09"] = None  # aún no disponibles
+        for m in ("M09", "M06", "M14"):
+            r = s.metrics.get(m)
+            row[m] = r.value if r and r.conclusive else None
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["fecha", "sesion"], ignore_index=True)
 

@@ -101,8 +101,11 @@ SUBTITLE_LABEL = "Español (automático)"
 SHORT_TITLES = {
     "M01": "M01 Presencia",
     "M02": "M02 Tiempo de palabra",
+    "M02b": "M02b Uso del tiempo",
     "M03": "M03 Turnos",
     "M04": "M04 Brecha de paridad",
+    "M06": "M06 Preguntas al Presidente",
+    "M09": "M09 Preguntas recibidas",
     "M13": "M13 Sin atribuir",
 }
 
@@ -660,6 +663,23 @@ if screen == "Sesión":
             st.warning(why)
         for key, label in PENDING_METRICS.items():
             st.caption(f"{key} {label}: no disponible todavía")
+        if s.referencia:
+            a, b = s.referencia["a"], s.referencia["b"]
+            partes = []
+            if a["porcentaje"] is not None:
+                partes.append(f"A (ese día) {a['porcentaje']:.1f} % · {a['mujeres']}/{a['total']}")
+            if b["porcentaje"] is not None:
+                partes.append(
+                    f"B (legislatura) {b['porcentaje']:.1f} % · {b['mujeres']}/{b['total']}"
+                )
+            if partes:
+                st.caption("Diputadas en la cámara: " + " · ".join(partes))
+            if s.referencia["diferencia_puntos"] is not None:
+                st.caption(f"Diferencia B − A: {s.referencia['diferencia_puntos']:+.1f} puntos.")
+            for aviso in s.referencia["avisos"]:
+                st.warning(aviso)
+        elif s.camara_aviso:
+            st.caption(f"Composición de la cámara: sin datos ({s.camara_aviso}).")
 
     with st.container(key="sec_audio"):
         st.markdown("<span id='sec-audio' class='anchor'></span>", unsafe_allow_html=True)

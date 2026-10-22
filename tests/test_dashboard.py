@@ -27,7 +27,83 @@ def test_falls_back_to_synthetic_and_computes_cards(sessions):
         metric_card(by["SINTETICO_muestra_insuficiente"].metrics["M02"])["valor"]
         == "no concluyente"
     )
-    assert metric_card(by["SINTETICO_pocas_mujeres"].metrics["M04"])["valor"] != "no concluyente"
+    # 2 mujeres y 2 hombres: M04 sí puede comparar.
+    assert metric_card(by["SINTETICO_equilibrado"].metrics["M04"])["valor"] != "no concluyente"
+    # 1 sola mujer: no hay 2 voces en el grupo, así que M04 no concluye (§4 ter).
+    assert metric_card(by["SINTETICO_pocas_mujeres"].metrics["M04"])["valor"] == "no concluyente"
+
+
+def test_synthetic_sessions_get_question_blocks_from_the_text(sessions):
+    s = next(x for x in sessions if x.session_id.endswith("equilibrado"))
+    assert s.metrics["M03"].conclusive is True
+    assert s.metrics["M03"].details["preguntas"] > 0
+    assert s.metrics["M04"].conclusive is True
+
+
+def test_metric_card_says_not_applicable_without_question_blocks():
+    from metrics import MetricResult
+
+    r = MetricResult(
+        metric_id="M03", name="M03 Turnos", is_example=False, value=None, conclusive=False,
+        reason="no aplica: no se han detectado bloques de pregunta", sample={},
+    )  # fmt: skip
+    assert metric_card(r)["valor"] == "no aplica"
+
+
+def test_inconclusive_reason_ignores_metrics_that_do_not_apply():
+    from contracts import AnalysisTimeline
+    from dashboard.data import SYNTHETIC_DIR, Session, inconclusive_reason
+    from metrics import MetricResult
+
+    tl = AnalysisTimeline.model_validate_json(
+        (SYNTHETIC_DIR / "SINTETICO_equilibrado.timeline.json").read_text("utf-8")
+    )
+    s = Session(
+        "X", tl,
+        metrics={
+            "M03": MetricResult(
+                metric_id="M03", name="M03", is_example=False, value=None,
+                conclusive=False, reason="no aplica: sin bloques", sample={},
+            )
+        },
+    )  # fmt: skip
+    assert inconclusive_reason(s) == ""
+    s.metrics["M02"] = MetricResult(
+        metric_id="M02", name="M02", is_example=False, value=None,
+        conclusive=False, reason="no concluyente: muestra insuficiente", sample={},
+    )  # fmt: skip
+    assert "muestra insuficiente" in inconclusive_reason(s)
+
+
+def test_m09_and_m06_are_read_from_m09_json(tmp_path):
+    import json
+    import shutil
+
+    from dashboard.data import SYNTHETIC_DIR
+
+    folder = tmp_path / "processed" / "V001"
+    folder.mkdir(parents=True)
+    shutil.copy(SYNTHETIC_DIR / "SINTETICO_equilibrado.timeline.json", folder / "timeline.json")
+    payload = {
+        "preguntas": 30,
+        "M09": {"metric_id": "M09", "name": "M09 Preguntas recibidas",
+                "is_example": False, "value": 1.0, "conclusive": True,
+                "sample": {}, "details": {}},
+        "M06": {"metric_id": "M06", "name": "M06 Preguntas al Presidente",
+                "is_example": False, "value": 50.0, "conclusive": True,
+                "sample": {}, "details": {}},
+    }  # fmt: skip
+    (folder / "m09.json").write_text(json.dumps(payload), "utf-8")
+    s = load_sessions(tmp_path)[0]
+    assert {"M09", "M06", "M02b"} <= set(s.metrics)
+    assert metric_card(s.metrics["M09"])["valor"] == "1"
+    assert metric_card(s.metrics["M06"])["valor"] == "50"
+
+
+def test_m09_is_no_longer_pending():
+    from dashboard.data import PENDING_METRICS
+
+    assert "M09" not in PENDING_METRICS and "M14" in PENDING_METRICS
 
 
 def test_interventions_never_show_names_only_codes(sessions):
@@ -255,7 +331,7 @@ def test_inconclusive_metrics_explain_why(sessions):
     assert b"muestra insuficiente" in report_pdf(
         by["SINTETICO_muestra_insuficiente"], compress=False
     )
-    assert inconclusive_reason(by["SINTETICO_pocas_mujeres"]) == ""
+    assert "menos de 2 voces por grupo" in inconclusive_reason(by["SINTETICO_pocas_mujeres"])
 
 
 def test_tracks_table_ends_with_totals_by_gender(tmp_path):
