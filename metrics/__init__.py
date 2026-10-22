@@ -1,4 +1,4 @@
-from metrics import borrador, example  # noqa: F401  (registran las métricas)
+from metrics import congreso, example  # noqa: F401  (registran las métricas)
 from metrics.contexto import enriquecer_frame
 from metrics.frame import (
     Sample,
