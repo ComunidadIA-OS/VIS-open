@@ -6,6 +6,7 @@
 - [`COSTES_API.md`](COSTES_API.md): cómo se mide y se evalúa el coste de la API del modelo de lenguaje.
 - [`PANEL.md`](PANEL.md): especificación del panel en Streamlit.
 - [`MODEL_CARD.md`](MODEL_CARD.md), [`DATASET_CARD.md`](DATASET_CARD.md) y [`RESPONSIBLE_USE.md`](RESPONSIBLE_USE.md): modelos, datos y uso responsable.
+- [`ROLES_M09.md`](ROLES_M09.md): roles, bloques de pregunta, M09 y M06 (código para las métricas de la sesión de control).
 - [`PROVEEDORES.md`](PROVEEDORES.md): qué servicios externos reciben qué datos.
 - [`ACCESIBILIDAD.md`](ACCESIBILIDAD.md) y [`DECLARACION_ACCESIBILIDAD.md`](DECLARACION_ACCESIBILIDAD.md): asistente de voz, manos libres, lector de pantalla y qué falta.
 - [`BORRADOR_PRODUCCION_RGPD_AIACT.md`](BORRADOR_PRODUCCION_RGPD_AIACT.md): borrador (sin validar jurídicamente) del plan de producción para Veru.
