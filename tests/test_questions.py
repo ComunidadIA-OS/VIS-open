@@ -122,7 +122,8 @@ def test_sheet_has_only_the_tramo_in_order_and_no_system_labels(tmp_path):
     # la frase previa solo sirve de contexto de la primera fila; las de fuera del tramo no son filas
     assert n == 2 and "después del tramo" not in text
     assert not any(r.startswith(("Q000", "Q003")) for r in text.splitlines())
-    assert text.splitlines()[0] == "turn_id,t_inicio,context_before,text,es_pregunta,frase"
+    header = "turn_id,t_inicio,context_before,text,es_pregunta,frase,cargo_destinatario"
+    assert text.splitlines()[0] == header
     assert text.splitlines()[1].startswith("Q001,11:40,")  # 700 s
     assert "genero" not in text.lower() and "desconocido" not in text.lower()
 
