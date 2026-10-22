@@ -106,7 +106,7 @@ def test_example_metric_is_registered_and_marked_as_example():
     spec = get_metric("X00_EJEMPLO")
     assert spec.is_example and "EJEMPLO" in spec.name
     ids = {m.metric_id for m in list_metrics()}
-    assert ids == {"X00_EJEMPLO", "M01", "M02", "M03", "M04", "M13"}  # M01-M04 y M13 = borrador
+    assert ids == {"X00_EJEMPLO", "M01", "M02", "M02b", "M03", "M04", "M13"}
 
 
 def test_example_metric_value_and_sample_always_present(mixed):
@@ -156,6 +156,27 @@ def test_new_metric_follows_the_pattern_and_duplicates_are_rejected():
     from metrics.registry import _REGISTRY
 
     del _REGISTRY["T_TMP"]  # no contaminar el resto de tests
+
+
+def test_metric_can_mark_itself_not_conclusive_with_a_reason():
+    @metric(
+        metric_id="T_REASON",
+        name="tmp",
+        min_speakers_known_gender=0,
+        min_known_gender_seconds=0,
+    )
+    def tmp(frame):
+        return MetricOutput(
+            value=1.0, details={"clave": 2}, reason="no concluyente: pocas preguntas"
+        )
+
+    r = run_metric("T_REASON", timeline_to_frame(timeline([], [])))
+    assert not r.conclusive and r.value is None
+    assert r.reason == "no concluyente: pocas preguntas"
+    assert r.details == {"clave": 2}
+    from metrics.registry import _REGISTRY
+
+    del _REGISTRY["T_REASON"]  # no contaminar el resto de tests
 
 
 def test_gap_rule_requires_threshold_and_all_three_conditions():

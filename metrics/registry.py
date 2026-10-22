@@ -18,12 +18,18 @@ from metrics.frame import Sample, sample_of
 
 
 class MetricOutput(BaseModel):
-    """Lo que devuelve la función de una métrica: valor y margen (si lo hay)."""
+    """Lo que devuelve la función de una métrica: valor y margen (si lo hay).
+
+    Si la propia métrica sabe que su resultado no es comparable (por ejemplo, no hay al menos
+    dos voces en cada grupo), deja el motivo en `reason`: `run_metric` lo convierte en un
+    resultado no concluyente sin valor.
+    """
 
     model_config = ConfigDict(extra="forbid")
     value: float
     margin: float | None = None
     details: dict[str, Any] = Field(default_factory=dict)
+    reason: str | None = None
 
 
 class MetricResult(BaseModel):
@@ -135,6 +141,15 @@ def run_metric(metric_id: str, frame: pd.DataFrame) -> MetricResult:
             reason="no concluyente: muestra insuficiente (" + "; ".join(short) + ")",
         )
     out = spec.func(frame)
+    if out.reason:
+        return MetricResult(
+            **base,
+            value=None,
+            margin=out.margin,
+            conclusive=False,
+            reason=out.reason,
+            details=out.details,
+        )
     return MetricResult(
         **base, value=out.value, margin=out.margin, conclusive=True, details=out.details
     )
