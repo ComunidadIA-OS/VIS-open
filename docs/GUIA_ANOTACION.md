@@ -36,7 +36,7 @@ Hoja de ejemplo (una pregunta, 16 turnos): `data/anotacion/ejemplo_una_pregunta.
 
 Reglas: una afirmación, una exclamación o una cita de lo que preguntó otra persona **no** cuentan como pregunta. Si dudas, `no` y apúntalo aparte. Si el texto automático tiene errores, no lo corrijas en la hoja: copia la frase tal como sale.
 
-**No abras el CSV con doble clic en Excel** (rompe los acentos): usa «Datos > Importar desde texto» eligiendo UTF-8, o Google Sheets («Archivo > Importar»), y guárdalo de nuevo como CSV UTF-8.
+**Usa la versión `.xlsx` de la hoja** (columnas separadas, texto ajustado y listas desplegables en `es_pregunta` y `label`). Si solo tienes el `.csv`, **no lo abras con doble clic en Excel** (todo queda en una columna y los acentos se rompen): impórtalo con «Datos > Obtener datos > Desde texto/CSV» eligiendo UTF-8 y coma, o en Google Sheets («Archivo > Importar»). Sabrina genera los `.xlsx` con `python -m evaluation.xlsxio a-xlsx hoja.csv` (PR de las hojas en Excel) y, cuando devuelves la hoja rellena, la pasa a CSV con `a-csv`.
 
 ## Qué pasa después
 
