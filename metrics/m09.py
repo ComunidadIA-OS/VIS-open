@@ -224,7 +224,10 @@ def compute_m06(
 
 
 def main(argv: Sequence[str] | None = None) -> None:
-    """python -m metrics.m09 data/processed/<sesión>/timeline_genero.json [--engine rules|llm]."""
+    """python -m metrics.m09 data/processed/<sesión>/timeline.json [--engine rules|llm].
+
+    Escribe `m09.json` junto al timeline (como `bloques_pregunta.json`) y lo imprime.
+    """
     import argparse
     import json
     from pathlib import Path
@@ -237,6 +240,9 @@ def main(argv: Sequence[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=main.__doc__)
     ap.add_argument("timeline", type=Path)
     ap.add_argument("--engine", default="rules")
+    ap.add_argument(
+        "--out", type=Path, default=None, help="por defecto, m09.json junto al timeline"
+    )
     args = ap.parse_args(argv)
     load_dotenv()
     timeline = AnalysisTimeline.model_validate_json(args.timeline.read_text("utf-8"))
@@ -248,7 +254,9 @@ def main(argv: Sequence[str] | None = None) -> None:
         "M09": compute_m09(blocks, genders, judgements).model_dump(mode="json"),
         "M06": compute_m06(blocks, genders, judgements).model_dump(mode="json"),
     }
-    print(json.dumps(out, indent=2, ensure_ascii=False))
+    text = json.dumps(out, indent=2, ensure_ascii=False)
+    (args.out or args.timeline.with_name("m09.json")).write_text(text, encoding="utf-8")
+    print(text)
 
 
 if __name__ == "__main__":
