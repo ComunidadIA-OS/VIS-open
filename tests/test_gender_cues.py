@@ -288,3 +288,13 @@ def test_chair_cues_in_a_control_session():
         for sid in ("SPEAKER_01", "SPEAKER_02", "SPEAKER_03", "SPEAKER_04")
     }
     assert got == {"SPEAKER_01": M, "SPEAKER_02": W, "SPEAKER_03": M, "SPEAKER_04": U}
+
+
+def test_parliamentary_group_does_not_cancel_the_gender_of_the_announcement():
+    announcement = (
+        "La primera la formula la diputada doña Persona 2, del Grupo Parlamentario Popular, "
+        "que tiene la palabra."
+    )
+    tl = make([("SPEAKER_00", announcement), ("SPEAKER_01", "Gracias. Mi pregunta es clara.")])
+    gender, a = gender_of(tl, "SPEAKER_01")
+    assert gender == W and a.confidence >= 0.7
