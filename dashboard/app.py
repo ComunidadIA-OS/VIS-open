@@ -30,6 +30,7 @@ from dashboard.data import (
     metric_card,
     review_cuts,
     save_review,
+    session_summary,
     show_interventions,
     show_tracks,
     show_voices,
@@ -825,9 +826,9 @@ if screen == "Sesión":
             f"Página (de {pages})", min_value=1, max_value=pages, value=1, step=1
         )
         st.table(
-            show_interventions(rows.iloc[(page - 1) * per_page : page * per_page]).style.hide(
-                axis="index"
-            )
+            show_interventions(rows.iloc[(page - 1) * per_page : page * per_page])
+            .style.hide(axis="index")
+            .set_properties(subset=["texto"], **{"font-size": "0.85em", "line-height": "1.4"})
         )
     with st.container(key="sec_vanalisis"):
         st.markdown("<span id='sec-vanalisis' class='anchor'></span>", unsafe_allow_html=True)
@@ -882,6 +883,10 @@ if screen == "Sesión":
                     "cercano). Centralidad: 1 si suele estar en el centro horizontal de la imagen, "
                     "0 si en el borde. El género sale del audio, nunca de la imagen."
                 )
+    st.subheader("Resumen")
+    st.markdown(
+        f"<div class='summary-box'>{html.escape(session_summary(s))}</div>", unsafe_allow_html=True
+    )
     with st.container(key="sec_descargas"):
         st.markdown(
             "<span id='sec-descargas' class='anchor'></span><h2 class='sr-only'>Descargas</h2>",
@@ -930,7 +935,13 @@ else:
         k: f"{v} ({METRIC_UNITS[k]})" if k in METRIC_UNITS else v for k, v in SHORT_TITLES.items()
     }
     evo = evo.rename(columns={c: names.get(c, c) for c in evo.columns})
-    st.table(evo.style.hide(axis="index").format(precision=2, na_rep="-"))
+    evo = evo.drop(columns=["Fecha"])  # la fecha ya va en el nombre de la sesión
+    st.table(
+        evo.style.hide(axis="index")
+        .format(precision=2, na_rep="-")
+        .set_properties(**{"font-size": "0.8em"})
+        .set_table_styles([{"selector": "th", "props": [("font-size", "0.75em")]}])
+    )
     st.markdown("**Qué es cada columna**")
     for key, text in METRIC_EXPLAINED.items():
         if names[key] in evo.columns:

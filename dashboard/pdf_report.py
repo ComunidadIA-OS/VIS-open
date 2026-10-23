@@ -30,12 +30,12 @@ from dashboard.data import (
     PENDING_METRICS,
     SOURCE_NOTICE,
     Session,
-    _reading,
     fmt_pct,
     fmt_time,
     gender_time_table,
     inconclusive_reason,
     metric_card,
+    session_summary,
     timeline_strip,
     video_people_series,
     video_tables,
@@ -249,12 +249,8 @@ def report_pdf(
 ) -> bytes:
     """PDF del informe de una sesión."""
     st = _styles()
-    tl = session.timeline
     gt = gender_time_table(session)
-    share = dict(zip(gt["gender"], gt["porcentaje"], strict=True))
     voices = voices_table(session)
-    known = int((voices["genero"] != "desconocido").sum())
-    confirmed = len(session.confirmed)
     src = session.source or {}
     ficha = (
         "SINTÉTICO: datos de ejemplo, no son una sesión real."
@@ -262,12 +258,7 @@ def report_pdf(
         else src.get("cita") or SOURCE_NOTICE
     )
     link = transcript_link or f"transcripcion_{session.session_id}.csv"
-    summary = (
-        f"Sesión de {tl.duration_s / 60:.0f} minutos con {len(voices)} voces, de las que "
-        f"{known} tienen género asignado"
-        + (f" ({confirmed} confirmadas por dos anotadoras)" if confirmed else "")
-        + f". {_reading(share)}"
-    )
+    summary = session_summary(session)
 
     story: list = [
         Paragraph(_t(f"Informe de la sesión {session.session_id}"), st["h1"]),
