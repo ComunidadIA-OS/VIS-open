@@ -16,11 +16,13 @@ import streamlit as st
 
 from dashboard.auth import auth_enabled, check_login
 from dashboard.data import (
+    EVOLUTION_NOTE,
     METHOD_NOTICE,
     PENDING_METRICS,
     SOURCE_NOTICE,
     annotator_answers,
     evolution_gender_table,
+    evolution_reading,
     evolution_table,
     fmt_time,
     gender_time_table,
@@ -906,10 +908,17 @@ if screen == "Sesión":
         )
 else:
     st.title("Evolución entre sesiones")
-    st.info(
-        "Con pocas sesiones no se pueden sacar tendencias; "
-        "el gráfico muestra cómo funcionará con más sesiones."
-    )
+    st.info(EVOLUTION_NOTE)
+    reading, others = evolution_reading(sessions)
+    if reading:
+        st.subheader("Lectura de la evolución")
+        st.markdown("\n".join(f"- {line}" for line in reading))
+    if others:
+        st.caption(
+            "No se comparan por ser de otro formato (no son sesiones de control): "
+            + ", ".join(others)
+            + "."
+        )
     st.subheader("Tiempo de palabra por género en cada sesión (%)")
     from dashboard.voice import explain_evolution
 
