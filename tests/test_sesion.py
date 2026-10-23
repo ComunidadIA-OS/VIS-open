@@ -95,3 +95,20 @@ def test_manifest_xlsx_has_dropdowns_for_validation(tmp_path):
     ws = openpyxl.load_workbook(csv_to_xlsx(data / "manifiesto.csv")).worksheets[0]
     lists = [dv.formula1 for dv in ws.data_validations.dataValidation]
     assert '"si,pendiente"' in lists  # licencia_verificada
+
+
+def test_new_plenaries_follow_the_last_one_until_one_is_missing(tmp_path, monkeypatch):
+    data = _data(tmp_path, [])
+    with (data / "manifiesto.csv").open("a", newline="", encoding="utf-8") as fh:
+        csv.DictWriter(fh, COLUMNS).writerow(
+            {
+                "video_id": "V005",
+                "url_origen": "https://app.congreso.es/AudiovisualCongreso/audiovisualdetalledisponible"
+                "?codOrgano=400&codSesion=202&idLegislaturaElegida=15&fechaSesion=30/09/2026",
+            }
+        )
+    published = {"15_000400_203", "15_000400_204"}
+    monkeypatch.setattr(
+        sesion, "_fetch", lambda u: "#EXTM3U" if any(p in u for p in published) else ""
+    )
+    assert [s for s, _, _ in sesion.new_plenaries(data)] == [203, 204]

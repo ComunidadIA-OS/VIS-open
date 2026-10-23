@@ -4,6 +4,7 @@ Uso:
   python -m pipeline.sesion V008                      # el vídeo ya está en data/raw/V008.mp4
   python -m pipeline.sesion V008 --hls-url URL_MASTER.m3u8   # lo descarga (audio original)
   python -m pipeline.sesion V008 --video-url URL [--audio-url URL]   # o con las pistas sueltas
+  python -m pipeline.sesion --buscar                  # plenos nuevos publicados: los descarga
   python -m pipeline.sesion --nuevos                  # vídeos de data/raw sin fila: la escribe
   python -m pipeline.sesion --pendientes              # todas las del manifiesto sin resultados
   python -m pipeline.sesion V008 --congreso-url URL_DE_LA_SESION --set tramo_inicio=00:06:13
@@ -29,6 +30,7 @@ import subprocess
 import sys
 import time
 import unicodedata
+from datetime import date
 from pathlib import Path
 from urllib.parse import urljoin
 
@@ -46,6 +48,7 @@ def _run(*args: str) -> float:
 
 
 STREAMING = "https://streaming.congreso.es:8443/vod/ondemand/video"
+PLENO = "400"
 
 
 def master_urls(congreso_url: str) -> list[str]:
@@ -57,9 +60,56 @@ def master_urls(congreso_url: str) -> list[str]:
     Legislatura, órgano con 6 cifras, sesión con 3.
     """
     s = parse_session_url(congreso_url)
-    sid = f"{s.legislatura}_{int(s.cod_organo):06d}_{int(s.cod_sesion):03d}"
-    base = f"{STREAMING}/leg{s.legislatura}/{s.cod_organo}/{sid}/cortes"
+    return stream_urls(s.legislatura, s.cod_organo, s.cod_sesion)
+
+
+def stream_urls(legislatura: str, organo: str, sesion: str | int) -> list[str]:
+    sid = f"{legislatura}_{int(organo):06d}_{int(sesion):03d}"
+    base = f"{STREAMING}/leg{legislatura}/{organo}/{sid}/cortes"
     return [f"{base}/smil:{sid}.smil/manifest.m3u8", f"{base}/mp4:{sid}.mp4/manifest.m3u8"]
+
+
+def find_master(candidates: list[str]) -> tuple[str, str] | None:
+    """(url, texto) de la primera master playlist que responde."""
+    for url in candidates:
+        master = _fetch(url)
+        if master.startswith("#EXTM3U"):
+            return url, master
+    return None
+
+
+def last_plenary(data_dir: Path) -> tuple[str, int] | None:
+    """(legislatura, nº de sesión) del último pleno del manifiesto."""
+    from sources.manifest import read_manifest as _read
+
+    found = []
+    for row in _read(data_dir / "manifiesto.csv").values():
+        try:
+            s = parse_session_url(row.get("url_origen") or "")
+        except ValueError:
+            continue
+        if s.cod_organo == PLENO:
+            found.append((int(s.legislatura), int(s.cod_sesion)))
+    return (str(max(found)[0]), max(found)[1]) if found else None
+
+
+def new_plenaries(data_dir: Path, look_ahead: int = 5) -> list[tuple[int, str, str]]:
+    """Plenos publicados después del último del manifiesto: (nº de sesión, url, master).
+
+    Para en el primer número que aún no existe. Solo plenos: las comisiones tienen muchos
+    códigos de órgano y se añaden con su URL (--congreso-url).
+    """
+    last = last_plenary(data_dir)
+    if last is None:
+        return []
+    leg, n = last
+    out = []
+    for ses in range(n + 1, n + 1 + look_ahead):
+        hit = find_master(stream_urls(leg, PLENO, ses))
+        if hit is None:
+            break
+        out.append((ses, *hit))
+    return out
 
 
 def _fetch(url: str) -> str:
@@ -160,6 +210,7 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("video_id", nargs="?")
     ap.add_argument("--pendientes", action="store_true")
+    ap.add_argument("--buscar", action="store_true", help="descarga los plenos nuevos publicados")
     ap.add_argument("--nuevos", action="store_true", help="escribe la fila de los vídeos nuevos")
     ap.add_argument("--hls-url", help="master playlist (.m3u8): elige vídeo y audio original")
     ap.add_argument("--video-url")
@@ -170,6 +221,24 @@ def main(argv: list[str] | None = None) -> None:
     load_dotenv()
     data_dir = Path(os.environ.get("DATA_DIR") or "data")
     sets = [x for s in args.set for x in ("--set", s)]
+    if args.buscar:  # descarga y escribe la fila; el análisis espera a que una persona la valide
+        found = new_plenaries(data_dir)
+        for ses, url, master in found:
+            try:
+                video_url, audio_url = pick_tracks(master, url)
+            except ValueError as exc:
+                print(f"pleno {ses}: {exc}")
+                continue
+            vid = f"{ses}_pleno_{date.today().year}"  # se publica días después: el año en curso
+            raw = data_dir / "raw" / f"{vid}.mp4"
+            if not raw.is_file():
+                download(raw, video_url, audio_url)
+            _run(
+                "sources.congreso", "--file", str(raw), "--set", "tipo_sesion=pleno",
+                "--set", f"titulo=Pleno, sesión {ses}", "--set", f"notas=emisión: {url}",
+            )  # fmt: skip
+        print(f"{len(found)} plenos nuevos; valida sus filas y lanza --pendientes")
+        return
     if args.nuevos:  # solo escribe filas: el análisis espera a que una persona las valide
         videos = new_videos(data_dir)
         for video in videos:
