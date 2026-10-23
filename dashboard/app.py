@@ -816,7 +816,7 @@ if screen == "Sesión":
         st.subheader("Línea de tiempo")
         full_min, tramo = video_minutes(s)
         window = st.slider(
-            "Minutos analizados del vídeo (arrastra los extremos para ver el resto)",
+            "Minutos analizados del vídeo",
             0.0,
             full_min,
             tramo,  # al abrir, el tramo analizado; arrastrando se ve el resto en gris
