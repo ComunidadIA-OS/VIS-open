@@ -38,6 +38,10 @@ CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
 # M14 (manos levantadas) se descartó para el Congreso (Ivette, 22 oct 2026): el panel no la
 # muestra; el módulo de vídeo sigue en el código.
 PENDING_METRICS: dict[str, str] = {}
+LLM_METRIC_NAMES = {
+    "M09": "M09 Preguntas recibidas",
+    "M06": "M06 Preguntas al Presidente del Gobierno",
+}
 MIN_CUT_WORDS = 4  # un corte de Human in the loop tiene que tener palabras, no aplausos
 METHOD_NOTICE = (
     "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
@@ -113,6 +117,16 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
         for key in ("M09", "M06"):  # vienen del LLM, ya contados en m09.json
             if s.m09 and key in s.m09:
                 s.metrics[key] = MetricResult.model_validate(s.m09[key])
+            else:  # todas las métricas se ven siempre, aunque aún no se hayan calculado
+                s.metrics[key] = MetricResult(
+                    metric_id=key,
+                    name=LLM_METRIC_NAMES[key],
+                    is_example=False,
+                    value=None,
+                    conclusive=False,
+                    reason="no concluyente: aún sin calcular (no hay preguntas analizadas)",
+                    sample={},
+                )
     return sessions
 
 
