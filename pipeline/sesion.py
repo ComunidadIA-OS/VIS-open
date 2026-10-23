@@ -170,8 +170,15 @@ def download(video: Path, video_url: str, audio_url: str | None = None) -> None:
         cmd += ["-i", audio_url, "-map", "0:v:0", "-map", "1:a:0"]
     video.parent.mkdir(parents=True, exist_ok=True)
     print("→ descargando", video, flush=True)
-    subprocess.run([*cmd, "-c", "copy", str(video)], check=True)
+    # a un .part: el nombre definitivo solo existe con el fichero completo (nadie lee uno a medias)
+    part = partial(video)
+    subprocess.run([*cmd, "-c", "copy", "-f", "mp4", str(part)], check=True)
+    part.replace(video)
     print(f"sha256 de {video.name}: {sha256_file(video)}")
+
+
+def partial(video: Path) -> Path:
+    return video.with_name(video.name + ".part")
 
 
 def pending(data_dir: Path) -> list[str]:
@@ -238,6 +245,10 @@ def main(argv: list[str] | None = None) -> None:
                 continue
             vid = f"{ses}_pleno_{date.today().year}"  # se publica días después: el año en curso
             raw = data_dir / "raw" / f"{vid}.mp4"
+            manifest = data_dir / "manifiesto.csv"
+            if partial(raw).exists() or (manifest.is_file() and vid in read_manifest(manifest)):
+                print(f"{vid}: ya descargado o descargándose; no se repite")
+                continue
             if not raw.is_file():
                 download(raw, video_url, audio_url)
             _run(

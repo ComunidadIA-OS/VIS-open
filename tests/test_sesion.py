@@ -121,3 +121,19 @@ def test_session_id_from_url():
     )
     assert sesion.session_id(page) == "203_pleno_2026"
     assert sesion.session_id(page.replace("codOrgano=400", "codOrgano=309")) == "203_comision_2026"
+
+
+def test_download_writes_a_part_file_and_renames_it_when_complete(tmp_path, monkeypatch):
+    seen = []
+
+    def fake_ffmpeg(cmd, check):
+        out = __import__("pathlib").Path(cmd[-1])
+        seen.append(out.name)
+        out.write_bytes(b"video")
+
+    monkeypatch.setattr(sesion.subprocess, "run", fake_ffmpeg)
+    video = tmp_path / "raw" / "203_pleno_2026.mp4"
+    sesion.download(video, "https://x/v.m3u8")
+    assert seen == ["203_pleno_2026.mp4.part"] and video.is_file()
+    assert not sesion.partial(video).exists()
+    assert [v.name for v in sesion.new_videos(tmp_path)] == ["203_pleno_2026.mp4"]  # .part no
