@@ -131,22 +131,15 @@ def with_unit(key: str, valor: str) -> str:
     return f"{number} {METRIC_UNITS[key]}" if key in METRIC_UNITS else number
 
 
-# El resto del marco de métricas, con su estado (Ivette, docs/metricas.md §5 y §6, PR #103).
+# Métricas del marco aún sin calcular, con su estado (docs/metricas.md §6, PR #103). Las
+# descartadas para el Congreso (§5) no se muestran.
 OTHER_METRICS = [
-    ("M05 Turno más largo", "descartada", "El tiempo está limitado por reglamento."),
     (
         "M07 Interrupciones y llamadas al orden",
         "pendiente",
         "Evolución futura: rumores y protestas del Diario.",
     ),
-    ("M08 Palabra cedida por la moderación", "descartada", "El orden lo fija el orden del día."),
-    ("M10 Distribución por cuartiles", "descartada", "El orden de las preguntas está fijado."),
     ("M12 Temas por género", "pendiente", "Evolución futura: asunto de cada pregunta."),
-    (
-        "M14 Manos levantadas, M15 y M16",
-        "descartada",
-        "En el pleno no se pide la palabra con la mano.",
-    ),
     ("M17 Equidad", "incluida en M04", "Es el ratio de M04."),
     (
         "M18 Cortes de la Presidencia",
@@ -753,7 +746,7 @@ if screen == "Sesión":
         st.markdown("<span id='sec-metricas' class='anchor'></span>", unsafe_allow_html=True)
         # 3. El análisis de la sesión completa.
         st.header("Análisis de la sesión")
-        cards = [(key, metric_card(r)) for key, r in s.metrics.items()]
+        cards = [(key, metric_card(r)) for key, r in sorted(s.metrics.items())]  # M01…M13
         per_row = 3
         for first in range(0, len(cards), per_row):
             for col, (key, card) in zip(
