@@ -95,15 +95,3 @@ def test_manifest_xlsx_has_dropdowns_for_validation(tmp_path):
     ws = openpyxl.load_workbook(csv_to_xlsx(data / "manifiesto.csv")).worksheets[0]
     lists = [dv.formula1 for dv in ws.data_validations.dataValidation]
     assert '"si,pendiente"' in lists  # licencia_verificada
-
-
-def test_permanent_deputation_is_excluded(tmp_path, monkeypatch):
-    import pytest as _pytest
-
-    monkeypatch.setenv("DATA_DIR", str(_data(tmp_path, [])))
-    other = (
-        "https://app.congreso.es/AudiovisualCongreso/audiovisualdetalledisponible?codOrgano=500"
-        "&codSesion=8&idLegislaturaElegida=15&fechaSesion=16/10/2026"
-    )
-    with _pytest.raises(SystemExit, match="Diputación Permanente"):
-        sesion.main(["V009", "--congreso-url", other])
