@@ -33,7 +33,8 @@ FORMATOS = {"debate", "entrevista", "mesa_redonda", "comparecencia", "sintetico"
 BASES_LEGALES = {"interes_legitimo", "consentimiento", "no_aplica"}
 USOS = {"evaluacion", "demo", "test"}
 # Solo «control» (sesión de control al Gobierno) tiene las métricas de preguntas.
-TIPOS_SESION = {"control", "pleno", "comision", "diputacion_permanente"}
+# Sin tipo: otro formato (Diputación Permanente, actos).
+TIPOS_SESION = {"control", "pleno", "comision"}
 
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _TIME = re.compile(r"^\d{2}:[0-5]\d:[0-5]\d$")

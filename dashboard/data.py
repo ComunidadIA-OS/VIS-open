@@ -154,7 +154,6 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
 TIPO_LABELS = {
     "pleno": "pleno (sin preguntas)",
     "comision": "comisión",
-    "diputacion_permanente": "Diputación Permanente",
 }
 
 
