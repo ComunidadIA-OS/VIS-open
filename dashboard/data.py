@@ -757,4 +757,66 @@ def session_summary(session: Session) -> str:
         f"las que {known} tienen género asignado"
         + (f" ({confirmed} confirmadas por dos anotadoras)" if confirmed else "")
         + f". {_reading(share)}"
+        + _video_reading(session.video)
     )
+
+
+def _video_reading(video: dict | None) -> str:
+    """Lo que ve la cámara, en una frase; vacío si la sesión no tiene análisis de vídeo."""
+    if not video or "tiempo_en_pantalla_por_genero_%" not in video:
+        return ""
+    pct = video["tiempo_en_pantalla_por_genero_%"]
+    return (
+        f" En la imagen, el tiempo en pantalla es de mujeres el {pct.get('mujer', 0):.1f} %, "
+        f"de hombres el {pct.get('hombre', 0):.1f} % y sin género el "
+        f"{pct.get('desconocido', 0):.1f} % (el género sale del audio, nunca de la imagen); se "
+        f"ven hasta {video.get('personas_visibles_max', 0)} personas a la vez. Es lo que ve la "
+        "cámara, no quién hay en la sala."
+    )
+
+
+EVOLUTION_NOTE = (
+    "Comparación descriptiva de las sesiones de control analizadas: las diferencias describen "
+    "esas sesiones concretas y no permiten hablar de tendencia. Al incorporar más sesiones de "
+    "cada legislatura, el análisis ganará solidez y precisión."
+)
+
+
+def _es(value: float, signed: bool = False) -> str:
+    text = f"{value:+.2f}" if signed else f"{value:.2f}"  # como las tarjetas: 41,65 %
+    return text.replace(".", ",").replace("-", "−")
+
+
+def evolution_reading(sessions: list[Session]) -> tuple[list[str], list[str]]:
+    """(frases, sesiones que no se comparan): lectura de la evolución con cifras del código.
+
+    Solo compara sesiones de control (mismo formato), en orden de fecha; nunca habla de tendencia
+    y solo usa métricas concluyentes. Las cifras las calcula el código (regla 3), no un LLM.
+    """
+    real = [s for s in sessions if not s.synthetic]
+    control = sorted(
+        (s for s in real if "control" in (s.source or {}).get("titulo", "").lower()),
+        key=lambda s: ((s.source or {}).get("fecha_evento", ""), s.session_id),
+    )
+    others = [session_label(s) for s in real if s not in control]
+    specs = [
+        ("M02", "Tiempo de palabra de las mujeres (M02)", " %", True),
+        ("M04", "Brecha de paridad, mujeres − hombres (M04)", " puntos", True),
+        ("M09", "Preguntas por ministra frente a ministro (M09; 1 = igual)", "", False),
+    ]
+    lines = []
+    for key, label, unit, with_change in specs:
+        points = [
+            ((s.source or {}).get("fecha_evento", "")[:4], s.metrics[key].value)
+            for s in control
+            if key in s.metrics and s.metrics[key].conclusive
+        ]
+        if len(points) < 2:
+            continue
+        series = ", ".join(f"{_es(v)}{unit} en {y}" for y, v in points)
+        line = f"{label}: {series}."
+        if with_change:
+            first, last = points[0], points[-1]
+            line += f" De {first[0]} a {last[0]}: {_es(last[1] - first[1], signed=True)} puntos."
+        lines.append(line)
+    return lines, others

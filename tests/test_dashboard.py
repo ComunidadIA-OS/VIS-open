@@ -520,3 +520,42 @@ def test_subtitles_are_webvtt_with_speaker_names_and_clip_offset():
     clip = subtitles_vtt(s, 12.0, 18.0)  # el clip empieza en 0: tiempos desplazados
     assert clip.splitlines()[2].startswith("00:00:00.000 -->")
     assert "Gracias presidenta." in clip and "00:01:" not in clip
+
+
+def test_summary_includes_the_camera_reading_only_when_there_is_video():
+    from dashboard.data import _video_reading
+
+    assert _video_reading(None) == ""
+    text = _video_reading(
+        {"tiempo_en_pantalla_por_genero_%": {"mujer": 23.1, "hombre": 33.6, "desconocido": 43.3},
+         "personas_visibles_max": 4}
+    )  # fmt: skip
+    assert "mujeres el 23.1 %" in text and "hasta 4 personas" in text and "no quién hay" in text
+
+
+def test_evolution_reading_compares_only_control_sessions_with_code_numbers():
+    from dashboard.data import Session, evolution_reading
+    from metrics.registry import MetricResult
+
+    def sess(sid, fecha, titulo, m02):
+        s = Session(sid, None)
+        s.source = {"fecha_evento": fecha, "titulo": titulo}
+        s.metrics = {
+            "M02": MetricResult(
+                metric_id="M02", name="M02", is_example=False, value=m02, conclusive=True, sample={}
+            )
+        }  # fmt: skip
+        return s
+
+    lines, others = evolution_reading(
+        [
+            sess("V7", "2018-09-19", "Pleno, sesión 142, sesión de control", 55.13),
+            sess("V5", "2026-09-30", "Pleno, sesión 202, sesión de control", 41.65),
+            sess("V4", "2026-10-16", "Diputación Permanente", 22.8),
+        ]
+    )
+    assert lines == [
+        "Tiempo de palabra de las mujeres (M02): 55,13 % en 2018, 41,65 % en 2026. "
+        "De 2018 a 2026: −13,48 puntos."
+    ]
+    assert others and others[0].startswith("V4")
