@@ -37,6 +37,7 @@ CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
 # M14 (manos levantadas) se descartó para el Congreso (Ivette, 22 oct 2026): el panel no la
 # muestra; el módulo de vídeo sigue en el código.
 PENDING_METRICS: dict[str, str] = {}
+MIN_CUT_WORDS = 4  # un corte de Human in the loop tiene que tener palabras, no aplausos
 METHOD_NOTICE = (
     "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
     "cara ni la voz. "
@@ -249,11 +250,15 @@ def show_tracks(tracks: pd.DataFrame) -> pd.DataFrame:
 def voice_blocks(
     timeline: AnalysisTimeline, speaker_id: str, gap_s: float = 3.0, top: int = 3
 ) -> list[tuple[float, float]]:
-    """Tramos seguidos de una voz (pausas de hasta `gap_s`), los `top` más largos, en orden."""
+    """Tramos seguidos de una voz (pausas de hasta `gap_s`), los `top` más largos, en orden.
+
+    Solo con segmentos que tienen palabras: un tramo de aplausos o ruido no sirve para validar.
+    """
     events = sorted(
         (e for e in timeline.events if e.type == EventType.SPEECH and e.speaker_id == speaker_id),
         key=lambda e: e.start_s,
     )
+    events = [e for e in events if len((e.text or "").split()) >= MIN_CUT_WORDS] or events
     blocks: list[list[float]] = []
     for e in events:
         if blocks and e.start_s - blocks[-1][1] <= gap_s:

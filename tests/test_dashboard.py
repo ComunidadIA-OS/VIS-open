@@ -240,6 +240,15 @@ def test_voice_blocks_and_time_format():
         events=[ev(0, 0, 10), ev(1, 11, 20), ev(2, 100, 105), ev(3, 200, 230)],
     )
     assert voice_blocks(tl, "SPEAKER_00", top=2) == [(0, 20), (200, 230)]
+    words = "Señora ministra, le pregunto por los alquileres."
+    applause = AnalysisTimeline(
+        video_id="A",
+        duration_s=300,
+        speakers=[Speaker(speaker_id="SPEAKER_00")],
+        events=[ev(0, 0, 40).model_copy(update={"text": "(Aplausos)"}),
+                ev(1, 100, 110).model_copy(update={"text": words})],
+    )  # fmt: skip
+    assert voice_blocks(applause, "SPEAKER_00", top=1) == [(100, 110)]  # sin el tramo de aplausos
     assert fmt_time(178) == "2:58" and fmt_time(5) == "0:05"
 
 
