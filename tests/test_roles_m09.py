@@ -172,3 +172,35 @@ def test_cli_writes_m09_json_next_to_the_timeline(tmp_path, capsys):
     out = json.loads((tmp_path / "m09.json").read_text(encoding="utf-8"))
     assert out["preguntas"] == 2 and {"M09", "M06"} <= set(out)
     assert json.loads(capsys.readouterr().out) == out
+
+
+def test_control_session_blocks_start_at_each_announcement_not_at_the_replica():
+    """«Pregunta del diputado don…» abre la pregunta; «tiene la palabra» es solo la réplica."""
+    events, t = [], 0.0
+
+    def add(speaker, text, seconds):
+        nonlocal t
+        events.append(
+            AnalysisEvent(
+                event_id=f"e{len(events)}", type=EventType.SPEECH, start_s=t, end_s=t + seconds,
+                speaker_id=speaker, text=text, provenance=Provenance.OBSERVED,
+            )
+        )  # fmt: skip
+        t += seconds + 1.5
+
+    for announcement, asker, answerer in (
+        ("Pregunta de la diputada doña Persona 3, del Grupo Popular.", A1, MIN_F),
+        ("La siguiente pregunta la formula el diputado don Persona 4.", A2, MIN_M),
+    ):
+        add(CHAIR, announcement, 4)
+        add(asker, "Señora ministra, ¿qué va a hacer?", 60)
+        add(CHAIR, "Señora ministra.", 2)
+        add(answerer, "Le respondo con datos.", 90)
+        add(CHAIR, "Muchas gracias. Tiene la palabra la señora diputada.", 3)
+        add(asker, "Insisto.", 30)
+        add(answerer, "Y yo respondo.", 40)
+    speakers = [Speaker(speaker_id=s) for s in (CHAIR, A1, A2, MIN_F, MIN_M)]
+    timeline = AnalysisTimeline(video_id="C", duration_s=t + 5, speakers=speakers, events=events)
+    blocks = question_blocks(timeline)
+    assert find_chair(timeline) == CHAIR
+    assert [(b.asker, b.answerer) for b in blocks] == [(A1, MIN_F), (A2, MIN_M)]

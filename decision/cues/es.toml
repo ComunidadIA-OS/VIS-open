@@ -22,9 +22,32 @@ phrases = [
   "puede intervenir",
   "puede usted intervenir",
   "tiene la palabra para",
+  # Sesión de control: la Presidencia anuncia la pregunta y quien la formula.
+  "pregunta de la diputada",
+  "pregunta del diputado",
+  "formula la diputada",
+  "formula el diputado",
 ]
 lookahead_tokens = 12   # palabras tras la frase donde buscar el tratamiento
 max_gap_s = 30          # la voz atribuida debe hablar como mucho este tiempo después
+
+[question_start]
+# Sesión de control: frases con las que la Presidencia abre una pregunta nueva. Si una sesión
+# las tiene, cada pregunta empieza solo aquí (no en «tiene la palabra», que también se usa para
+# la réplica). Si no las tiene (otros debates), se usan las de [floor_grant].
+# Comprobado en los Diarios de Sesiones de 19/09/2018, 05/10/2022 y 30/09/2026: 20, 19 y 17.
+phrases = [
+  "pregunta de la diputada",
+  "pregunta del diputado",
+  "pregunta de la senora",
+  "pregunta del senor",
+  "pregunta tambien",
+  "siguiente pregunta",
+  "siguientes preguntas",
+  "ultima pregunta",
+  "primera pregunta",
+  "primeras preguntas",
+]
 
 [address]
 woman = ["senora", "dona"]

@@ -257,3 +257,10 @@ def test_a_short_stretch_after_a_floor_phrase_is_not_split_off():
         ]
     )  # 4 s tras la frase: menos que MIN_SPLIT_S, es ruido
     assert split_on_floor_grant(tl, load_rules()) is tl
+
+
+def test_control_session_announcement_gives_gender_to_the_next_voice():
+    announcement = "La siguiente pregunta la formula la diputada doña Persona 3, del Grupo Popular."
+    tl = make([("SPEAKER_00", announcement), ("SPEAKER_01", "Gracias. Mi pregunta es clara.")])
+    gender, a = gender_of(tl, "SPEAKER_01")
+    assert gender == W and a.confidence >= 0.7
