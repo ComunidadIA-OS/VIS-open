@@ -545,10 +545,17 @@ if screen == "Sesión":
                 "<div class='chips'>" + "".join(f"<span>{c}</span>" for c in chips if c) + "</div>",
                 unsafe_allow_html=True,
             )
-            st.caption(src.get("cita") or SOURCE_NOTICE)
-            if src.get("url_origen"):
-                st.markdown(f"[Fuente]({src['url_origen']})")
-        st.info(METHOD_NOTICE)
+            cita = html.escape(src.get("cita") or SOURCE_NOTICE)
+            url = src.get("url_origen", "")
+            # La cita es el enlace a la fuente (en azul); no hace falta un segundo «Fuente».
+            st.markdown(
+                f"<a class='source-link' href='{html.escape(url, quote=True)}' target='_blank' "
+                f"rel='noopener'>{cita}</a>"
+                if url.startswith("https://")
+                else f"<span class='source-link'>{cita}</span>",
+                unsafe_allow_html=True,
+            )
+        st.caption(METHOD_NOTICE)
     with st.container(key="nav"):
         st.markdown(
             "<nav class='secnav'>"
@@ -734,7 +741,11 @@ if screen == "Sesión":
         chart(
             alt.Chart(gt)
             .mark_bar()
-            .encode(x="gender", y="minutos", color=alt.Color("gender", scale=COLORS)),
+            .encode(
+                x=alt.X("gender", title=None, axis=alt.Axis(labelAngle=0)),
+                y=alt.Y("minutos", title="minutos"),
+                color=alt.Color("gender", scale=COLORS, legend=None),  # ya lo dice el eje
+            ),
             "Gráfico de barras del tiempo de palabra por género: "
             + say_rows(gt, "gender", "minutos", "minutos")
             + ".",
@@ -743,8 +754,17 @@ if screen == "Sesión":
         chart(
             alt.Chart(timeline_strip(s))
             .mark_bar(height=80)
-            .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS))
-            .properties(height=130),
+            .encode(
+                x=alt.X("inicio_min", title=None),  # minutos; sin el rótulo técnico
+                x2="fin_min",
+                color=alt.Color(
+                    "genero",
+                    scale=COLORS,
+                    title="Género",
+                    legend=alt.Legend(orient="bottom", direction="horizontal"),
+                ),
+            )
+            .properties(height=150),
             f"Línea de tiempo de los {s.timeline.duration_s / 60:.0f} minutos de la sesión, "
             "coloreada por el género de quien habla. La transcripción de abajo tiene lo mismo en "
             "texto, en orden.",
@@ -829,7 +849,11 @@ if screen == "Sesión":
                 chart(
                     alt.Chart(vt[0])
                     .mark_bar()
-                    .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS)),
+                    .encode(
+                        x=alt.X("genero", title=None, axis=alt.Axis(labelAngle=0)),
+                        y=alt.Y("minutos", title="minutos"),
+                        color=alt.Color("genero", scale=COLORS, legend=None),
+                    ),
                     "Gráfico de barras del tiempo en pantalla por género: "
                     + say_rows(vt[0], "genero", "minutos", "minutos")
                     + ".",

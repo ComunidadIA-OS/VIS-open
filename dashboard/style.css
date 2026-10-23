@@ -94,6 +94,7 @@ html { scroll-behavior: smooth; }
   margin-top: 0.7rem; font-size: var(--fs-min); letter-spacing: 0.16em; text-transform: uppercase;
   font-weight: 600; color: rgba(255, 255, 255, 0.9);
 }
+.source-link { display: block; margin: 0.2rem 0 0.4rem; font-size: var(--fs-small); color: var(--accent); }
 .cut-text { font-size: var(--fs-small); line-height: 1.45; color: var(--ink); }
 .st-key-hero h1 { font-size: calc(var(--fs-hero) * 0.7); }  /* la sesión, un 30 % menor */
 .eyebrow {
