@@ -181,7 +181,23 @@ def login_gate() -> str | None:
 
 
 current_user = login_gate()
-sessions = load_sessions(DATA_DIR)
+
+
+def data_stamp(data_dir: Path) -> tuple:
+    """Cambia si cambia algún fichero de las sesiones (p. ej. al validar en Human in the loop) o
+    de los datos externos (listas de diputadas y diputados)."""
+    folders = [data_dir / "processed", data_dir / "externos"]
+    files = (p for f in folders if f.is_dir() for p in f.rglob("*") if p.is_file())
+    return tuple(sorted((str(p), p.stat().st_mtime_ns) for p in files))
+
+
+@st.cache_resource(show_spinner="Cargando las sesiones…", max_entries=1)
+def cached_sessions(data_dir: str, stamp: tuple) -> list:
+    """Se calculan una vez y se reutilizan en cada clic, hasta que cambian sus ficheros."""
+    return load_sessions(Path(data_dir))
+
+
+sessions = cached_sessions(str(DATA_DIR), data_stamp(DATA_DIR))
 
 
 def run_voice(cmd, ids: list[str]) -> str:
