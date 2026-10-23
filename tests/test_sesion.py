@@ -137,3 +137,16 @@ def test_download_writes_a_part_file_and_renames_it_when_complete(tmp_path, monk
     assert seen == ["203_pleno_2026.mp4.part"] and video.is_file()
     assert not sesion.partial(video).exists()
     assert [v.name for v in sesion.new_videos(tmp_path)] == ["203_pleno_2026.mp4"]  # .part no
+
+
+def test_session_cost_counts_the_whole_time_and_qwen_tokens():
+    env = {"GPU_PRICE_EUR_H": "1.93", "GPU_COUNT": "2",
+           "LLM_PRICE_IN_PER_MTOK": "0.10", "LLM_PRICE_OUT_PER_MTOK": "0.15"}  # fmt: skip
+    seconds = {"deteccion_y_descarga": 420.0, "audio_y_voces": 2880.0, "m09_llm": 300.0}
+    m09 = {"consumo": {"llamadas": 20, "tokens_in": 20000, "tokens_out": 1500}}
+    c = sesion.session_cost(seconds, m09, env)
+    assert c["segundos_totales"] == 3600.0
+    assert c["maquina_eur"] == 3.86  # 1 h con 2 GPU facturadas
+    assert c["qwen_eur"] == 0.002225
+    assert c["total_eur"] == round(3.86 + 0.002225, 4)
+    assert sesion.session_cost(seconds, m09, {})["total_eur"] is None  # sin precios, sin €

@@ -56,6 +56,8 @@ class Judgement:
     confidence: float
     cargo_destinatario: str | None = None
     evidence: str | None = None
+    tokens_in: int = 0  # consumo real del modelo en este bloque (0 con reglas)
+    tokens_out: int = 0
 
 
 def _plain(text: str) -> str:
@@ -106,6 +108,8 @@ def judge_blocks(blocks: Sequence[QuestionBlock], engine) -> list[Judgement]:
                 d.confidence if d else 0.0,
                 getattr(d, "cargo_destinatario", None) if d else None,
                 d.evidence if d else None,
+                (getattr(d, "tokens_in", None) or 0) if d else 0,
+                (getattr(d, "tokens_out", None) or 0) if d else 0,
             )
         )
     return out
@@ -289,6 +293,11 @@ def main(argv: Sequence[str] | None = None) -> None:
     voice, cargo = head_of_government(timeline, blocks)
     out = {
         "preguntas": len(blocks),
+        "consumo": {
+            "llamadas": sum(1 for j in judgements if j.tokens_in or j.tokens_out),
+            "tokens_in": sum(j.tokens_in for j in judgements),
+            "tokens_out": sum(j.tokens_out for j in judgements),
+        },
         "M09": compute_m09(blocks, genders, judgements, head_voice=voice).model_dump(mode="json"),
         "M06": compute_m06(
             blocks, genders, judgements, head_voice=voice, head_cargo=cargo
