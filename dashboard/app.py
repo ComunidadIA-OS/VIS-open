@@ -7,6 +7,7 @@ No calcula nada con IA, nunca muestra nombres y no analiza caras. Si el vídeo o
 
 from __future__ import annotations
 
+import html
 import os
 from pathlib import Path
 
@@ -148,6 +149,12 @@ st.set_page_config(page_title="VIS Open", layout="wide")
 # Estilo del panel: dashboard/style.css (papel cálido, tinta y un acento; sin recursos externos).
 st.markdown(
     f"<style>{(Path(__file__).parent / 'style.css').read_text(encoding='utf-8')}</style>",
+    unsafe_allow_html=True,
+)
+# Cabecera de marca, a todo lo ancho y por encima de la barra lateral (en las dos pantallas).
+st.markdown(
+    "<div class='brand' role='banner'><div class='brand-name'>VIS <em>Open</em></div>"
+    "<div class='brand-tag'>Presencia y participación de las mujeres en el Congreso</div></div>",
     unsafe_allow_html=True,
 )
 DATA_DIR = Path(os.environ.get("DATA_DIR") or "data")
@@ -523,12 +530,6 @@ if not sessions:
 
 if screen == "Sesión":
     with st.container(key="hero"):
-        st.markdown(
-            "<div class='brand' role='banner'><div class='brand-name'>VIS <em>Open</em></div>"
-            "<div class='brand-tag'>Presencia y participación de las mujeres en el Congreso</div>"
-            "</div>",
-            unsafe_allow_html=True,
-        )
         title_col, pick_col = st.columns([3, 1])
         chosen = pick_col.selectbox(
             "Cambiar de vídeo", [s.session_id for s in sessions], key="sesion"
@@ -662,7 +663,10 @@ if screen == "Sesión":
                 else:
                     clip.video(video_file, start_time=int(start), end_time=int(stop))
             text.caption("Transcripción de este corte")
-            text.write(str(cut["texto"])[:400])
+            text.markdown(  # como mucho, el tamaño del rótulo de arriba
+                f"<div class='cut-text'>{html.escape(str(cut['texto'])[:400])}</div>",
+                unsafe_allow_html=True,
+            )
             with st.form(f"form_{s.session_id}_{sid}_{i}_{who}"):
                 gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
                 confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
