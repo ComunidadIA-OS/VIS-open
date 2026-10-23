@@ -170,8 +170,15 @@ def download(video: Path, video_url: str, audio_url: str | None = None) -> None:
         cmd += ["-i", audio_url, "-map", "0:v:0", "-map", "1:a:0"]
     video.parent.mkdir(parents=True, exist_ok=True)
     print("→ descargando", video, flush=True)
-    subprocess.run([*cmd, "-c", "copy", str(video)], check=True)
+    # a un .part: el nombre definitivo solo existe con el fichero completo (nadie lee uno a medias)
+    part = partial(video)
+    subprocess.run([*cmd, "-c", "copy", "-f", "mp4", str(part)], check=True)
+    part.replace(video)
     print(f"sha256 de {video.name}: {sha256_file(video)}")
+
+
+def partial(video: Path) -> Path:
+    return video.with_name(video.name + ".part")
 
 
 def pending(data_dir: Path) -> list[str]:
@@ -192,11 +199,53 @@ def new_videos(data_dir: Path) -> list[Path]:
     return sorted(v for v in (data_dir / "raw").glob("*.mp4") if v.stem not in known)
 
 
+def session_cost(seconds: dict[str, float], m09: dict | None, env=os.environ) -> dict:
+    """Coste real de una sesión, de la descarga al último análisis, con los precios del .env.
+
+    La máquina con GPU se paga mientras está encendida, también al descargar y en los pasos de
+    CPU: por eso se cuenta el tiempo total. GPU_PRICE_EUR_H = precio por hora de una GPU;
+    GPU_COUNT = GPU que se facturan en esa máquina (aunque el programa use una).
+    """
+    total_s = round(sum(v for v in seconds.values() if v), 1)
+    use = (m09 or {}).get("consumo") or {}
+    out = {
+        "segundos_totales": total_s,
+        "qwen_llamadas": use.get("llamadas", 0),
+        "qwen_tokens_in": use.get("tokens_in", 0),
+        "qwen_tokens_out": use.get("tokens_out", 0),
+    }
+    try:
+        gpu = float(env["GPU_PRICE_EUR_H"]) * int(env.get("GPU_COUNT") or 1)
+        out["maquina_eur"] = round(total_s / 3600 * gpu, 4)
+    except (KeyError, ValueError):
+        out["maquina_eur"] = None
+    try:
+        qwen = (
+            out["qwen_tokens_in"] * float(env["LLM_PRICE_IN_PER_MTOK"])
+            + out["qwen_tokens_out"] * float(env["LLM_PRICE_OUT_PER_MTOK"])
+        ) / 1e6
+        out["qwen_eur"] = round(qwen, 6)
+    except (KeyError, ValueError):
+        out["qwen_eur"] = None if out["qwen_tokens_in"] else 0.0
+    parts = [out["maquina_eur"], out["qwen_eur"]]
+    out["total_eur"] = round(sum(parts), 4) if None not in parts else None
+    out["precios"] = {
+        k: env.get(k)
+        for k in ("GPU_PRICE_EUR_H", "GPU_COUNT", "LLM_PRICE_IN_PER_MTOK", "LLM_PRICE_OUT_PER_MTOK",
+                  "LLM_PRICE_DATE")
+    }  # fmt: skip
+    if out["total_eur"] is None:
+        out["aviso"] = "faltan precios en el .env (GPU_PRICE_EUR_H, LLM_PRICE_*): solo tiempos"
+    return out
+
+
 def analyze_session(video_id: str, data_dir: Path) -> None:
     video = data_dir / "raw" / f"{video_id}.mp4"
     require_ready(video, data_dir / "manifiesto.csv")  # antes de gastar GPU
     timeline = data_dir / "processed" / video_id / "timeline.json"
-    seconds = {"audio_y_voces": _run("pipeline.run", str(video))}
+    times_file = timeline.with_name("tiempos.json")
+    seconds = json.loads(times_file.read_text("utf-8")) if times_file.is_file() else {}
+    seconds["audio_y_voces"] = _run("pipeline.run", str(video))
     seconds["bloques_pregunta"] = _run("decision.roles", str(timeline))
     engine = "llm" if os.environ.get("LLM_API_KEY") else "rules"
     print(f"M09/M06 con el motor «{engine}»", flush=True)
@@ -207,10 +256,14 @@ def analyze_session(video_id: str, data_dir: Path) -> None:
     else:
         print("sin POSE_MODEL: no se analiza el vídeo (el resto ya está en el panel)")
     # tiempo real de cada paso, para el documento de costes (GPU encendida = se factura)
-    out = timeline.with_name("tiempos.json")
-    out.parent.mkdir(parents=True, exist_ok=True)
-    out.write_text(json.dumps(seconds, indent=2), encoding="utf-8")
+    times_file.parent.mkdir(parents=True, exist_ok=True)
+    times_file.write_text(json.dumps(seconds, indent=2), encoding="utf-8")
     print("tiempos (s):", seconds)
+    m09_file = timeline.with_name("m09.json")
+    m09 = json.loads(m09_file.read_text("utf-8")) if m09_file.is_file() else None
+    cost = session_cost(seconds, m09)
+    timeline.with_name("coste.json").write_text(json.dumps(cost, indent=2), encoding="utf-8")
+    print("coste:", cost)
 
 
 def main(argv: list[str] | None = None) -> None:
@@ -238,11 +291,22 @@ def main(argv: list[str] | None = None) -> None:
                 continue
             vid = f"{ses}_pleno_{date.today().year}"  # se publica días después: el año en curso
             raw = data_dir / "raw" / f"{vid}.mp4"
+            manifest = data_dir / "manifiesto.csv"
+            if partial(raw).exists() or (manifest.is_file() and vid in read_manifest(manifest)):
+                print(f"{vid}: ya descargado o descargándose; no se repite")
+                continue
             if not raw.is_file():
+                start = time.monotonic()
                 download(raw, video_url, audio_url)
+                times = data_dir / "processed" / vid / "tiempos.json"
+                times.parent.mkdir(parents=True, exist_ok=True)
+                spent = round(time.monotonic() - start, 1)
+                times.write_text(json.dumps({"deteccion_y_descarga": spent}), encoding="utf-8")
             _run(
                 "sources.congreso", "--file", str(raw), "--set", "tipo_sesion=pleno",
                 "--set", f"titulo=Pleno, sesión {ses}", "--set", f"notas=emisión: {url}",
+                "--set", f"fecha_descarga={date.today().isoformat()}",
+                "--set", "descargado_por=pipeline.sesion (automático)",
             )  # fmt: skip
         print(f"{len(found)} plenos nuevos; valida sus filas y lanza --pendientes")
         return

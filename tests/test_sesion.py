@@ -121,3 +121,53 @@ def test_session_id_from_url():
     )
     assert sesion.session_id(page) == "203_pleno_2026"
     assert sesion.session_id(page.replace("codOrgano=400", "codOrgano=309")) == "203_comision_2026"
+
+
+def test_download_writes_a_part_file_and_renames_it_when_complete(tmp_path, monkeypatch):
+    seen = []
+
+    def fake_ffmpeg(cmd, check):
+        out = __import__("pathlib").Path(cmd[-1])
+        seen.append(out.name)
+        out.write_bytes(b"video")
+
+    monkeypatch.setattr(sesion.subprocess, "run", fake_ffmpeg)
+    video = tmp_path / "raw" / "203_pleno_2026.mp4"
+    sesion.download(video, "https://x/v.m3u8")
+    assert seen == ["203_pleno_2026.mp4.part"] and video.is_file()
+    assert not sesion.partial(video).exists()
+    assert [v.name for v in sesion.new_videos(tmp_path)] == ["203_pleno_2026.mp4"]  # .part no
+
+
+def test_session_cost_counts_the_whole_time_and_qwen_tokens():
+    env = {"GPU_PRICE_EUR_H": "1.93", "GPU_COUNT": "2",
+           "LLM_PRICE_IN_PER_MTOK": "0.10", "LLM_PRICE_OUT_PER_MTOK": "0.15"}  # fmt: skip
+    seconds = {"deteccion_y_descarga": 420.0, "audio_y_voces": 2880.0, "m09_llm": 300.0}
+    m09 = {"consumo": {"llamadas": 20, "tokens_in": 20000, "tokens_out": 1500}}
+    c = sesion.session_cost(seconds, m09, env)
+    assert c["segundos_totales"] == 3600.0
+    assert c["maquina_eur"] == 3.86  # 1 h con 2 GPU facturadas
+    assert c["qwen_eur"] == 0.002225
+    assert c["total_eur"] == round(3.86 + 0.002225, 4)
+    assert sesion.session_cost(seconds, m09, {})["total_eur"] is None  # sin precios, sin €
+
+
+def test_real_cost_table_is_rewritten_between_markers(tmp_path):
+    import json
+
+    from evaluation.costes_reales import END, START, update
+
+    folder = tmp_path / "processed" / "203_pleno_2026"
+    folder.mkdir(parents=True)
+    cost = {
+        "segundos_totales": 3600.0, "qwen_llamadas": 2, "qwen_tokens_in": 900,
+        "qwen_tokens_out": 100, "maquina_eur": 1.93, "qwen_eur": 0.0001, "total_eur": 1.9301,
+    }  # fmt: skip
+    (folder / "coste.json").write_text(json.dumps(cost))
+    doc = tmp_path / "doc.md"
+    doc.write_text("# Costes\n")
+    update(doc, tmp_path / "processed")
+    update(doc, tmp_path / "processed")  # dos veces: no se duplica
+    text = doc.read_text("utf-8")
+    assert text.count(START) == 1 and END in text
+    assert "| 203_pleno_2026 | 60 min | 2 / 1000 | 1,9300 € | 0,0001 € | **1,9301 €** |" in text
