@@ -23,7 +23,6 @@ from dashboard.data import (
     evolution_table,
     fmt_time,
     gender_time_table,
-    inconclusive_reason,
     interventions_table,
     load_sessions,
     make_clip,
@@ -525,7 +524,9 @@ if not sessions:
 if screen == "Sesión":
     with st.container(key="hero"):
         st.markdown(
-            "<div class='eyebrow'>VIS Open · Presencia y participación de las mujeres</div>",
+            "<div class='brand' role='banner'><div class='brand-name'>VIS <em>Open</em></div>"
+            "<div class='brand-tag'>Presencia y participación de las mujeres en el Congreso</div>"
+            "</div>",
             unsafe_allow_html=True,
         )
         title_col, pick_col = st.columns([3, 1])
@@ -575,15 +576,16 @@ if screen == "Sesión":
             minute = st.number_input(
                 "Ir al minuto", min_value=0.0, max_value=max_minute, step=1.0, key=minute_key
             )
+            from dashboard.videoserver import video_url
+
             st.video(
-                video_file,
+                video_url(video_file),  # sin cargar el fichero en memoria (3,6 GB en V005)
                 start_time=int(minute * 60),
                 subtitles={SUBTITLE_LABEL: subtitles_vtt(s).encode("utf-8")},
             )
             st.caption(
-                "Vídeo original del Congreso, sin alterar. Solo se ve en este equipo. "
-                "Subtítulos para personas sordas: botón «CC» del reproductor (son automáticos, con "
-                "nombres en clave, y pueden tener errores)."
+                "Vídeo original del Congreso, sin alterar. "
+                "Subtítulos (son automáticos, con nombres en clave, y pueden tener errores)."
             )
             st.download_button(
                 "Descargar subtítulos (.vtt)",
@@ -634,10 +636,7 @@ if screen == "Sesión":
                 text=f"Has validado {decided} de {len(all_voices)} voces",
             )
         if cuts:
-            st.caption(
-                f"{len(cuts)} cortes, uno a continuación de otro. Cuando validas una voz en un "
-                "corte, vale para todos los cortes de esa voz."
-            )
+            st.caption(f"{len(cuts)} cortes por validar.")
         for i, cut in enumerate(cuts, 1):
             sid = str(cut["speaker_id"])
             code = codes.get(sid, sid)
@@ -662,7 +661,7 @@ if screen == "Sesión":
                     )
                 else:
                     clip.video(video_file, start_time=int(start), end_time=int(stop))
-            text.caption("Lo que dice en este corte")
+            text.caption("Transcripción de este corte")
             text.write(str(cut["texto"])[:400])
             with st.form(f"form_{s.session_id}_{sid}_{i}_{who}"):
                 gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
@@ -697,8 +696,12 @@ if screen == "Sesión":
                 )
                 if key in METRIC_EXPLAINED:
                     col.caption(METRIC_EXPLAINED[key])
-        if why := inconclusive_reason(s):
-            st.warning(why)
+                if card["valor"] in ("no concluyente", "no aplica") and card["detalle"]:
+                    # el motivo, en pequeño y bajo su métrica (no un aviso general)
+                    why = (
+                        card["detalle"].removeprefix("no concluyente: ").removeprefix("no aplica: ")
+                    )
+                    col.caption(f"⚠ {card['valor'].capitalize()}: {why}.")
         for key, label in PENDING_METRICS.items():
             st.caption(f"{key} {label}: no disponible todavía")
         if s.referencia:
@@ -792,7 +795,7 @@ if screen == "Sesión":
             st.header("Análisis de vídeo (MediaPipe, sin caras)")
             st.write(
                 "MediaPipe devuelve puntos del cuerpo; de ahí salen las personas visibles, el "
-                "tiempo en pantalla y las manos levantadas. No lee caras ni género."
+                "tiempo en pantalla. No lee caras ni género."
             )
             vt = video_tables(s)
             if not vt:

@@ -61,6 +61,28 @@ html { scroll-behavior: smooth; }
 .stApp h3 { font-size: var(--fs-h3); font-weight: 600; line-height: 1.2; color: var(--accent); margin-top: 1.8rem; }
 
 /* ---------- Cabecera ---------- */
+/* Marca (héroe): más grande que el título de la sesión, sobre el acento. Blanco sobre el
+   verde azulado: contraste de texto grande ≥ 4,5:1. */
+.brand {
+  position: relative; overflow: hidden; margin: 0 0 1.4rem; padding: 1.8rem 2rem 1.5rem;
+  border-radius: var(--radius); box-shadow: var(--shadow-up);
+  background: radial-gradient(120% 160% at 0% 0%, #2a8492 0%, var(--accent) 42%, #123b45 100%);
+}
+.brand::after {
+  content: ""; position: absolute; right: -6rem; top: -7rem; width: 22rem; height: 22rem;
+  border-radius: 50%; background: radial-gradient(circle, rgba(243, 234, 215, 0.22), transparent 65%);
+  pointer-events: none;
+}
+.brand-name {
+  font-family: var(--serif); font-size: clamp(3.4rem, 8vw, 6.2rem); font-weight: 700;
+  letter-spacing: -0.02em; line-height: 0.95; color: #fff;
+}
+.brand-name em { font-style: italic; font-weight: 500; color: var(--sand); }
+.brand-tag {
+  margin-top: 0.7rem; font-size: var(--fs-min); letter-spacing: 0.16em; text-transform: uppercase;
+  font-weight: 600; color: rgba(255, 255, 255, 0.9);
+}
+.st-key-hero h1 { font-size: calc(var(--fs-hero) * 0.7); }  /* la sesión, un 30 % menor */
 .eyebrow {
   font-size: var(--fs-min); letter-spacing: 0.14em; text-transform: uppercase;
   color: var(--accent); font-weight: 600; margin-bottom: 0.2rem;
