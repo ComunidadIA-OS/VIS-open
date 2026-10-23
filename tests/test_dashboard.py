@@ -599,8 +599,8 @@ def test_session_type_from_manifest_decides_question_metrics(tmp_path):
     with (tmp_path / "manifiesto.csv").open("w", newline="", encoding="utf-8") as fh:
         w = csv.DictWriter(fh, COLUMNS)
         w.writeheader()
-        w.writerow({"video_id": "V001", "uso": "evaluacion", "tipo_sesion": "comision"})
+        w.writerow({"video_id": "V001", "uso": "evaluacion", "tipo_sesion": ""})  # acto
         w.writerow({"video_id": "V002", "uso": "test", "tipo_sesion": "control"})
     by_id = {s.session_id: s for s in load_sessions(tmp_path)}
-    assert by_id["V001"].demo and "comisión" in session_label(by_id["V001"])
+    assert by_id["V001"].demo and "otro formato" in session_label(by_id["V001"])
     assert not by_id["V002"].demo  # control: métricas de preguntas aunque sea de test

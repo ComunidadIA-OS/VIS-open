@@ -109,7 +109,7 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
     usos, tipos = _usos(base / "manifiesto.csv")
     for s in sessions:
         s.tipo = tipos.get(s.session_id, "")
-        if s.tipo:  # el tipo de sesión manda; sin él, como antes: uso sin «evaluacion»
+        if s.session_id in tipos:  # con la columna tipo_sesion, solo «control» tiene preguntas
             s.demo = s.tipo != "control"
         else:
             s.demo = bool(usos.get(s.session_id)) and "evaluacion" not in usos[s.session_id]
@@ -170,7 +170,9 @@ def _usos(path: Path) -> tuple[dict[str, set[str]], dict[str, str]]:
     except ManifestError:
         return {}, {}
     usos = {k: set(filter(None, (r.get("uso") or "").split(";"))) for k, r in rows.items()}
-    return usos, {k: (r.get("tipo_sesion") or "").strip() for k, r in rows.items()}
+    # sin la columna (manifiesto anterior) no hay entrada y se mira el uso, como antes
+    tipos = {k: (r["tipo_sesion"] or "").strip() for k, r in rows.items() if "tipo_sesion" in r}
+    return usos, tipos
 
 
 ANNOTATORS = (1, 2)
