@@ -148,6 +148,8 @@ html { scroll-behavior: smooth; }
 }
 [data-testid="stMetric"]:hover { transform: translateY(-3px); box-shadow: var(--shadow-up); border-color: var(--accent); }
 [data-testid="stMetricValue"] { font-family: var(--serif); font-size: var(--fs-value); color: var(--ink); }
+/* La cifra con su unidad se ve entera: si no cabe, pasa a dos líneas en vez de cortarse. */
+[data-testid="stMetricValue"] > div { white-space: normal; overflow: visible; text-overflow: clip; line-height: 1.15; }
 [data-testid="stMetricLabel"], [data-testid="stMetricLabel"] * {
   overflow: visible !important; white-space: normal !important; text-overflow: clip !important;
 }

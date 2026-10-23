@@ -115,7 +115,7 @@ METRIC_UNITS = {
     "M01": "personas",
     "M02": "%",
     "M02b": "%",
-    "M03": "turnos por pregunta",
+    "M03": "turnos/preg.",
     "M04": "puntos",
     "M06": "%",
     "M13": "%",
@@ -184,6 +184,21 @@ def login_gate() -> str | None:
 
 
 current_user = login_gate()
+
+
+def video_minutes(session) -> tuple[float, tuple[float, float]]:
+    """(minutos del vídeo entero, (inicio, fin) del tramo analizado), según el manifiesto."""
+    from sources.manifest import ManifestError, read_manifest, tramo_s
+
+    analysed = session.timeline.duration_s / 60
+    try:
+        row = read_manifest(DATA_DIR / "manifiesto.csv").get(session.session_id) or {}
+        full = float(row.get("duracion_s") or 0) / 60 or analysed
+        start, end = tramo_s(row) if row else (0.0, None)
+    except (ManifestError, ValueError):
+        return analysed, (0.0, analysed)
+    full = max(full, analysed)
+    return full, (start / 60, (end or full * 60) / 60)
 
 
 def data_stamp(data_dir: Path) -> tuple:
@@ -770,11 +785,24 @@ if screen == "Sesión":
             + ".",
         )
         st.subheader("Línea de tiempo")
+        full_min, tramo = video_minutes(s)
+        window = st.slider(
+            "Minutos del vídeo que se ven (arrastra los extremos)",
+            0.0,
+            full_min,
+            tramo,
+            step=1.0,
+            key=f"ventana_{s.session_id}",
+        )
+        strip = timeline_strip(s)
+        strip = strip[(strip["fin_min"] >= window[0]) & (strip["inicio_min"] <= window[1])]
         chart(
-            alt.Chart(timeline_strip(s))
-            .mark_bar(height=80)
+            alt.Chart(strip)
+            .mark_bar(height=80, clip=True)
             .encode(
-                x=alt.X("inicio_min", title=None),  # minutos; sin el rótulo técnico
+                x=alt.X(
+                    "inicio_min", title=None, scale=alt.Scale(domain=list(window), nice=False)
+                ),  # minutos del vídeo original
                 x2="fin_min",
                 color=alt.Color(
                     "genero",
