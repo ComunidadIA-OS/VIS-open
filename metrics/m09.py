@@ -18,6 +18,7 @@ El modelo de lenguaje solo juzga cada bloque de pregunta: ¿quien pregunta formu
 
 from __future__ import annotations
 
+import re
 import unicodedata
 from collections import Counter, defaultdict
 from collections.abc import Mapping, Sequence
@@ -36,6 +37,14 @@ CONFOUNDING_NOTE = (
     "género sin tenerlo en cuenta."
 )
 PM_KEYWORDS = ("presidente del gobierno", "presidenta del gobierno", "presidencia del gobierno")
+# Anuncio de la Presidencia al abrir las preguntas (texto sin tildes). Si no comparece quien
+# preside el Gobierno, ocupa su lugar la Vicepresidencia Primera (docs/metricas.md, M06).
+PM_ANNOUNCEMENT = re.compile(
+    r"dirigidas? (al senor presidente|a la senora presidenta) del gobierno"
+)
+VP1_ANNOUNCEMENT = re.compile(
+    r"dirigidas? (al senor vicepresidente primero|a la senora vicepresidenta primera)"
+)
 
 
 @dataclass(frozen=True)
@@ -64,6 +73,24 @@ def mentioned_gender(cargo: str | None) -> str | None:
 
 def is_head_of_government(cargo: str | None) -> bool:
     return bool(cargo) and any(k in _plain(cargo or "") for k in PM_KEYWORDS)
+
+
+def head_of_government(timeline, blocks: Sequence[QuestionBlock]) -> tuple[str | None, str | None]:
+    """(voz, cargo) de quien encabeza el Gobierno en la sesión, por el anuncio de la Presidencia.
+
+    La Presidencia abre las preguntas con «dirigidas al señor presidente del Gobierno»: quien
+    responde a la primera es esa voz. Quien pregunta le dice «señor presidente», que también es
+    como se llama a quien preside la Cámara: por eso no basta con el cargo que cita el modelo.
+    """
+    if not blocks or blocks[0].answerer is None:
+        return None, None
+    until = blocks[1].start_s if len(blocks) > 1 else float("inf")
+    opening = _plain(" ".join(e.text or "" for e in timeline.events if e.start_s < until))
+    if PM_ANNOUNCEMENT.search(opening):
+        return blocks[0].answerer, "Presidencia del Gobierno"
+    if VP1_ANNOUNCEMENT.search(opening):
+        return blocks[0].answerer, "Vicepresidencia Primera (no comparece la Presidencia)"
+    return None, None
 
 
 def judge_blocks(blocks: Sequence[QuestionBlock], engine) -> list[Judgement]:
@@ -110,8 +137,12 @@ def compute_m09(
     threshold: float = REVIEW_CONFIDENCE_THRESHOLD,
     min_voices: int = MIN_VOICES_KNOWN_GENDER,
     min_seconds: float = MIN_KNOWN_GENDER_SECONDS,
+    head_voice: str | None = None,
 ) -> MetricResult:
-    """Valor = tasa de preguntas por ministra / tasa por ministro (1 = igualdad)."""
+    """Valor = tasa de preguntas por ministra / tasa por ministro (1 = igualdad).
+
+    `head_voice`: voz de quien encabeza el Gobierno (`head_of_government`); va aparte.
+    """
     by_index = {j.block_index: j for j in judgements}
     received: Counter[str] = Counter()
     pm_questions: list[dict] = []
@@ -124,7 +155,7 @@ def compute_m09(
         if j.confidence < threshold:
             review.append(b.index)  # no se cuenta hasta que una persona lo revise
             continue
-        if is_head_of_government(j.cargo_destinatario):
+        if is_head_of_government(j.cargo_destinatario) or b.answerer == head_voice:
             pm_questions.append({"pregunta": b.index, "pregunta_voz": b.asker,
                                  "responde_voz": b.answerer})  # fmt: skip
             continue
@@ -197,6 +228,8 @@ def compute_m06(
     judgements: Sequence[Judgement],
     *,
     threshold: float = REVIEW_CONFIDENCE_THRESHOLD,
+    head_voice: str | None = None,
+    head_cargo: str | None = None,
 ) -> MetricResult:
     """Valor = % de las preguntas al Presidente del Gobierno que formulan mujeres.
 
@@ -206,8 +239,8 @@ def compute_m06(
     asked = Counter()
     for b in blocks:
         j = by_index.get(b.index)
-        if j and j.is_question and j.confidence >= threshold and is_head_of_government(
-            j.cargo_destinatario
+        if j and j.is_question and j.confidence >= threshold and (
+            is_head_of_government(j.cargo_destinatario) or b.answerer == head_voice
         ):  # fmt: skip
             asked[_gender(genders, b.asker)] += 1
     total = sum(asked.values())
@@ -219,7 +252,11 @@ def compute_m06(
         value,
         {"preguntas_al_presidente": total},
         reason,
-        {"por_genero": dict(asked), "nota": "Descriptiva por sesión; se compara con las 3 juntas."},
+        {
+            "por_genero": dict(asked),
+            "cargo_usado": head_cargo,
+            "nota": "Descriptiva por sesión; se compara con las 3 juntas.",
+        },
     )
 
 
@@ -249,10 +286,13 @@ def main(argv: Sequence[str] | None = None) -> None:
     genders = {s.speaker_id: s.gender.value for s in timeline.speakers}
     blocks = question_blocks(timeline)
     judgements = judge_blocks(blocks, get_question_engine(args.engine))
+    voice, cargo = head_of_government(timeline, blocks)
     out = {
         "preguntas": len(blocks),
-        "M09": compute_m09(blocks, genders, judgements).model_dump(mode="json"),
-        "M06": compute_m06(blocks, genders, judgements).model_dump(mode="json"),
+        "M09": compute_m09(blocks, genders, judgements, head_voice=voice).model_dump(mode="json"),
+        "M06": compute_m06(
+            blocks, genders, judgements, head_voice=voice, head_cargo=cargo
+        ).model_dump(mode="json"),
     }
     text = json.dumps(out, indent=2, ensure_ascii=False)
     (args.out or args.timeline.with_name("m09.json")).write_text(text, encoding="utf-8")

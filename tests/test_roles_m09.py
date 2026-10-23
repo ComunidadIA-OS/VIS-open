@@ -17,6 +17,7 @@ from metrics.m09 import (
     Judgement,
     compute_m06,
     compute_m09,
+    head_of_government,
     is_head_of_government,
     judge_blocks,
     main,
@@ -254,3 +255,29 @@ def test_la_pregunta_se_la_formula_opens_a_new_question():
     speakers = [Speaker(speaker_id=s) for s in (CHAIR, A1, A2, MIN_F, MIN_M)]
     timeline = AnalysisTimeline(video_id="F", duration_s=t + 5, speakers=speakers, events=events)
     assert [(b.asker, b.answerer) for b in question_blocks(timeline)] == [(A1, MIN_F), (A2, MIN_M)]
+
+
+@pytest.mark.parametrize(
+    ("announcement", "cargo"),
+    [
+        ("Preguntas dirigidas al señor presidente del Gobierno.", "Presidencia del Gobierno"),
+        (
+            "Preguntas dirigidas al señor vicepresidente primero del Gobierno.",
+            "Vicepresidencia Primera (no comparece la Presidencia)",
+        ),
+        ("Comenzamos con las preguntas.", None),
+    ],
+)
+def test_head_of_government_comes_from_the_chair_announcement(announcement, cargo):
+    """Quien pregunta dice «señor presidente», como a quien preside la Cámara: manda el anuncio."""
+    tl = _timeline([(Q_MAN, A1, MIN_M), (Q_MAN, A2, MIN_M), (Q_MIN, A3, MIN_F), (Q_MIN, A2, MIN_F)])
+    first = tl.events[0].model_copy(update={"text": f"{announcement} {GRANT}"})
+    tl = tl.model_copy(update={"events": [first, *tl.events[1:]]})
+    blocks = question_blocks(tl)
+    voice, got = head_of_government(tl, blocks)
+    assert got == cargo and voice == (MIN_M if cargo else None)
+    judgements = [Judgement(b.index, True, 0.9, "señor presidente") for b in blocks]
+    m6 = compute_m06(blocks, GENDERS, judgements, head_voice=voice, head_cargo=got)
+    m9 = compute_m09(blocks, GENDERS, judgements, min_voices=1, min_seconds=0, head_voice=voice)
+    assert m6.sample == {"preguntas_al_presidente": 2 if cargo else 0}
+    assert len(m9.details["presidente_del_gobierno"]) == (2 if cargo else 0)
