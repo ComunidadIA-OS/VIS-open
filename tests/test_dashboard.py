@@ -415,12 +415,12 @@ def test_screen_tables_use_minutes_and_percent_format():
          "genero": ["mujer"], "texto": ["hola"]}
     )  # fmt: skip
     out = show_interventions(rows)
-    assert out.loc[0, "inicio"] == "1:30" and out.loc[0, "duración"] == "0:07"
+    assert out.loc[0, "inicio (min:s)"] == "1:30" and out.loc[0, "duración (min:s)"] == "0:07"
     voices = pd.DataFrame(
         {"persona": ["Persona 1"], "genero": ["hombre"], "origen": ["x"],
          "minutos": [13.65], "intervenciones": [4]}
     )  # fmt: skip
-    assert show_voices(voices).loc[0, "tiempo de palabra"] == "13:39"
+    assert show_voices(voices).loc[0, "tiempo de palabra (min:s)"] == "13:39"
     tracks = pd.DataFrame(
         {"pista": ["1"], "minutos_en_pantalla": [10.06], "porcentaje": [11.9],
          "tamano_medio": [float("nan")], "centralidad": [0.5], "genero_por_audio": ["mujer"]}

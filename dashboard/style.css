@@ -64,7 +64,7 @@ html { scroll-behavior: smooth; }
 /* Marca (héroe): más grande que el título de la sesión, sobre el acento. Blanco sobre el
    verde azulado: contraste de texto grande ≥ 4,5:1. */
 .brand {
-  position: relative; overflow: hidden; margin: 0 0 1.4rem; padding: 1.8rem 2rem 1.5rem;
+  position: relative; overflow: hidden; margin: 0 0 2.4rem; padding: 1.8rem 2rem 1.5rem;
   border-radius: var(--radius); box-shadow: var(--shadow-up);
   background: radial-gradient(120% 160% at 0% 0%, #2a8492 0%, var(--accent) 42%, #123b45 100%);
 }

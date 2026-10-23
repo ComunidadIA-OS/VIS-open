@@ -12,6 +12,7 @@ import json
 import re
 import shutil
 import subprocess
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -206,8 +207,8 @@ def show_interventions(rows: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(
         {
             "persona": rows["persona"],
-            "inicio": [fmt_time(m * 60) for m in rows["inicio_min"]],
-            "duración": [fmt_time(d) for d in rows["duracion_s"]],
+            "inicio (min:s)": [fmt_time(m * 60) for m in rows["inicio_min"]],
+            "duración (min:s)": [fmt_time(d) for d in rows["duracion_s"]],
             "género": rows["genero"],
             "texto": rows["texto"],
         }
@@ -221,7 +222,7 @@ def show_voices(voices: pd.DataFrame) -> pd.DataFrame:
             "persona": voices["persona"],
             "género": voices["genero"],
             "origen": voices["origen"],
-            "tiempo de palabra": [fmt_time(m * 60) for m in voices["minutos"]],
+            "tiempo de palabra (min:s)": [fmt_time(m * 60) for m in voices["minutos"]],
             "intervenciones": voices["intervenciones"],
         }
     )
@@ -555,7 +556,17 @@ def voices_table(session: Session) -> pd.DataFrame:
     """Una fila por voz: género, de dónde sale, minutos de palabra, intervenciones y evidencia."""
     tl = session.timeline
     codes = speaker_codes(tl)
-    speech = [e for e in tl.events if e.type == EventType.SPEECH and e.speaker_id]
+    speech = sorted(
+        (e for e in tl.events if e.type == EventType.SPEECH and e.speaker_id),
+        key=lambda e: (e.start_s, e.end_s),
+    )
+    # Una intervención = cada vez que la voz toma la palabra hasta que habla otra; no cada
+    # segmento de la transcripción (Whisper parte el habla en trozos de pocos segundos).
+    turns = Counter(
+        e.speaker_id
+        for i, e in enumerate(speech)
+        if i == 0 or speech[i - 1].speaker_id != e.speaker_id
+    )
     rows = []
     for sp in tl.speakers:
         mine = [e for e in speech if e.speaker_id == sp.speaker_id]
@@ -566,7 +577,7 @@ def voices_table(session: Session) -> pd.DataFrame:
                 "genero": sp.gender.value,
                 "origen": sp.gender_source.value,
                 "minutos": round(sum(e.end_s - e.start_s for e in mine) / 60, 2),
-                "intervenciones": len(mine),
+                "intervenciones": turns.get(sp.speaker_id, 0),
                 "evidencia": f"{ev.method}: {ev.phrase}" if ev else "",
             }
         )
