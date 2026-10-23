@@ -97,7 +97,7 @@ def test_manifest_xlsx_has_dropdowns_for_validation(tmp_path):
     assert '"si,pendiente"' in lists  # licencia_verificada
 
 
-def test_only_plenary_sessions(tmp_path, monkeypatch):
+def test_permanent_deputation_is_excluded(tmp_path, monkeypatch):
     import pytest as _pytest
 
     monkeypatch.setenv("DATA_DIR", str(_data(tmp_path, [])))
@@ -105,5 +105,5 @@ def test_only_plenary_sessions(tmp_path, monkeypatch):
         "https://app.congreso.es/AudiovisualCongreso/audiovisualdetalledisponible?codOrgano=500"
         "&codSesion=8&idLegislaturaElegida=15&fechaSesion=16/10/2026"
     )
-    with _pytest.raises(SystemExit, match="solo se analizan plenos"):
+    with _pytest.raises(SystemExit, match="Diputación Permanente"):
         sesion.main(["V009", "--congreso-url", other])
