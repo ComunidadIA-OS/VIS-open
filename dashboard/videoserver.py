@@ -1,14 +1,19 @@
 """Sirve al reproductor del panel los vídeos originales de `data/raw` sin cargarlos en memoria.
 
 `st.video` con un fichero lo lee entero en memoria: con una sesión de 3,6 GB da `MemoryError`.
-Este servidor solo escucha en 127.0.0.1 (el propio equipo), solo entrega `<id>.mp4` de la carpeta
-de vídeos y admite peticiones `Range`, así que el navegador pide solo los trozos que reproduce.
-El fichero no se modifica.
+Este servidor solo entrega `<id>.mp4` de la carpeta de vídeos y admite peticiones `Range`, así que
+el navegador pide solo los trozos que reproduce. El fichero no se modifica.
+
+- En local escucha en 127.0.0.1 (el propio equipo) en un puerto libre.
+- Desplegado (p. ej. un job de OVH, que publica cada puerto en su propia URL), se fijan
+  `VIDEO_PUBLIC_URL` (la URL pública de ese puerto) y `VIDEO_PORT` (por defecto 8502): escucha en
+  0.0.0.0 y el reproductor pide el vídeo a esa URL. El acceso lo controla la plataforma.
 """
 
 from __future__ import annotations
 
 import http.server
+import os
 import re
 import threading
 from pathlib import Path
@@ -77,13 +82,21 @@ class _Handler(http.server.BaseHTTPRequestHandler):
 
 
 def video_url(path: Path) -> str:
-    """URL local para reproducir `path`; arranca el servidor de su carpeta la primera vez."""
+    """URL para reproducir `path`; arranca el servidor de su carpeta la primera vez."""
     root = Path(path).parent.resolve()
+    public = os.environ.get("VIDEO_PUBLIC_URL", "").rstrip("/")
     with _lock:
         if root not in _servers:
             handler = type("VideoHandler", (_Handler,), {"root": root})
-            server = http.server.ThreadingHTTPServer(("127.0.0.1", 0), handler)
+            bind = (
+                ("0.0.0.0", int(os.environ.get("VIDEO_PORT", "8502")))
+                if public
+                else ("127.0.0.1", 0)
+            )
+            server = http.server.ThreadingHTTPServer(bind, handler)
             threading.Thread(target=server.serve_forever, daemon=True).start()
             _servers[root] = server.server_address[:2]
         host, port = _servers[root]
+    if public:
+        return f"{public}/{Path(path).name}"
     return f"http://{host}:{port}/{Path(path).name}"

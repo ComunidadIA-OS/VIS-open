@@ -34,3 +34,12 @@ def test_byte_range_parsing():
     assert _byte_range("bytes=-10", 50) == (40, 49)
     assert _byte_range("bytes=5-500", 50) == (5, 49)
     assert _byte_range(None, 50) is None and _byte_range("items=1-2", 50) is None
+
+
+def test_public_url_when_deployed(tmp_path, monkeypatch):
+    sub = tmp_path / "pub"
+    sub.mkdir()
+    (sub / "V8.mp4").write_bytes(b"abc")
+    monkeypatch.setenv("VIDEO_PUBLIC_URL", "https://job-8502.example/")
+    monkeypatch.setenv("VIDEO_PORT", "0")  # puerto libre en la prueba
+    assert video_url(sub / "V8.mp4") == "https://job-8502.example/V8.mp4"
