@@ -6,8 +6,8 @@ Uso:
   python -m pipeline.sesion V008 --video-url URL [--audio-url URL]   # o con las pistas sueltas
   python -m pipeline.sesion --nuevos                  # vídeos de data/raw sin fila: la escribe
   python -m pipeline.sesion --pendientes              # todas las del manifiesto sin resultados
-  ... --congreso-url URL_DE_LA_SESION --set tramo_inicio=00:06:13 --set tramo_fin=01:35:09
-      # además escribe la fila del manifiesto (sources.congreso), con sha256 y duración
+  python -m pipeline.sesion V008 --congreso-url URL_DE_LA_SESION --set tramo_inicio=00:06:13
+      # descarga la emisión (sale de esa URL) y escribe la fila del manifiesto
 
 Pasos: (0) descarga la emisión con ffmpeg si se da la URL (.m3u8); (1) audio, voces,
 seudonimización y género (`pipeline.run`); (2) bloques de pregunta (`decision.roles`);
@@ -31,12 +31,36 @@ from pathlib import Path
 from urllib.parse import urljoin
 
 from pipeline.envfile import load_dotenv
+from sources.congreso import parse_session_url
 from sources.manifest import ManifestError, read_manifest, require_ready, sha256_file
 
 
 def _run(*args: str) -> None:
     print("→", " ".join(args), flush=True)
     subprocess.run([sys.executable, "-m", *args], check=True)
+
+
+STREAMING = "https://streaming.congreso.es:8443/vod/ondemand/video"
+
+
+def master_urls(congreso_url: str) -> list[str]:
+    """Posibles master playlists de la sesión entera, a partir de la URL de su página.
+
+    Patrón de las páginas (consultadas el 23 oct 2026): leg15/400/15_000400_202/cortes/
+    smil:15_000400_202.smil/manifest.m3u8 (2026, con audio original aparte) o
+    mp4:14_000400_207.mp4/manifest.m3u8 (2018, 2022).
+    Legislatura, órgano con 6 cifras, sesión con 3.
+    """
+    s = parse_session_url(congreso_url)
+    sid = f"{s.legislatura}_{int(s.cod_organo):06d}_{int(s.cod_sesion):03d}"
+    base = f"{STREAMING}/leg{s.legislatura}/{s.cod_organo}/{sid}/cortes"
+    return [f"{base}/smil:{sid}.smil/manifest.m3u8", f"{base}/mp4:{sid}.mp4/manifest.m3u8"]
+
+
+def _fetch(url: str) -> str:
+    # certificado del servidor no verificable (igual que con curl -k al descargar a mano)
+    r = subprocess.run(["curl", "-fsSk", "-m", "30", url], capture_output=True, text=True)
+    return r.stdout if r.returncode == 0 else ""
 
 
 class InterpretationOnly(ValueError):
@@ -144,15 +168,22 @@ def main(argv: list[str] | None = None) -> None:
         return
     if args.pendientes == bool(args.video_id):
         ap.error("indica una sesión (V008), --pendientes o --nuevos")
-    if args.hls_url:
-        # certificado del servidor no verificable (igual que con curl -k al descargar a mano)
-        master = subprocess.run(
-            ["curl", "-fsSk", args.hls_url], check=True, capture_output=True, text=True
-        ).stdout
-        try:
-            args.video_url, args.audio_url = pick_tracks(master, args.hls_url)
-        except ValueError as exc:
-            raise SystemExit(str(exc)) from exc
+    raw = data_dir / "raw" / f"{args.video_id}.mp4" if args.video_id else None
+    candidates = [args.hls_url] if args.hls_url else []
+    if args.congreso_url and not (args.hls_url or args.video_url) and not raw.is_file():
+        candidates = master_urls(args.congreso_url)  # la emisión sale de la URL de la sesión
+    for url in candidates:
+        master = _fetch(url)
+        if master.startswith("#EXTM3U"):
+            print("emisión:", url)
+            try:
+                args.video_url, args.audio_url = pick_tracks(master, url)
+            except ValueError as exc:
+                raise SystemExit(str(exc)) from exc
+            break
+    else:
+        if candidates:
+            raise SystemExit("no se encuentra la emisión: pásala con --hls-url")
     if args.video_url:
         download(data_dir / "raw" / f"{args.video_id}.mp4", args.video_url, args.audio_url)
     manifest = data_dir / "manifiesto.csv"

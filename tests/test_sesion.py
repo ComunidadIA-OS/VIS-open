@@ -71,3 +71,14 @@ def test_hls_without_original_audio_stops():
 def test_hls_with_a_single_audio_inside_the_video():
     master = "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\nv.m3u8\n"
     assert sesion.pick_tracks(master, BASE) == ("https://cdn.example/s/v.m3u8", None)
+
+
+def test_master_url_comes_from_the_session_page_url():
+    page = (
+        "https://app.congreso.es/AudiovisualCongreso/audiovisualdetalledisponible?codOrgano=400"
+        "&codSesion=202&idLegislaturaElegida=15&fechaSesion=30/09/2026"
+    )
+    assert sesion.master_urls(page)[0] == (
+        "https://streaming.congreso.es:8443/vod/ondemand/video/leg15/400/15_000400_202/cortes/"
+        "smil:15_000400_202.smil/manifest.m3u8"
+    )
