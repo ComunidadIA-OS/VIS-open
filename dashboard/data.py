@@ -743,3 +743,18 @@ def _reading(share: dict[str, float]) -> str:
         text + f" La brecha (mujeres − hombres) estaría entre {low:+.1f} y {high:+.1f} puntos "
         f"según cómo fueran esas voces. {verdict}"
     )
+
+
+def session_summary(session: Session) -> str:
+    """Resumen en una frase: duración, voces con género y lectura prudente de la brecha."""
+    gt = gender_time_table(session)
+    share = dict(zip(gt["gender"], gt["porcentaje"], strict=True))
+    voices = voices_table(session)
+    known = int((voices["genero"] != "desconocido").sum())
+    confirmed = len(session.confirmed)
+    return (
+        f"Sesión de {session.timeline.duration_s / 60:.0f} minutos con {len(voices)} voces, de "
+        f"las que {known} tienen género asignado"
+        + (f" ({confirmed} confirmadas por dos anotadoras)" if confirmed else "")
+        + f". {_reading(share)}"
+    )
