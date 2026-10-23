@@ -204,3 +204,27 @@ def test_control_session_blocks_start_at_each_announcement_not_at_the_replica():
     blocks = question_blocks(timeline)
     assert find_chair(timeline) == CHAIR
     assert [(b.asker, b.answerer) for b in blocks] == [(A1, MIN_F), (A2, MIN_M)]
+
+
+def test_announcement_split_in_two_segments_still_opens_the_question():
+    """Whisper puede cortar «Pregunta del | diputado don…» en dos segmentos de la Presidencia."""
+    events, t = [], 0.0
+
+    def add(speaker, text, seconds, gap=1.5):
+        nonlocal t
+        events.append(
+            AnalysisEvent(
+                event_id=f"e{len(events)}", type=EventType.SPEECH, start_s=t, end_s=t + seconds,
+                speaker_id=speaker, text=text, provenance=Provenance.OBSERVED,
+            )
+        )  # fmt: skip
+        t += seconds + gap
+
+    for asker, answerer in ((A1, MIN_F), (A2, MIN_M)):
+        add(CHAIR, "Muchas gracias. Pregunta del", 2, gap=0.3)
+        add(CHAIR, "diputado don Persona 4, del Grupo Mixto.", 3)
+        add(asker, "Señora ministra, ¿qué va a hacer?", 60)
+        add(answerer, "Le respondo con datos.", 90)
+    speakers = [Speaker(speaker_id=s) for s in (CHAIR, A1, A2, MIN_F, MIN_M)]
+    timeline = AnalysisTimeline(video_id="S", duration_s=t + 5, speakers=speakers, events=events)
+    assert [(b.asker, b.answerer) for b in question_blocks(timeline)] == [(A1, MIN_F), (A2, MIN_M)]
