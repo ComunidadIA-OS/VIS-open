@@ -791,7 +791,7 @@ if screen == "Sesión":
             "Minutos del vídeo que se ven (arrastra los extremos)",
             0.0,
             full_min,
-            tramo,
+            (0.0, full_min),  # por defecto, el vídeo entero; el tramo analizado va en color
             step=1.0,
             key=f"ventana_{s.session_id}",
         )
