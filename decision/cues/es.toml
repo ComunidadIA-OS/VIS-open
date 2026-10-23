@@ -12,6 +12,7 @@ self_role = 0.9       # «soy la diputada…», «soy el portavoz…»
 self_agreement = 0.75 # «estoy agradecida / agradecido…»
 floor_grant_same_voice = 0.6  # la diarización juntó a la Presidencia con quien habla
 as_role = 0.6         # «como diputada…»: puede ser una cita o un tercero, así que se revisa
+chair_address = 0.8   # la Presidencia acaba con un tratamiento a solas: «Señora ministra.»
 
 [floor_grant]
 # Frases con las que quien preside da la palabra; el género se lee en las palabras que siguen.
@@ -48,6 +49,17 @@ phrases = [
   "primera pregunta",
   "primeras preguntas",
 ]
+
+[chair]
+# Solo en las intervenciones de la Presidencia (la voz que más veces da la palabra o anuncia
+# preguntas). El género es el de la voz que habla justo después.
+# Anuncio de 2018: «Pregunta también dirigida al señor presidente del diputado don X».
+announce_phrases = ["del diputado", "de la diputada"]
+# Sesión de control: da paso con un tratamiento a solas al final de su intervención
+# («Señora ministra, cuando quiera.», «Señor presidente del Gobierno.»). No cuenta si la frase
+# lleva «gracias» (se dirige a quien acaba de hablar) ni si pasa de este número de palabras.
+address_max_tokens = 6
+address_fillers = ["adelante", "cuando", "quiera", "usted", "por", "favor", "puede", "ya"]
 
 [address]
 woman = ["senora", "dona"]
