@@ -1,5 +1,7 @@
 import csv
 
+import pytest
+
 from pipeline import sesion
 from sources.manifest import COLUMNS
 
@@ -41,3 +43,31 @@ def test_new_videos_are_the_ones_without_a_manifest_row(tmp_path):
     for vid in ("V005", "V008"):
         (data / "raw" / f"{vid}.mp4").write_bytes(b"x")
     assert [v.stem for v in sesion.new_videos(data)] == ["V008"]
+
+
+MASTER = """#EXTM3U
+#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud",NAME="Castellano",LANGUAGE="es",URI="audio_es.m3u8"
+#EXT-X-MEDIA:TYPE=AUDIO,GROUP-ID="aud",NAME="Versión original",URI="audio_vo.m3u8"
+#EXT-X-STREAM-INF:BANDWIDTH=800000,RESOLUTION=640x360,AUDIO="aud"
+v360.m3u8
+#EXT-X-STREAM-INF:BANDWIDTH=2500000,RESOLUTION=1280x720,AUDIO="aud"
+v720.m3u8
+"""
+BASE = "https://cdn.example/s/master.m3u8"
+
+
+def test_hls_takes_best_video_and_only_the_original_audio():
+    video, audio = sesion.pick_tracks(MASTER, BASE)
+    assert video == "https://cdn.example/s/v720.m3u8"
+    assert audio == "https://cdn.example/s/audio_vo.m3u8"  # nunca la interpretación
+
+
+def test_hls_without_original_audio_stops():
+    no_original = MASTER.replace('NAME="Versión original"', 'NAME="Inglés"')
+    with pytest.raises(sesion.InterpretationOnly):
+        sesion.pick_tracks(no_original, BASE)
+
+
+def test_hls_with_a_single_audio_inside_the_video():
+    master = "#EXTM3U\n#EXT-X-STREAM-INF:BANDWIDTH=1000\nv.m3u8\n"
+    assert sesion.pick_tracks(master, BASE) == ("https://cdn.example/s/v.m3u8", None)

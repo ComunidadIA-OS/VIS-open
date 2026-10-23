@@ -2,7 +2,8 @@
 
 Uso:
   python -m pipeline.sesion V008                      # el vídeo ya está en data/raw/V008.mp4
-  python -m pipeline.sesion V008 --video-url URL [--audio-url URL]   # lo descarga antes
+  python -m pipeline.sesion V008 --hls-url URL_MASTER.m3u8   # lo descarga (audio original)
+  python -m pipeline.sesion V008 --video-url URL [--audio-url URL]   # o con las pistas sueltas
   python -m pipeline.sesion --nuevos                  # vídeos de data/raw sin fila: la escribe
   python -m pipeline.sesion --pendientes              # todas las del manifiesto sin resultados
   ... --congreso-url URL_DE_LA_SESION --set tramo_inicio=00:06:13 --set tramo_fin=01:35:09
@@ -22,9 +23,12 @@ from __future__ import annotations
 
 import argparse
 import os
+import re
 import subprocess
 import sys
+import unicodedata
 from pathlib import Path
+from urllib.parse import urljoin
 
 from pipeline.envfile import load_dotenv
 from sources.manifest import ManifestError, read_manifest, require_ready, sha256_file
@@ -33,6 +37,44 @@ from sources.manifest import ManifestError, read_manifest, require_ready, sha256
 def _run(*args: str) -> None:
     print("→", " ".join(args), flush=True)
     subprocess.run([sys.executable, "-m", *args], check=True)
+
+
+class InterpretationOnly(ValueError):
+    """La emisión tiene varias pistas de audio y ninguna es la original."""
+
+
+def _attrs(line: str) -> dict[str, str]:
+    return {k: v.strip('"') for k, v in re.findall(r'([A-Z0-9-]+)=("[^"]*"|[^,]*)', line)}
+
+
+def _plain(text: str) -> str:
+    return unicodedata.normalize("NFKD", text).encode("ascii", "ignore").decode().lower()
+
+
+def pick_tracks(master: str, base_url: str) -> tuple[str, str | None]:
+    """(vídeo, audio) de una master playlist HLS: el vídeo de más calidad y SOLO el audio original.
+
+    El canal «Castellano» es la interpretación simultánea y no se puede usar (condiciones del
+    Congreso): si hay pistas de audio aparte y ninguna se llama «original», se para.
+    """
+    lines = master.splitlines()
+    audios = [_attrs(x) for x in lines if x.startswith("#EXT-X-MEDIA:") and "TYPE=AUDIO" in x]
+    variants = [
+        (int(_attrs(x).get("BANDWIDTH") or 0), lines[i + 1].strip())
+        for i, x in enumerate(lines[:-1])
+        if x.startswith("#EXT-X-STREAM-INF:")
+    ]
+    if not variants:
+        raise ValueError("no es una master playlist HLS (no hay #EXT-X-STREAM-INF)")
+    video = urljoin(base_url, max(variants)[1])
+    separate = [a for a in audios if a.get("URI")]
+    if not separate:
+        return video, None  # un solo audio, dentro del vídeo
+    original = [a for a in separate if "original" in _plain(a.get("NAME", ""))]
+    if not original:
+        names = ", ".join(a.get("NAME", "?") for a in separate)
+        raise InterpretationOnly(f"ninguna pista de audio es la original ({names}): no se descarga")
+    return video, urljoin(base_url, original[0]["URI"])
 
 
 def download(video: Path, video_url: str, audio_url: str | None = None) -> None:
@@ -85,6 +127,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("video_id", nargs="?")
     ap.add_argument("--pendientes", action="store_true")
     ap.add_argument("--nuevos", action="store_true", help="escribe la fila de los vídeos nuevos")
+    ap.add_argument("--hls-url", help="master playlist (.m3u8): elige vídeo y audio original")
     ap.add_argument("--video-url")
     ap.add_argument("--audio-url")
     ap.add_argument("--congreso-url", help="página de la sesión: escribe su fila del manifiesto")
@@ -101,6 +144,15 @@ def main(argv: list[str] | None = None) -> None:
         return
     if args.pendientes == bool(args.video_id):
         ap.error("indica una sesión (V008), --pendientes o --nuevos")
+    if args.hls_url:
+        # certificado del servidor no verificable (igual que con curl -k al descargar a mano)
+        master = subprocess.run(
+            ["curl", "-fsSk", args.hls_url], check=True, capture_output=True, text=True
+        ).stdout
+        try:
+            args.video_url, args.audio_url = pick_tracks(master, args.hls_url)
+        except ValueError as exc:
+            raise SystemExit(str(exc)) from exc
     if args.video_url:
         download(data_dir / "raw" / f"{args.video_id}.mp4", args.video_url, args.audio_url)
     manifest = data_dir / "manifiesto.csv"
