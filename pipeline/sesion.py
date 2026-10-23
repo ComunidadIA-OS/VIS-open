@@ -3,16 +3,19 @@
 Uso:
   python -m pipeline.sesion V008                      # el vídeo ya está en data/raw/V008.mp4
   python -m pipeline.sesion V008 --video-url URL [--audio-url URL]   # lo descarga antes
+  python -m pipeline.sesion --nuevos                  # vídeos de data/raw sin fila: la escribe
   python -m pipeline.sesion --pendientes              # todas las del manifiesto sin resultados
+  ... --congreso-url URL_DE_LA_SESION --set tramo_inicio=00:06:13 --set tramo_fin=01:35:09
+      # además escribe la fila del manifiesto (sources.congreso), con sha256 y duración
 
 Pasos: (0) descarga la emisión con ffmpeg si se da la URL (.m3u8); (1) audio, voces,
 seudonimización y género (`pipeline.run`); (2) bloques de pregunta (`decision.roles`);
 (3) M09 y M06 (`metrics.m09`, con Qwen si hay LLM_API_KEY, si no con reglas); (4) vídeo con
 MediaPipe (`pipeline.video`) si hay POSE_MODEL. El panel recoge los resultados solo.
 
-La fila del manifiesto la valida una persona antes: sin ella (o con otro sha256) no se analiza.
-Tras descargar se imprime el sha256 para anotarlo en la fila. Los tokens no se leen de ningún
-fichero: vienen del entorno del terminal (`read -s`).
+La fila del manifiesto la valida una persona: `sources.congreso` la deja con
+`licencia_verificada=pendiente` y no se analiza hasta que alguien la revise y ponga `si`.
+Los tokens no se leen de ningún fichero: vienen del entorno del terminal (`read -s`).
 """
 
 from __future__ import annotations
@@ -40,7 +43,7 @@ def download(video: Path, video_url: str, audio_url: str | None = None) -> None:
     video.parent.mkdir(parents=True, exist_ok=True)
     print("→ descargando", video, flush=True)
     subprocess.run([*cmd, "-c", "copy", str(video)], check=True)
-    print(f"sha256 de {video.name}: {sha256_file(video)} (anótalo en la fila del manifiesto)")
+    print(f"sha256 de {video.name}: {sha256_file(video)}")
 
 
 def pending(data_dir: Path) -> list[str]:
@@ -52,6 +55,13 @@ def pending(data_dir: Path) -> list[str]:
         if (data_dir / "raw" / f"{vid}.mp4").is_file()
         and not (data_dir / "processed" / vid / "timeline.json").is_file()
     ]
+
+
+def new_videos(data_dir: Path) -> list[Path]:
+    """Vídeos de data/raw que aún no tienen fila en el manifiesto."""
+    manifest = data_dir / "manifiesto.csv"
+    known = read_manifest(manifest) if manifest.is_file() else {}
+    return sorted(v for v in (data_dir / "raw").glob("*.mp4") if v.stem not in known)
 
 
 def analyze_session(video_id: str, data_dir: Path) -> None:
@@ -74,16 +84,36 @@ def main(argv: list[str] | None = None) -> None:
     ap = argparse.ArgumentParser(description=__doc__.split("\n")[0])
     ap.add_argument("video_id", nargs="?")
     ap.add_argument("--pendientes", action="store_true")
+    ap.add_argument("--nuevos", action="store_true", help="escribe la fila de los vídeos nuevos")
     ap.add_argument("--video-url")
     ap.add_argument("--audio-url")
+    ap.add_argument("--congreso-url", help="página de la sesión: escribe su fila del manifiesto")
+    ap.add_argument("--set", action="append", default=[], metavar="CAMPO=VALOR")
     args = ap.parse_args(argv)
     load_dotenv()
     data_dir = Path(os.environ.get("DATA_DIR") or "data")
+    sets = [x for s in args.set for x in ("--set", s)]
+    if args.nuevos:  # solo escribe filas: el análisis espera a que una persona las valide
+        videos = new_videos(data_dir)
+        for video in videos:
+            _run("sources.congreso", "--file", str(video), *sets)
+        print(f"{len(videos)} filas nuevas; complétalas y valídalas antes de --pendientes")
+        return
     if args.pendientes == bool(args.video_id):
-        ap.error("indica una sesión (V008) o --pendientes, no las dos")
+        ap.error("indica una sesión (V008), --pendientes o --nuevos")
     if args.video_url:
         download(data_dir / "raw" / f"{args.video_id}.mp4", args.video_url, args.audio_url)
-    ids = pending(data_dir) if args.pendientes else [args.video_id]
+    manifest = data_dir / "manifiesto.csv"
+    has_row = manifest.is_file() and args.video_id in read_manifest(manifest)
+    if args.congreso_url and has_row:
+        print(f"{args.video_id} ya tiene fila en el manifiesto: no se escribe otra")
+    elif args.congreso_url:
+        video = data_dir / "raw" / f"{args.video_id}.mp4"
+        _run("sources.congreso", "--url", args.congreso_url, "--file", str(video), *sets)
+    try:
+        ids = pending(data_dir) if args.pendientes else [args.video_id]
+    except ManifestError as exc:
+        raise SystemExit(str(exc)) from exc
     if not ids:
         print("no hay sesiones pendientes")
     for vid in ids:
