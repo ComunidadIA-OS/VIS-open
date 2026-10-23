@@ -113,6 +113,10 @@ class CongresoSource(VideoSource):
         if ref is not None:
             session = parse_session_url(ref)
             row.update(
+                # 400 = Pleno (si es la sesión de control, una persona pone «control»)
+                tipo_sesion={"400": "pleno", "500": "diputacion_permanente"}.get(
+                    session.cod_organo, "comision"
+                ),
                 url_origen=ref,
                 fecha_evento=session.event_date,
                 titulo=(

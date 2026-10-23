@@ -64,7 +64,8 @@ class Session:
     camara_aviso: str | None = None
     confirmed: dict[str, str] = field(default_factory=dict)  # voz → género de 2 anotadoras
     synthetic: bool = False
-    demo: bool = False  # otro formato (sin «evaluacion» en `uso`): sin métricas de preguntas
+    demo: bool = False  # no es sesión de control: sin métricas de preguntas
+    tipo: str = ""  # tipo_sesion del manifiesto (control, pleno, comision...)
     metrics: dict[str, MetricResult] = field(default_factory=dict)
 
 
@@ -105,9 +106,13 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
         for path in sorted(SYNTHETIC_DIR.glob("*.timeline.json")):
             tl = AnalysisTimeline.model_validate_json(path.read_text("utf-8"))
             sessions.append(Session(tl.video_id, tl, synthetic=True))
-    usos = _usos(base / "manifiesto.csv")
+    usos, tipos = _usos(base / "manifiesto.csv")
     for s in sessions:
-        s.demo = bool(usos.get(s.session_id)) and "evaluacion" not in usos[s.session_id]
+        s.tipo = tipos.get(s.session_id, "")
+        if s.tipo:  # el tipo de sesión manda; sin él, como antes: uso sin «evaluacion»
+            s.demo = s.tipo != "control"
+        else:
+            s.demo = bool(usos.get(s.session_id)) and "evaluacion" not in usos[s.session_id]
     sessions.sort(key=lambda s: s.demo)  # las demos, al final de la lista
     for s in sessions:
         if not s.synthetic:
@@ -146,19 +151,27 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
     return sessions
 
 
+TIPO_LABELS = {
+    "pleno": "pleno (sin preguntas)",
+    "comision": "comisión",
+    "diputacion_permanente": "Diputación Permanente",
+}
+
+
 # Métricas que se basan en los bloques de pregunta de la sesión de control (docs/metricas.md).
 QUESTION_METRICS = ("M02b", "M03", "M04", "M06", "M09")
 
 
-def _usos(path: Path) -> dict[str, set[str]]:
-    """video_id → valores de `uso` del manifiesto; vacío si no hay manifiesto."""
+def _usos(path: Path) -> tuple[dict[str, set[str]], dict[str, str]]:
+    """(video_id → valores de `uso`, video_id → `tipo_sesion`); vacíos si no hay manifiesto."""
     from sources.manifest import ManifestError, read_manifest
 
     try:
         rows = read_manifest(path)
     except ManifestError:
-        return {}
-    return {k: set(filter(None, (r.get("uso") or "").split(";"))) for k, r in rows.items()}
+        return {}, {}
+    usos = {k: set(filter(None, (r.get("uso") or "").split(";"))) for k, r in rows.items()}
+    return usos, {k: (r.get("tipo_sesion") or "").strip() for k, r in rows.items()}
 
 
 ANNOTATORS = (1, 2)
@@ -750,7 +763,7 @@ def session_label(session: Session) -> str:
     if fecha := src.get("fecha_evento", ""):
         parts.append("/".join(reversed(fecha.split("-"))))
     if session.demo:
-        parts.append("otro formato (demo)")
+        parts.append(TIPO_LABELS.get(session.tipo, "otro formato (demo)"))
     return " · ".join(parts)
 
 

@@ -583,3 +583,24 @@ def test_session_without_evaluation_use_is_a_demo_without_question_metrics(tmp_p
     for key in QUESTION_METRICS:
         assert metric_card(demo.metrics[key])["valor"] == "no aplica"
     assert metric_card(demo.metrics["M01"])["valor"] != "no aplica"
+
+
+def test_session_type_from_manifest_decides_question_metrics(tmp_path):
+    import csv
+    import shutil
+
+    from dashboard.data import SYNTHETIC_DIR, session_label
+    from sources.manifest import COLUMNS
+
+    for vid in ("V001", "V002"):
+        folder = tmp_path / "processed" / vid
+        folder.mkdir(parents=True)
+        shutil.copy(SYNTHETIC_DIR / "SINTETICO_equilibrado.timeline.json", folder / "timeline.json")
+    with (tmp_path / "manifiesto.csv").open("w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, COLUMNS)
+        w.writeheader()
+        w.writerow({"video_id": "V001", "uso": "evaluacion", "tipo_sesion": "comision"})
+        w.writerow({"video_id": "V002", "uso": "test", "tipo_sesion": "control"})
+    by_id = {s.session_id: s for s in load_sessions(tmp_path)}
+    assert by_id["V001"].demo and "comisión" in session_label(by_id["V001"])
+    assert not by_id["V002"].demo  # control: métricas de preguntas aunque sea de test

@@ -21,7 +21,7 @@ import csv
 from collections.abc import Sequence
 from pathlib import Path
 
-from sources.manifest import BASES_LEGALES, FORMATOS, FUENTES, USOS
+from sources.manifest import BASES_LEGALES, FORMATOS, FUENTES, TIPOS_SESION, USOS
 
 DROPDOWNS = {
     "es_pregunta": ["si", "no"],
@@ -34,6 +34,7 @@ DROPDOWNS = {
     "fuente": sorted(FUENTES),
     "personas_publicas": ["si", "no"],
     "uso_entrenamiento": ["si", "no"],
+    "tipo_sesion": sorted(TIPOS_SESION),
 }
 WIDTHS = {
     "desde": 9, "hasta": 9,
