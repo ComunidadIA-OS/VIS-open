@@ -215,7 +215,7 @@ Descarga de los datos
 
 Cálculo
 
-8. La legislatura y la fecha se toman del manifiesto (`fecha_sesion`) de cada vídeo.
+8. La legislatura y la fecha se toman del manifiesto (`fecha_evento`) de cada vídeo.
 9. Medida A: se aplica la regla de condición plena y baja, contando personas únicas. Medida B: todas las personas de la legislatura.
 10. Los CSV por legislatura no tienen columna de sexo (columnas: NOMBRE, CIRCUNSCRIPCION, FORMACIONELECTORAL, FECHACONDICIONPLENA, FECHAALTA, FECHABAJA, GRUPOPARLAMENTARIO, fechas de grupo y BIOGRAFIA). El sexo se obtiene por un método documentado, por ejemplo cruzando con el fichero «Diputadas» de los datos abiertos. Si no se puede determinar, «desconocido», que se informa aparte.
 11. Controles: A según la tabla de control (350 válido; 340 a 349 válido con aviso; fuera de ese rango, error). B debe coincidir con el buscador oficial. Mientras no esté calculada la medida A, la B se puede usar para pruebas; los resultados usan siempre la A.
@@ -257,7 +257,7 @@ Valores que pide `docs/METRICAS_MARCO.md` para cada métrica. Sustituyen a los p
 | M03 | 2 | 60 | Rango correcto: 3 a 6 turnos por pregunta | No aplica | Control de calidad; necesita el nº de preguntas válidas del orden del día |
 | M04 | 4 | 600 | **15 puntos** | % desconocido + sin atribuir | Además, 2 voces por grupo y 10 preguntas válidas. La brecha c) necesita un dato externo que no está en la línea de tiempo: el % de diputadas (apartado 4 bis), que se pasa como entrada |
 | M06 | 1 | 0 | No aplica (descriptiva por sesión) | No aplica | Aplica la regla de sustitución (Vicepresidencia Primera si no comparece la Presidencia del Gobierno) e indica el cargo usado. La comparación se hace sumando las 3 sesiones |
-| M09 | 4 | 600 | No aplica en b) por la variable de confusión (solo descriptiva) | No aplica | Usa la salida de Qwen; confianza < 0,7 → revisión humana |
+| M09 | 4 | 600 | No aplica en b) por la variable de confusión (solo descriptiva) | No aplica | Usa la salida de Qwen; `confidence` < 0,7 → revisión humana |
 | M13 | 0 | 0 | Mayor del 20 % → sesión «no concluyente» | No aplica | Se calcula siempre, aunque no haya muestra |
 
 Por qué estos valores: 4 voces con género conocido es el mínimo para tener 2 por grupo; 300 s (5 min) equivale a una pregunta completa; 600 s (10 min) son unas dos preguntas, mínimo razonable para comparar grupos. Son valores iniciales: se revisan con los datos reales y la anotación manual.
