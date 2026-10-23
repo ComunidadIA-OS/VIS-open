@@ -79,3 +79,23 @@ Otros costes, sin tarifa por uso:
 - **Análisis de vídeo** en CPU local: unos 18 min para V005.
 - **Asistente de voz** (opcional, por uso): una llamada de Whisper por orden hablada y, si se pide, un resumen con Qwen. Precio por verificar en el catálogo de OVH.
 - **Ajuste de Qwen**: horas de GPU de OVH (el 9B cabe en una V100S: 19 GB).
+
+## Total estimado por pleno (vídeo de 5 horas)
+
+**Estimación**, no medición. La cifra real de cada sesión la calcula `pipeline.sesion` en
+`data/processed/<id>/coste.json`: de la detección y descarga al último análisis, con los precios
+del `.env` (`GPU_PRICE_EUR_H`, `GPU_COUNT`, `LLM_PRICE_*`). Precios de OVH sin IVA, consultados el
+23 oct 2026.
+
+| Pleno de 5 h con preguntas al Gobierno | |
+|---|---|
+| Preguntas (= llamadas a Qwen) | ~50, al mismo ritmo que las sesiones de control: ~20 cada 1 h 45 min |
+| Qwen | ≈ 0,005 € (~0,0001 € por llamada) |
+| GPU, 1 V100S | ≈ 1,00–1,50 € |
+| **Total sin IVA, 1 GPU** | **≈ 1,00–1,51 €** |
+| Total con IVA (21 %) | ≈ 1,21–1,83 € |
+| Total sin IVA, 2 GPU facturadas | ≈ 1,90–2,91 € |
+
+Regla práctica: **≈ 0,30 € por hora de vídeo** con 1 GPU, haya preguntas o no; Qwen es menos del
+1 % del coste. No incluye el almacenamiento del vídeo (≈ 2,7 GB por pleno de 5 h). La máquina con
+GPU se paga mientras está encendida, también si no analiza nada: apagarla al terminar cada lote.
