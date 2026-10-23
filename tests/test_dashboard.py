@@ -573,7 +573,7 @@ def test_session_without_evaluation_use_is_a_demo_without_question_metrics(tmp_p
         folder.mkdir(parents=True)
         shutil.copy(SYNTHETIC_DIR / "SINTETICO_equilibrado.timeline.json", folder / "timeline.json")
     with (tmp_path / "manifiesto.csv").open("w", newline="", encoding="utf-8") as fh:
-        w = csv.DictWriter(fh, COLUMNS)
+        w = csv.DictWriter(fh, [c for c in COLUMNS if c != "tipo_sesion"])  # manifiesto anterior
         w.writeheader()
         w.writerow({"video_id": "V001", "uso": "demo"})
         w.writerow({"video_id": "V002", "uso": "evaluacion;demo"})
