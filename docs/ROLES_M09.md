@@ -19,8 +19,8 @@ python -m metrics.m09 data/processed/<sesión>/timeline.json --engine llm
 
 En el bloque de preguntas del Pleno cada pregunta sigue el mismo guion: la Presidencia da la palabra, habla quien pregunta, responde un miembro del Gobierno, y vuelven réplica y dúplica.
 
-1. **PRESIDENCIA:** la voz que más veces dice una fórmula de dar la palabra («tiene la palabra…», `decision/cues/es.toml`), si lo hace al menos dos veces. Se excluye de las métricas salvo M13.
-2. Cada vez que la Presidencia da la palabra empieza un **bloque** (una pregunta, con su número).
+1. **PRESIDENCIA:** la voz que más veces dice una fórmula de dar la palabra («tiene la palabra…») o de anunciar una pregunta («Pregunta del diputado don…», «La siguiente pregunta la formula la diputada doña…»), si lo hace al menos dos veces (`decision/cues/es.toml`). Se excluye de las métricas salvo M13.
+2. Si la Presidencia anuncia las preguntas (sesión de control), cada **anuncio** abre un **bloque** (una pregunta, con su número); «tiene la palabra» ahí se usa también para la réplica y no abre bloque. Si no hay anuncios (otros debates), cada vez que da la palabra empieza un bloque. Comprobado con los Diarios de Sesiones: 20, 19 y 17 anuncios el 19/09/2018, 05/10/2022 y 30/09/2026, igual que las preguntas del orden del día.
 3. **PREGUNTA:** la primera voz que habla en el bloque. **GOBIERNO:** la primera voz distinta que le contesta. Las voces que hablan menos de 1 s se ignoran, y las intervenciones seguidas de la misma voz a menos de 1 s forman un turno.
 4. El rol es **de cada bloque**, no de cada persona (un ministro que también es diputado puede preguntar y responder). `Speaker.role` guarda el que más veces tiene.
 

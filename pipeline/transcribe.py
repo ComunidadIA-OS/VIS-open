@@ -96,7 +96,7 @@ def align(wav: Path, segments: list[Segment], language: str, device: str) -> lis
         import whisperx
     except ImportError as exc:
         raise RuntimeError(
-            "falta WhisperX (requiere Python < 3.14): instala el extra '.[pipeline]' "
+            "falta WhisperX (requiere Python < 3.14): instala el extra '.[align]' "
             "o desactiva el alineado con WHISPER_ALIGN=0"
         ) from exc
 
