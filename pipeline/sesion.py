@@ -254,6 +254,8 @@ def main(argv: list[str] | None = None) -> None:
             _run(
                 "sources.congreso", "--file", str(raw), "--set", "tipo_sesion=pleno",
                 "--set", f"titulo=Pleno, sesión {ses}", "--set", f"notas=emisión: {url}",
+                "--set", f"fecha_descarga={date.today().isoformat()}",
+                "--set", "descargado_por=pipeline.sesion (automático)",
             )  # fmt: skip
         print(f"{len(found)} plenos nuevos; valida sus filas y lanza --pendientes")
         return
