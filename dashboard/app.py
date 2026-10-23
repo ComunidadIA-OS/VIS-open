@@ -124,6 +124,23 @@ METRIC_UNITS = {
 }  # M09 es un cociente (1 = igual): sin unidad
 
 
+MONTHS = [
+    "enero", "febrero", "marzo", "abril", "mayo", "junio",
+    "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
+]  # fmt: skip
+KIND_NAMES = {"control": "sesión de control", "pleno": "pleno", "comision": "comisión"}
+
+
+def session_facets(session) -> tuple[str, str, str]:
+    """(año, mes, tipo) de una sesión para los filtros de la evolución."""
+    fecha = (session.source or {}).get("fecha_evento", "")
+    month = MONTHS[int(fecha[5:7]) - 1] if len(fecha) >= 7 else ""
+    kind = KIND_NAMES.get(session.tipo) or (
+        "sesión de control" if not session.demo else "otro formato"
+    )
+    return fecha[:4], month, kind
+
+
 def spanish_number(v):
     """56.34 → «56,34»; 31.0 → «31»; el texto («no concluyente») queda igual."""
     if not isinstance(v, (int, float)):
@@ -243,7 +260,7 @@ def cached_sessions(data_dir: str, stamp: tuple) -> list:
 
 sessions = cached_sessions(str(DATA_DIR), data_stamp(DATA_DIR))
 by_id = {x.session_id: x for x in sessions}
-evo_sessions = [x for x in sessions if not x.demo]  # la evolución compara solo sesiones de control
+evo_sessions = sessions  # todas; la lectura compara solo las de control y nombra las demás
 
 
 def run_voice(cmd, ids: list[str]) -> str:
@@ -991,6 +1008,27 @@ if screen == "Sesión":
 else:
     st.title("Evolución entre sesiones")
     st.info(EVOLUTION_NOTE)
+    facets = {x.session_id: session_facets(x) for x in evo_sessions}
+    f_year, f_month, f_kind = st.columns(3)
+    years = f_year.multiselect(
+        "Año", sorted({v[0] for v in facets.values() if v[0]}), placeholder="Todos"
+    )
+    months = f_month.multiselect(
+        "Mes", [m for m in MONTHS if m in {v[1] for v in facets.values()}], placeholder="Todos"
+    )
+    kinds = f_kind.multiselect(
+        "Tipo de sesión", sorted({v[2] for v in facets.values()}), placeholder="Todos"
+    )
+    evo_sessions = [
+        x
+        for x in evo_sessions
+        if (not years or facets[x.session_id][0] in years)
+        and (not months or facets[x.session_id][1] in months)
+        and (not kinds or facets[x.session_id][2] in kinds)
+    ]
+    if not evo_sessions:
+        st.warning("Ninguna sesión cumple los filtros.")
+        st.stop()
     reading, others = evolution_reading(evo_sessions)
     if reading:
         st.subheader("Lectura de la evolución")

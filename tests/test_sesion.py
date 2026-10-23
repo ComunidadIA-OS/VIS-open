@@ -21,7 +21,8 @@ def test_pending_are_sessions_with_video_and_no_timeline(tmp_path):
     for vid in ("V005", "V008"):
         (data / "raw" / f"{vid}.mp4").write_bytes(b"x")
     (data / "processed" / "V005").mkdir(parents=True)
-    (data / "processed" / "V005" / "timeline.json").write_text("{}")
+    for name in sesion.OUTPUTS:  # V005 completa: transcripción, M09 y vídeo
+        (data / "processed" / "V005" / name).write_text("{}")
     assert sesion.pending(data) == ["V008"]  # V005 ya hecha; V009 sin vídeo
 
 
@@ -32,10 +33,9 @@ def test_steps_in_order_and_engine_from_environment(tmp_path, monkeypatch):
         sesion, "_run", lambda *a: calls.append(a[0] if a[0] != "metrics.m09" else a)
     )
     monkeypatch.setenv("LLM_API_KEY", "x")
-    monkeypatch.delenv("POSE_MODEL", raising=False)
     sesion.analyze_session("V008", tmp_path)
     assert calls[:2] == ["pipeline.run", "decision.roles"]
-    assert calls[2][-2:] == ("--engine", "llm") and len(calls) == 3  # sin POSE_MODEL, sin vídeo
+    assert calls[2][-2:] == ("--engine", "llm") and calls[3] == "pipeline.video"
     assert (tmp_path / "processed" / "V008" / "tiempos.json").is_file()
 
 
@@ -171,3 +171,27 @@ def test_real_cost_table_is_rewritten_between_markers(tmp_path):
     text = doc.read_text("utf-8")
     assert text.count(START) == 1 and END in text
     assert "| 203_pleno_2026 | 60 min | 2 / 1000 | 1,9300 € | 0,0001 € | **1,9301 €** |" in text
+
+
+def test_started_session_only_runs_what_is_missing(tmp_path, monkeypatch):
+    calls = []
+    monkeypatch.setattr(sesion, "require_ready", lambda *a: {})
+    monkeypatch.setattr(sesion, "_run", lambda *a: calls.append(a[0]))
+    monkeypatch.delenv("LLM_API_KEY", raising=False)
+    out = tmp_path / "processed" / "203_pleno_2026"
+    out.mkdir(parents=True)
+    (out / "timeline.json").write_text("{}")  # transcrita, sin vídeo: se completa
+    sesion.analyze_session("203_pleno_2026", tmp_path)
+    assert "pipeline.run" not in calls and calls[-1] == "pipeline.video"
+
+
+def test_pending_stops_before_starting_if_video_cannot_be_done(tmp_path, monkeypatch):
+    import pytest as _pytest
+
+    data = _data(tmp_path, ["V008"])
+    (data / "raw" / "V008.mp4").write_bytes(b"x")
+    monkeypatch.setenv("DATA_DIR", str(data))
+    monkeypatch.setenv("POSE_MODEL", str(tmp_path / "no_existe.task"))
+    monkeypatch.setattr(sesion, "analyze_session", lambda *a, **k: _pytest.fail("no debe empezar"))
+    with _pytest.raises(SystemExit, match="falta el modelo de pose"):
+        sesion.main(["--pendientes"])
