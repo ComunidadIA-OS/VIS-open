@@ -228,3 +228,29 @@ def test_announcement_split_in_two_segments_still_opens_the_question():
     speakers = [Speaker(speaker_id=s) for s in (CHAIR, A1, A2, MIN_F, MIN_M)]
     timeline = AnalysisTimeline(video_id="S", duration_s=t + 5, speakers=speakers, events=events)
     assert [(b.asker, b.answerer) for b in question_blocks(timeline)] == [(A1, MIN_F), (A2, MIN_M)]
+
+
+def test_la_pregunta_se_la_formula_opens_a_new_question():
+    """2026: «La pregunta se la formula el diputado don…» (sin «siguiente»)."""
+    events, t = [], 0.0
+
+    def add(speaker, text, seconds):
+        nonlocal t
+        events.append(
+            AnalysisEvent(
+                event_id=f"e{len(events)}", type=EventType.SPEECH, start_s=t, end_s=t + seconds,
+                speaker_id=speaker, text=text, provenance=Provenance.OBSERVED,
+            )
+        )  # fmt: skip
+        t += seconds + 3
+
+    for announcement, asker, answerer in (
+        ("La primera la formula la diputada doña Persona 3, del Grupo Popular.", A1, MIN_F),
+        ("La pregunta se la formula el diputado don Persona 4, del Grupo Mixto.", A2, MIN_M),
+    ):
+        add(CHAIR, announcement, 4)
+        add(asker, "Señora ministra, ¿qué va a hacer?", 60)
+        add(answerer, "Le respondo con datos.", 90)
+    speakers = [Speaker(speaker_id=s) for s in (CHAIR, A1, A2, MIN_F, MIN_M)]
+    timeline = AnalysisTimeline(video_id="F", duration_s=t + 5, speakers=speakers, events=events)
+    assert [(b.asker, b.answerer) for b in question_blocks(timeline)] == [(A1, MIN_F), (A2, MIN_M)]

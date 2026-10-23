@@ -229,6 +229,8 @@ def _chair_cues(speech: list[AnalysisEvent], rules: CueRules) -> list[Cue]:
 
 def _gender_of_window(tokens: list[str], rules: CueRules) -> GenderValue | None:
     """Género que señala un tramo de palabras; None si no hay señal o si hay señales mezcladas."""
+    if "grupo" in tokens:  # «…del Grupo Parlamentario X»: el grupo no dice el género de la persona
+        tokens = tokens[: tokens.index("grupo")]
     found: set[GenderValue] = set()
     for i, tok in enumerate(tokens):
         for g in (GenderValue.WOMAN, GenderValue.MAN):

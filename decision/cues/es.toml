@@ -48,6 +48,14 @@ phrases = [
   "ultima pregunta",
   "primera pregunta",
   "primeras preguntas",
+  # «La pregunta se la formula el diputado don…» (2026) y la variante de Whisper «la fórmula del…».
+  "formula el diputado",
+  "formula la diputada",
+  "formula del diputado",
+  "formula de la diputada",
+  # 2018: «Pregunta también a la señora ministra de la diputada doña…».
+  "tambien a la senora",
+  "tambien al senor",
 ]
 
 [chair]
@@ -102,6 +110,7 @@ as_role_words = ["como"]
 # partidos...). Cualquier otra palabra con mayúscula a mitad de frase se sustituye por un código:
 # es mejor redactar de más que dejar un nombre. Amplíala si algo útil se redacta sin querer.
 keep = [
+  "Pregunta", "Preguntas",  # «Pregunta también a…» no es un apellido
   "España", "Cataluña", "Catalunya", "Galicia", "Euskadi", "Valencia", "Madrid", "Barcelona",
   "Andalucía", "Europa", "Unión", "Europea", "Gobierno", "Congreso", "Senado", "Estado", "Cortes",
   "Generales", "Constitución", "Presidencia", "Diputación", "Permanente", "Comisión", "Pleno",
