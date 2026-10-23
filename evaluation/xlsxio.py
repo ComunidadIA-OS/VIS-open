@@ -7,6 +7,7 @@ columnas que se rellenan (`es_pregunta`: si/no; `label`: mujer/hombre/desconocid
 
     python -m evaluation.xlsxio a-xlsx data/anotacion/preguntas_para_anotar.csv   # -> .xlsx
     python -m evaluation.xlsxio a-csv  data/anotacion/preguntas_para_anotar.xlsx  # -> .csv
+    python -m evaluation.xlsxio a-xlsx data/manifiesto.csv   # manifiesto con desplegables
 
 Cuando la persona devuelve el .xlsx relleno, `a-csv` lo pasa a CSV UTF-8 con comas y el resto de
 herramientas (`evaluation.questions_eval`, `evaluation.benchmark`...) lo leen como siempre.
@@ -20,9 +21,19 @@ import csv
 from collections.abc import Sequence
 from pathlib import Path
 
+from sources.manifest import BASES_LEGALES, FORMATOS, FUENTES, USOS
+
 DROPDOWNS = {
     "es_pregunta": ["si", "no"],
     "label": ["mujer", "hombre", "desconocido"],
+    # manifiesto: los mismos valores que acepta sources.manifest.check_row
+    "licencia_verificada": ["si", "pendiente"],
+    "uso": [*sorted(USOS), "evaluacion;demo"],
+    "base_legal": sorted(BASES_LEGALES),
+    "formato": sorted(FORMATOS),
+    "fuente": sorted(FUENTES),
+    "personas_publicas": ["si", "no"],
+    "uso_entrenamiento": ["si", "no"],
 }
 WIDTHS = {
     "desde": 9, "hasta": 9,

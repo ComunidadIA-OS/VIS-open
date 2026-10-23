@@ -83,3 +83,15 @@ def test_master_url_comes_from_the_session_page_url():
         "https://streaming.congreso.es:8443/vod/ondemand/video/leg15/400/15_000400_202/cortes/"
         "smil:15_000400_202.smil/manifest.m3u8"
     )
+
+
+def test_manifest_xlsx_has_dropdowns_for_validation(tmp_path):
+    import pytest as _pytest
+
+    openpyxl = _pytest.importorskip("openpyxl")
+    from evaluation.xlsxio import csv_to_xlsx
+
+    data = _data(tmp_path, ["V008"])
+    ws = openpyxl.load_workbook(csv_to_xlsx(data / "manifiesto.csv")).worksheets[0]
+    lists = [dv.formula1 for dv in ws.data_validations.dataValidation]
+    assert '"si,pendiente"' in lists  # licencia_verificada
