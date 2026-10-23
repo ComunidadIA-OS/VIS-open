@@ -93,8 +93,8 @@ def page_a11y() -> None:
 
 
 COLORS = alt.Scale(
-    domain=["mujer", "hombre", "desconocido", "sin_atribuir", "mano_levantada"],
-    range=["#8e4b8b", "#2a7b8c", "#a7a39b", "#d9d5cc", "#d98e04"],
+    domain=["mujer", "hombre", "desconocido", "sin_atribuir"],
+    range=["#8e4b8b", "#2a7b8c", "#a7a39b", "#d9d5cc"],
 )
 
 SUBTITLE_LABEL = "Español (automático)"
@@ -107,6 +107,42 @@ SHORT_TITLES = {
     "M06": "M06 Preguntas al Presidente",
     "M09": "M09 Preguntas recibidas",
     "M13": "M13 Sin atribuir",
+}
+METRIC_UNITS = {
+    "M01": "personas",
+    "M02": "%",
+    "M02b": "%",
+    "M03": "turnos por pregunta",
+    "M04": "puntos",
+    "M06": "%",
+    "M13": "%",
+}  # M09 es un cociente (1 = igual): sin unidad
+
+
+def with_unit(key: str, valor: str) -> str:
+    """«41.65» → «41,65 %»; «no concluyente» y «no aplica» quedan igual."""
+    if not valor[:1].isdigit() and not valor.startswith("-"):
+        return valor
+    number = valor.replace(".", ",").replace("-", "−")
+    return f"{number} {METRIC_UNITS[key]}" if key in METRIC_UNITS else number
+
+
+# Qué es cada cifra, en una línea, bajo su tarjeta (definiciones de Ivette, docs/metricas.md).
+METRIC_EXPLAINED = {
+    "M01": "Personas distintas que intervienen, sin contar la Presidencia.",
+    "M02": "% del tiempo de palabra de las mujeres, sobre el tiempo con género conocido.",
+    "M02b": "% de intervenciones (una persona en una pregunta) que pasan de 160 s: "
+    "150 s asignados + 10 s de tolerancia.",
+    "M03": "Turnos por pregunta, sin la Presidencia. Lo esperado es de 3 a 6; "
+    "fuera de ese rango hay que revisar la separación de voces.",
+    "M04": "Puntos: % del tiempo de las mujeres menos % del de los hombres. "
+    "Negativo = las mujeres hablan menos.",
+    "M06": "% de las preguntas al Presidente del Gobierno que hacen mujeres.",
+    "M09": "Preguntas por ministra frente a preguntas por ministro (1 = igual; menos de 1 = "
+    "las ministras reciben menos). Solo descriptiva: también influye la actualidad de cada "
+    "ministerio.",
+    "M13": "% del tiempo de voz sin atribuir o con género desconocido (calidad del dato). "
+    "Por encima del 20 % se avisa.",
 }
 
 st.set_page_config(page_title="VIS Open", layout="wide")
@@ -656,9 +692,11 @@ if screen == "Sesión":
             ):
                 col.metric(
                     SHORT_TITLES.get(key, card["titulo"].split(" (")[0]),
-                    card["valor"],
+                    with_unit(key, card["valor"]),
                     help=card["titulo"],  # el nombre completo, al pasar el ratón
                 )
+                if key in METRIC_EXPLAINED:
+                    col.caption(METRIC_EXPLAINED[key])
         if why := inconclusive_reason(s):
             st.warning(why)
         for key, label in PENDING_METRICS.items():
@@ -791,20 +829,12 @@ if screen == "Sesión":
                 )
                 st.subheader("Pistas con más tiempo en pantalla")
                 st.table(show_tracks(video_tracks_with_totals(s)).style.hide(axis="index"))
-                hands = v.get("manos_levantadas", [])
-                st.subheader("Manos levantadas")
-                st.caption("Zona de la imagen y momento; ▶ mueve el vídeo de arriba.")
-                if not hands:
-                    st.write("No se han detectado manos levantadas.")
-                hand_cols = st.columns(4)
-                for i, h in enumerate(hands):
-                    hand_cols[i % 4].button(
-                        f"▶ {fmt_time(h['inicio_s'])} · zona {h['zona']}",
-                        key=f"hand_{s.session_id}_{i}",
-                        on_click=go_to,
-                        args=(h["inicio_s"],),
-                        disabled=not video_file,
-                    )
+                st.caption(
+                    "Pista: una persona seguida en la imagen (número interno, sin identificarla). "
+                    "Tamaño medio: qué parte de la imagen ocupa de media (más grande = plano más "
+                    "cercano). Centralidad: 1 si suele estar en el centro horizontal de la imagen, "
+                    "0 si en el borde. El género sale del audio, nunca de la imagen."
+                )
     with st.container(key="sec_descargas"):
         st.markdown(
             "<span id='sec-descargas' class='anchor'></span><h2 class='sr-only'>Descargas</h2>",
@@ -835,7 +865,12 @@ else:
         alt.Chart(evolution_gender_table(sessions))
         .mark_bar()
         .encode(
-            x="sesion",
+            x=alt.X(
+                "sesion",
+                title="Sesión",
+                sort=None,  # ya viene en orden de fecha
+                axis=alt.Axis(labelAngle=0, labelExpr="split(datum.label, ' · ')"),
+            ),
             y=alt.Y("porcentaje", scale=alt.Scale(domain=[0, 100])),
             color=alt.Color("gender", scale=COLORS),
             tooltip=["sesion", "gender", "porcentaje"],
@@ -844,7 +879,15 @@ else:
     )
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
     evo = evolution_table(sessions).astype(object).fillna("no concluyente")
+    names = {"sesion": "Sesión", "fecha": "Fecha"} | {
+        k: f"{v} ({METRIC_UNITS[k]})" if k in METRIC_UNITS else v for k, v in SHORT_TITLES.items()
+    }
+    evo = evo.rename(columns={c: names.get(c, c) for c in evo.columns})
     st.table(evo.style.hide(axis="index").format(precision=2, na_rep="-"))
+    st.markdown("**Qué es cada columna**")
+    for key, text in METRIC_EXPLAINED.items():
+        if names[key] in evo.columns:
+            st.caption(f"**{SHORT_TITLES[key]}:** {text}")
 
 
 if sessions and st.session_state.get("voz_abierto"):

@@ -300,12 +300,15 @@ def report_pdf(
     story.append(metrics)
     if why := inconclusive_reason(session):
         story += [Spacer(1, 6), _box(why, st["p"], "#fff8e1", "#e0a100")]
-    story.append(
-        Paragraph(
-            _t("; ".join(f"{k} {v}: no disponible todavía" for k, v in PENDING_METRICS.items())),
-            st["mut"],
+    if PENDING_METRICS:
+        story.append(
+            Paragraph(
+                _t(
+                    "; ".join(f"{k} {v}: no disponible todavía" for k, v in PENDING_METRICS.items())
+                ),
+                st["mut"],
+            )
         )
-    )
 
     story += [
         Paragraph("Análisis de audio (transcripción y voces)", st["h2"]),
@@ -343,17 +346,13 @@ def report_pdf(
         v = session.video
         pct = v["tiempo_en_pantalla_por_genero_%"]
         screen = pd.DataFrame({"gender": list(pct), "porcentaje": list(pct.values())})
-        hands = v.get("manos_levantadas_por_zona", {})
-        moments = ", ".join(
-            f"{fmt_time(h['inicio_s'])} (zona {h['zona']})" for h in v.get("manos_levantadas", [])
-        )
         tracks = video_tracks_with_totals(session)
         story += [
             Paragraph("Análisis de vídeo (MediaPipe, sin caras)", st["h2"]),
             Paragraph(
                 _t(
                     "MediaPipe devuelve puntos del cuerpo; de ahí salen las personas visibles, el "
-                    "tiempo en pantalla y las manos levantadas. No lee caras ni género."
+                    "tiempo en pantalla. No lee caras ni género."
                 ),
                 st["p"],
             ),
@@ -372,16 +371,6 @@ def report_pdf(
             _people_line(session),
             Paragraph("Tiempo en pantalla por género (el género sale del audio)", st["h3"]),
             _stacked_bar(screen),
-            Paragraph(
-                _t(
-                    "Manos levantadas por zona: "
-                    + (", ".join(f"{z}: {n}" for z, n in hands.items()) or "ninguna detectada")
-                    + ". Momentos: "
-                    + (moments or "ninguno")
-                    + "."
-                ),
-                st["p"],
-            ),
             KeepTogether(
                 [
                     Paragraph("Pistas con más tiempo en pantalla", st["h3"]),

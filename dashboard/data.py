@@ -34,9 +34,9 @@ from metrics.diputadas import cargar as cargar_camara
 from sources.congreso import parse_session_url
 
 CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
-PENDING_METRICS = {
-    "M14": "Peticiones de palabra con la mano (vídeo)",
-}
+# M14 (manos levantadas) se descartó para el Congreso (Ivette, 22 oct 2026): el panel no la
+# muestra; el módulo de vídeo sigue en el código.
+PENDING_METRICS: dict[str, str] = {}
 METHOD_NOTICE = (
     "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
     "cara ni la voz. "
@@ -237,8 +237,10 @@ def show_tracks(tracks: pd.DataFrame) -> pd.DataFrame:
             "pista": tracks["pista"],
             "tiempo en pantalla": [fmt_time(m * 60) for m in tracks["minutos_en_pantalla"]],
             "% del tiempo": [fmt_pct(x) for x in tracks["porcentaje"]],
-            "tamaño medio": [num(x) for x in tracks["tamano_medio"]],
-            "centralidad": [num(x) for x in tracks["centralidad"]],
+            "tamaño medio (% de la imagen)": [
+                "" if pd.isna(x) else f"{100 * x:.0f} %" for x in tracks["tamano_medio"]
+            ],
+            "centralidad (0 borde · 1 centro)": [num(x) for x in tracks["centralidad"]],
             "género (audio)": tracks["genero_por_audio"],
         }
     )
@@ -564,14 +566,14 @@ def voices_table(session: Session) -> pd.DataFrame:
 
 
 def timeline_strip(session: Session) -> pd.DataFrame:
-    """Franja de la sesión: tramos coloreados por género (y manos levantadas, si las hay)."""
+    """Franja de la sesión: tramos de voz coloreados por género."""
     f = timeline_to_frame(session.timeline)
-    f = f[f["type"].isin(["speech", "hand_raise"])]
+    f = f[f["type"] == "speech"]
     return pd.DataFrame(
         {
             "inicio_min": f["start_s"] / 60,
             "fin_min": f["end_s"] / 60,
-            "genero": f["gender"].where(f["type"] == "speech", "mano_levantada"),
+            "genero": f["gender"],
         }
     )
 
@@ -664,20 +666,37 @@ def evolution_table(sessions: list[Session]) -> pd.DataFrame:
     """Una fila por sesión (ordenada por fecha si hay ficha, si no por id)."""
     rows = []
     for s in sessions:
-        row = {"sesion": s.session_id, "fecha": (s.source or {}).get("fecha_evento", "")}
+        row = {"sesion": session_label(s), "fecha": (s.source or {}).get("fecha_evento", "")}
         for m in CARD_METRICS:
             r = s.metrics[m]
             row[m] = r.value if r.conclusive else None
-        for m in ("M09", "M06", "M14"):
+        for m in ("M09", "M06"):
             r = s.metrics.get(m)
             row[m] = r.value if r and r.conclusive else None
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["fecha", "sesion"], ignore_index=True)
 
 
+def session_label(session: Session) -> str:
+    """«V005 · sesión 202 · 30/09/2026», con lo que haya en la ficha de la fuente."""
+    src = session.source or {}
+    parts = [session.session_id]
+    if m := re.search(r"sesi[oó]n (\d+)", src.get("titulo", "")):
+        parts.append(f"sesión {m.group(1)}")
+    if fecha := src.get("fecha_evento", ""):
+        parts.append("/".join(reversed(fecha.split("-"))))
+    return " · ".join(parts)
+
+
 def evolution_gender_table(sessions: list[Session]) -> pd.DataFrame:
-    """% de tiempo de palabra por género y sesión (existe aunque la métrica no sea concluyente)."""
-    frames = [gender_time_table(s).assign(sesion=s.session_id) for s in sessions]
+    """% de tiempo de palabra por género y sesión (existe aunque la métrica no sea concluyente).
+
+    En orden de fecha; `sesion` es la etiqueta con número de sesión y fecha (`session_label`).
+    """
+    ordered = sorted(
+        sessions, key=lambda s: ((s.source or {}).get("fecha_evento", ""), s.session_id)
+    )
+    frames = [gender_time_table(s).assign(sesion=session_label(s)) for s in ordered]
     return pd.concat(frames, ignore_index=True)[["sesion", "gender", "porcentaje"]]
 
 

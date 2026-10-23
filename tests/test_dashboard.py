@@ -103,7 +103,7 @@ def test_m09_and_m06_are_read_from_m09_json(tmp_path):
 def test_m09_is_no_longer_pending():
     from dashboard.data import PENDING_METRICS
 
-    assert "M09" not in PENDING_METRICS and "M14" in PENDING_METRICS
+    assert "M09" not in PENDING_METRICS and "M14" not in PENDING_METRICS  # M14 descartada
 
 
 def test_interventions_never_show_names_only_codes(sessions):
@@ -115,7 +115,8 @@ def test_interventions_never_show_names_only_codes(sessions):
 
 def test_evolution_and_report(sessions):
     evo = evolution_table(sessions)
-    assert len(evo) == 5 and {"M01", "M02", "M03", "M04", "M13", "M14", "M09"} <= set(evo.columns)
+    assert len(evo) == 5 and {"M01", "M02", "M03", "M04", "M13", "M09"} <= set(evo.columns)
+    assert "M14" not in evo.columns
     pdf = report_pdf(sessions[0], compress=False)
     assert pdf.startswith(b"%PDF") and b"datos de ejemplo" in pdf and b"Resumen" in pdf
 
@@ -419,7 +420,7 @@ def test_screen_tables_use_minutes_and_percent_format():
     assert (
         shown.loc[0, "tiempo en pantalla"] == "10:03" and shown.loc[0, "% del tiempo"] == "11.9 %"
     )
-    assert shown.loc[0, "tamaño medio"] == ""
+    assert shown.loc[0, "tamaño medio (% de la imagen)"] == ""
 
 
 def test_review_cuts_are_listed_one_after_another_and_one_answer_covers_the_voice(tmp_path):
