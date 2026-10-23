@@ -234,6 +234,8 @@ def cached_sessions(data_dir: str, stamp: tuple) -> list:
 
 
 sessions = cached_sessions(str(DATA_DIR), data_stamp(DATA_DIR))
+by_id = {x.session_id: x for x in sessions}
+evo_sessions = [x for x in sessions if not x.demo]  # la evolución compara solo sesiones de control
 
 
 def run_voice(cmd, ids: list[str]) -> str:
@@ -252,7 +254,7 @@ def run_voice(cmd, ids: list[str]) -> str:
 
     if act == "explain":
         if cmd.topic == "evolution":
-            return voice.explain_evolution(sessions)
+            return voice.explain_evolution(evo_sessions)
         return voice.METHOD if cmd.topic == "method" else voice.explain_results(sess)
     if act == "read_transcript":
         ss[f"minuto_{current}"] = min(cmd.minute, sess.timeline.duration_s / 60)
@@ -584,7 +586,10 @@ if screen == "Sesión":
     with st.container(key="hero"):
         title_col, pick_col = st.columns([3, 1])
         chosen = pick_col.selectbox(
-            "Cambiar de vídeo", [s.session_id for s in sessions], key="sesion"
+            "Cambiar de vídeo",
+            [s.session_id for s in sessions],
+            key="sesion",
+            format_func=lambda i: f"{i} · otro formato (demo)" if by_id[i].demo else i,
         )
         s = next(x for x in sessions if x.session_id == chosen)
         title_col.title(f"Sesión {s.session_id}")
@@ -978,7 +983,7 @@ if screen == "Sesión":
 else:
     st.title("Evolución entre sesiones")
     st.info(EVOLUTION_NOTE)
-    reading, others = evolution_reading(sessions)
+    reading, others = evolution_reading(evo_sessions)
     if reading:
         st.subheader("Lectura de la evolución")
         st.markdown("\n".join(f"- {line}" for line in reading))
@@ -992,7 +997,7 @@ else:
     from dashboard.voice import explain_evolution
 
     chart(
-        alt.Chart(evolution_gender_table(sessions))
+        alt.Chart(evolution_gender_table(evo_sessions))
         .mark_bar()
         .encode(
             x=alt.X(
@@ -1005,10 +1010,10 @@ else:
             color=alt.Color("gender", scale=COLORS),
             tooltip=["sesion", "gender", "porcentaje"],
         ),
-        "Gráfico de barras. " + explain_evolution(sessions),
+        "Gráfico de barras. " + explain_evolution(evo_sessions),
     )
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
-    evo = evolution_table(sessions).astype(object).fillna("no concluyente")
+    evo = evolution_table(evo_sessions).astype(object).fillna("no concluyente")
     names = {"sesion": "Sesión", "fecha": "Fecha"} | {
         k: f"{v} ({METRIC_UNITS[k]})" if k in METRIC_UNITS else v for k, v in SHORT_TITLES.items()
     }

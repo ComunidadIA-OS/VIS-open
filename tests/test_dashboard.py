@@ -559,3 +559,27 @@ def test_evolution_reading_compares_only_control_sessions_with_code_numbers():
         "De 2018 a 2026: −13,48 puntos."
     ]
     assert others and others[0].startswith("V4")
+
+
+def test_session_without_evaluation_use_is_a_demo_without_question_metrics(tmp_path):
+    import csv
+    import shutil
+
+    from dashboard.data import QUESTION_METRICS, SYNTHETIC_DIR
+    from sources.manifest import COLUMNS
+
+    for vid in ("V001", "V002"):
+        folder = tmp_path / "processed" / vid
+        folder.mkdir(parents=True)
+        shutil.copy(SYNTHETIC_DIR / "SINTETICO_equilibrado.timeline.json", folder / "timeline.json")
+    with (tmp_path / "manifiesto.csv").open("w", newline="", encoding="utf-8") as fh:
+        w = csv.DictWriter(fh, COLUMNS)
+        w.writeheader()
+        w.writerow({"video_id": "V001", "uso": "demo"})
+        w.writerow({"video_id": "V002", "uso": "evaluacion;demo"})
+    demo, control = sorted(load_sessions(tmp_path), key=lambda s: s.session_id)
+    assert demo.demo and not control.demo
+    assert [s.session_id for s in load_sessions(tmp_path)] == ["V002", "V001"]  # demo al final
+    for key in QUESTION_METRICS:
+        assert metric_card(demo.metrics[key])["valor"] == "no aplica"
+    assert metric_card(demo.metrics["M01"])["valor"] != "no aplica"

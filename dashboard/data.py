@@ -64,6 +64,7 @@ class Session:
     camara_aviso: str | None = None
     confirmed: dict[str, str] = field(default_factory=dict)  # voz → género de 2 anotadoras
     synthetic: bool = False
+    demo: bool = False  # otro formato (sin «evaluacion» en `uso`): sin métricas de preguntas
     metrics: dict[str, MetricResult] = field(default_factory=dict)
 
 
@@ -104,6 +105,10 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
         for path in sorted(SYNTHETIC_DIR.glob("*.timeline.json")):
             tl = AnalysisTimeline.model_validate_json(path.read_text("utf-8"))
             sessions.append(Session(tl.video_id, tl, synthetic=True))
+    usos = _usos(base / "manifiesto.csv")
+    for s in sessions:
+        s.demo = bool(usos.get(s.session_id)) and "evaluacion" not in usos[s.session_id]
+    sessions.sort(key=lambda s: s.demo)  # las demos, al final de la lista
     for s in sessions:
         if not s.synthetic:
             s.confirmed = agreed_genders(processed / s.session_id)
@@ -127,7 +132,33 @@ def load_sessions(data_dir: Path | None = None) -> list[Session]:
                     reason="no concluyente: aún sin calcular (no hay preguntas analizadas)",
                     sample={},
                 )
+        if s.demo:
+            for key in QUESTION_METRICS:
+                s.metrics[key] = MetricResult(
+                    metric_id=key,
+                    name=s.metrics[key].name,
+                    is_example=False,
+                    value=None,
+                    conclusive=False,
+                    reason="no aplica: no es una sesión de preguntas al Gobierno (otro formato)",
+                    sample={},
+                )
     return sessions
+
+
+# Métricas que se basan en los bloques de pregunta de la sesión de control (docs/metricas.md).
+QUESTION_METRICS = ("M02b", "M03", "M04", "M06", "M09")
+
+
+def _usos(path: Path) -> dict[str, set[str]]:
+    """video_id → valores de `uso` del manifiesto; vacío si no hay manifiesto."""
+    from sources.manifest import ManifestError, read_manifest
+
+    try:
+        rows = read_manifest(path)
+    except ManifestError:
+        return {}
+    return {k: set(filter(None, (r.get("uso") or "").split(";"))) for k, r in rows.items()}
 
 
 ANNOTATORS = (1, 2)
@@ -721,6 +752,8 @@ def session_label(session: Session) -> str:
         parts.append(f"sesión {m.group(1)}")
     if fecha := src.get("fecha_evento", ""):
         parts.append("/".join(reversed(fecha.split("-"))))
+    if session.demo:
+        parts.append("otro formato (demo)")
     return " · ".join(parts)
 
 
