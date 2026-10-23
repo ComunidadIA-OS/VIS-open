@@ -44,7 +44,15 @@ Lo único que factura por uso es Qwen: una llamada por pregunta detectada, con e
 | V007 | 19 | 8.065 | ≈ 17.800 / 1.330 | ≈ 0,0020 € | ≈ 0,011 € |
 | **Total** | 58 | 29.554 | ≈ 61.800 / 4.060 | **≈ 0,007 €** | **≈ 0,036 €** |
 
-Para otras instituciones: con 9B, unos **0,2 € por cada 100 sesiones** de control. La medición real se hará al lanzar M09 con Qwen (27 oct) con `evaluation/cost.py`.
+Para otras instituciones: con 9B, unos **0,2 € por cada 100 sesiones** de control.
+
+**Medición del 23 oct 2026** (OVH AI Endpoints, modelo fijo `Qwen3.5-9B`, no un modelo virtual, para que el resultado se pueda repetir; `reasoning_effort: none`):
+
+- Llamada de prueba (`python -m decision.llm_check`, turno sintético): **437 tokens de entrada / 63 de salida, 3,4 s**. Con los precios de arriba, unos 0,00005 € por llamada.
+- M09 y M06 con Qwen en V005–V007: **55 llamadas** (17 / 18 / 20, una por pregunta detectada tras la PR #126), unos 3–5 minutos en total, sin errores.
+- `m09.json` todavía no guarda los tokens de cada sesión: el coste por sesión de la tabla sigue siendo una estimación (≈ 0,002 €), coherente con la llamada medida. Las cifras de preguntas de la tabla son de antes de la PR #126.
+- A Qwen solo le llega texto seudonimizado («Persona N»), nunca audio ni nombres.
+- V004 (Diputación Permanente) es ahora una demo de otro formato: no se le calcula M09.
 
 ## Coste total por sesión (GPU + API)
 
