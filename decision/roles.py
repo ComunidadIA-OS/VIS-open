@@ -92,10 +92,19 @@ def _gives_floor(text: str, rules: CueRules) -> bool:
     return any(_find(tokens, phrase) is not None for phrase in rules.floor_phrases)
 
 
+def _starts_question(text: str, rules: CueRules) -> bool:
+    tokens = _tokens(text)
+    return any(_find(tokens, phrase) is not None for phrase in rules.question_phrases)
+
+
 def find_chair(timeline: AnalysisTimeline, rules: CueRules | None = None) -> str | None:
     """La voz que más veces da la palabra, si lo hace al menos dos veces."""
     rules = rules or load_rules("es")
-    grants = Counter(e.speaker_id for e in _speech(timeline) if _gives_floor(e.text or "", rules))
+    grants = Counter(
+        e.speaker_id
+        for e in _speech(timeline)
+        if _gives_floor(e.text or "", rules) or _starts_question(e.text or "", rules)
+    )
     if not grants:
         return None
     speaker, n = grants.most_common(1)[0]
@@ -122,11 +131,16 @@ def question_blocks(
     chair = find_chair(timeline, rules)
     if chair is None:
         return []
+    # En la sesión de control la pregunta empieza con su anuncio; «tiene la palabra» abre también
+    # la réplica. Sin anuncios (otros debates), cada vez que se da la palabra empieza un bloque.
+    chair_texts = [e.text or "" for e in _speech(timeline) if e.speaker_id == chair]
+    announced = any(_starts_question(t, rules) for t in chair_texts)
+    opens = _starts_question if announced else _gives_floor
     blocks: list[QuestionBlock] = []
     current: QuestionBlock | None = None
     for e in _speech(timeline):
         if e.speaker_id == chair:
-            if _gives_floor(e.text or "", rules):
+            if opens(e.text or "", rules):
                 current = QuestionBlock(index=len(blocks) + 1, chair=chair,
                                         start_s=e.start_s, end_s=e.end_s)  # fmt: skip
                 blocks.append(current)

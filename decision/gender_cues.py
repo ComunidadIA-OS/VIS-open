@@ -63,6 +63,7 @@ class CueRules:
     language: str
     confidence: dict[str, float]
     floor_phrases: list[list[str]]
+    question_phrases: list[list[str]]
     lookahead: int
     max_gap_s: float
     address: dict[GenderValue, set[str]]
@@ -93,6 +94,7 @@ def load_rules(language: str = "es", path: Path | None = None) -> CueRules:
         language=raw["language"],
         confidence=dict(raw["confidence"]),
         floor_phrases=[_tokens(p) for p in raw["floor_grant"]["phrases"]],
+        question_phrases=[_tokens(p) for p in raw.get("question_start", {}).get("phrases", [])],
         lookahead=raw["floor_grant"]["lookahead_tokens"],
         max_gap_s=raw["floor_grant"]["max_gap_s"],
         address={w: _norm_set(raw["address"]["woman"]), m: _norm_set(raw["address"]["man"])},
