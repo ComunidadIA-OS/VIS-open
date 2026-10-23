@@ -184,13 +184,11 @@ current_user = login_gate()
 
 
 def data_stamp(data_dir: Path) -> tuple:
-    """Cambia si cambia algún fichero de las sesiones (p. ej. al validar en Human in the loop)."""
-    processed = data_dir / "processed"
-    if not processed.is_dir():
-        return ()
-    return tuple(
-        sorted((str(p), p.stat().st_mtime_ns) for p in processed.rglob("*") if p.is_file())
-    )
+    """Cambia si cambia algún fichero de las sesiones (p. ej. al validar en Human in the loop) o
+    de los datos externos (listas de diputadas y diputados)."""
+    folders = [data_dir / "processed", data_dir / "externos"]
+    files = (p for f in folders if f.is_dir() for p in f.rglob("*") if p.is_file())
+    return tuple(sorted((str(p), p.stat().st_mtime_ns) for p in files))
 
 
 @st.cache_resource(show_spinner="Cargando las sesiones…", max_entries=1)
