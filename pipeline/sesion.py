@@ -63,6 +63,13 @@ def master_urls(congreso_url: str) -> list[str]:
     return stream_urls(s.legislatura, s.cod_organo, s.cod_sesion)
 
 
+def session_id(congreso_url: str) -> str:
+    """Nombre de una sesión nueva: «203_pleno_2026» (comisiones: «45_comision_2026»)."""
+    s = parse_session_url(congreso_url)
+    year = s.event_date[:4] or str(date.today().year)
+    return f"{int(s.cod_sesion)}_{'pleno' if s.cod_organo == PLENO else 'comision'}_{year}"
+
+
 def stream_urls(legislatura: str, organo: str, sesion: str | int) -> list[str]:
     sid = f"{legislatura}_{int(organo):06d}_{int(sesion):03d}"
     base = f"{STREAMING}/leg{legislatura}/{organo}/{sid}/cortes"
@@ -245,6 +252,9 @@ def main(argv: list[str] | None = None) -> None:
             _run("sources.congreso", "--file", str(video), *sets)
         print(f"{len(videos)} filas nuevas; complétalas y valídalas antes de --pendientes")
         return
+    if args.congreso_url and not args.video_id:
+        args.video_id = session_id(args.congreso_url)
+        print("nombre:", args.video_id)
     if args.pendientes == bool(args.video_id):
         ap.error("indica una sesión (V008), --pendientes o --nuevos")
     raw = data_dir / "raw" / f"{args.video_id}.mp4" if args.video_id else None

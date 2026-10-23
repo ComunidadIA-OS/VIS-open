@@ -112,3 +112,12 @@ def test_new_plenaries_follow_the_last_one_until_one_is_missing(tmp_path, monkey
         sesion, "_fetch", lambda u: "#EXTM3U" if any(p in u for p in published) else ""
     )
     assert [s for s, _, _ in sesion.new_plenaries(data)] == [203, 204]
+
+
+def test_session_id_from_url():
+    page = (
+        "https://app.congreso.es/AudiovisualCongreso/audiovisualdetalledisponible?codOrgano=400"
+        "&codSesion=203&idLegislaturaElegida=15&fechaSesion=01/10/2026"
+    )
+    assert sesion.session_id(page) == "203_pleno_2026"
+    assert sesion.session_id(page.replace("codOrgano=400", "codOrgano=309")) == "203_comision_2026"
