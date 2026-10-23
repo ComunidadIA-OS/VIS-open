@@ -22,10 +22,12 @@ Los tokens no se leen de ningún fichero: vienen del entorno del terminal (`read
 from __future__ import annotations
 
 import argparse
+import json
 import os
 import re
 import subprocess
 import sys
+import time
 import unicodedata
 from pathlib import Path
 from urllib.parse import urljoin
@@ -35,9 +37,12 @@ from sources.congreso import parse_session_url
 from sources.manifest import ManifestError, read_manifest, require_ready, sha256_file
 
 
-def _run(*args: str) -> None:
+def _run(*args: str) -> float:
+    """Ejecuta un paso (`python -m ...`) y devuelve cuántos segundos ha tardado."""
     print("→", " ".join(args), flush=True)
+    start = time.monotonic()
     subprocess.run([sys.executable, "-m", *args], check=True)
+    return round(time.monotonic() - start, 1)
 
 
 STREAMING = "https://streaming.congreso.es:8443/vod/ondemand/video"
@@ -134,16 +139,21 @@ def analyze_session(video_id: str, data_dir: Path) -> None:
     video = data_dir / "raw" / f"{video_id}.mp4"
     require_ready(video, data_dir / "manifiesto.csv")  # antes de gastar GPU
     timeline = data_dir / "processed" / video_id / "timeline.json"
-    _run("pipeline.run", str(video))
-    _run("decision.roles", str(timeline))
+    seconds = {"audio_y_voces": _run("pipeline.run", str(video))}
+    seconds["bloques_pregunta"] = _run("decision.roles", str(timeline))
     engine = "llm" if os.environ.get("LLM_API_KEY") else "rules"
     print(f"M09/M06 con el motor «{engine}»", flush=True)
-    _run("metrics.m09", str(timeline), "--engine", engine)
+    seconds[f"m09_{engine}"] = _run("metrics.m09", str(timeline), "--engine", engine)
     model = os.environ.get("POSE_MODEL")
     if model and Path(model).is_file():
-        _run("pipeline.video", str(video), "--model", model)
+        seconds["video"] = _run("pipeline.video", str(video), "--model", model)
     else:
         print("sin POSE_MODEL: no se analiza el vídeo (el resto ya está en el panel)")
+    # tiempo real de cada paso, para el documento de costes (GPU encendida = se factura)
+    out = timeline.with_name("tiempos.json")
+    out.parent.mkdir(parents=True, exist_ok=True)
+    out.write_text(json.dumps(seconds, indent=2), encoding="utf-8")
+    print("tiempos (s):", seconds)
 
 
 def main(argv: list[str] | None = None) -> None:

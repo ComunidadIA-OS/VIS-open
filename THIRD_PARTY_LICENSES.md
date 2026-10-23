@@ -43,7 +43,8 @@ Extra opcional `[pipeline]`: no se instala en CI ni en los portátiles; se usa e
 | datasets | 5.1.0 | dependencia de trl (extra `[finetune]`) | Apache-2.0 (clasificador OSI de PyPI) | https://pypi.org/project/datasets/ |
 | reportlab | 5.0.1 | informe descargable en PDF (extra `[dashboard]`) | BSD (campo `License` y clasificador OSI del paquete; la fuente Bitstream Vera que incluye permite redistribución) | https://pypi.org/project/reportlab/ |
 | opencv-python-headless | 5.0.0.93 | lectura de fotogramas (extra `[video]`) | Apache-2.0 (campo `License` y clasificador del paquete instalado; la rueda incluye FFmpeg, LGPL) | https://pypi.org/project/opencv-python-headless/ |
-| FFmpeg | binario externo, no se distribuye | extracción de audio | LGPL-2.1+ (GPL-2+ solo si se compila con `--enable-gpl`) | https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md |
+| FFmpeg | binario externo, no se distribuye | extracción de audio y descarga de la emisión HLS sin recodificar (`pipeline.sesion`) | LGPL-2.1+ (GPL-2+ solo si se compila con `--enable-gpl`) | https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md |
+| curl | binario externo, no se distribuye | lee la lista de pistas (master playlist) de la emisión del Congreso (`pipeline.sesion`) | licencia curl (SPDX `curl`, inspirada en MIT/X; verificada en la fuente el 23 oct 2026) | https://curl.se/docs/copyright.html |
 
 Modelos (se descargan en tiempo de ejecución, no se incluyen en el repo):
 
