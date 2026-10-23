@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 import altair as alt
+import pandas as pd
 import streamlit as st
 
 from dashboard.auth import auth_enabled, check_login
@@ -794,11 +795,23 @@ if screen == "Sesión":
             step=1.0,
             key=f"ventana_{s.session_id}",
         )
+        st.caption(
+            f"Se analiza del minuto {tramo[0]:.0f} al {tramo[1]:.0f} del vídeo. "
+            "En gris, la parte del vídeo que no se analiza (no hay datos)."
+        )
         strip = timeline_strip(s)
         strip = strip[(strip["fin_min"] >= window[0]) & (strip["inicio_min"] <= window[1])]
-        chart(
+        outside = pd.DataFrame(
+            [
+                {"inicio_min": 0.0, "fin_min": tramo[0], "genero": "no analizado"},
+                {"inicio_min": tramo[1], "fin_min": full_min, "genero": "no analizado"},
+            ]
+        )
+        outside = outside[outside["fin_min"] > outside["inicio_min"]]
+        strip = pd.concat([outside, strip], ignore_index=True)
+        bars = (
             alt.Chart(strip)
-            .mark_bar(height=80, clip=True)
+            .mark_bar(clip=True, height=100)
             .encode(
                 x=alt.X(
                     "inicio_min", title=None, scale=alt.Scale(domain=list(window), nice=False)
@@ -806,12 +819,17 @@ if screen == "Sesión":
                 x2="fin_min",
                 color=alt.Color(
                     "genero",
-                    scale=COLORS,
+                    scale=alt.Scale(
+                        domain=[*COLORS.domain, "no analizado"],
+                        range=[*COLORS.range, "#ece8df"],
+                    ),
                     title="Género",
                     legend=alt.Legend(orient="bottom", direction="horizontal"),
                 ),
             )
-            .properties(height=150),
+        )
+        chart(
+            bars.properties(height=230),  # alto total: franja, eje y leyenda
             f"Línea de tiempo de los {s.timeline.duration_s / 60:.0f} minutos de la sesión, "
             "coloreada por el género de quien habla. La transcripción de abajo tiene lo mismo en "
             "texto, en orden.",
