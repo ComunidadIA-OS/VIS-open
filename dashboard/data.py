@@ -12,6 +12,7 @@ import json
 import re
 import shutil
 import subprocess
+from collections import Counter
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -34,9 +35,10 @@ from metrics.diputadas import cargar as cargar_camara
 from sources.congreso import parse_session_url
 
 CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
-PENDING_METRICS = {
-    "M14": "Peticiones de palabra con la mano (vídeo)",
-}
+# M14 (manos levantadas) se descartó para el Congreso (Ivette, 22 oct 2026): el panel no la
+# muestra; el módulo de vídeo sigue en el código.
+PENDING_METRICS: dict[str, str] = {}
+MIN_CUT_WORDS = 4  # un corte de Human in the loop tiene que tener palabras, no aplausos
 METHOD_NOTICE = (
     "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
     "cara ni la voz. "
@@ -205,8 +207,8 @@ def show_interventions(rows: pd.DataFrame) -> pd.DataFrame:
     return pd.DataFrame(
         {
             "persona": rows["persona"],
-            "inicio": [fmt_time(m * 60) for m in rows["inicio_min"]],
-            "duración": [fmt_time(d) for d in rows["duracion_s"]],
+            "inicio (min:s)": [fmt_time(m * 60) for m in rows["inicio_min"]],
+            "duración (min:s)": [fmt_time(d) for d in rows["duracion_s"]],
             "género": rows["genero"],
             "texto": rows["texto"],
         }
@@ -220,7 +222,7 @@ def show_voices(voices: pd.DataFrame) -> pd.DataFrame:
             "persona": voices["persona"],
             "género": voices["genero"],
             "origen": voices["origen"],
-            "tiempo de palabra": [fmt_time(m * 60) for m in voices["minutos"]],
+            "tiempo de palabra (min:s)": [fmt_time(m * 60) for m in voices["minutos"]],
             "intervenciones": voices["intervenciones"],
         }
     )
@@ -237,8 +239,10 @@ def show_tracks(tracks: pd.DataFrame) -> pd.DataFrame:
             "pista": tracks["pista"],
             "tiempo en pantalla": [fmt_time(m * 60) for m in tracks["minutos_en_pantalla"]],
             "% del tiempo": [fmt_pct(x) for x in tracks["porcentaje"]],
-            "tamaño medio": [num(x) for x in tracks["tamano_medio"]],
-            "centralidad": [num(x) for x in tracks["centralidad"]],
+            "tamaño medio (% de la imagen)": [
+                "" if pd.isna(x) else f"{100 * x:.0f} %" for x in tracks["tamano_medio"]
+            ],
+            "centralidad (0 borde · 1 centro)": [num(x) for x in tracks["centralidad"]],
             "género (audio)": tracks["genero_por_audio"],
         }
     )
@@ -247,11 +251,15 @@ def show_tracks(tracks: pd.DataFrame) -> pd.DataFrame:
 def voice_blocks(
     timeline: AnalysisTimeline, speaker_id: str, gap_s: float = 3.0, top: int = 3
 ) -> list[tuple[float, float]]:
-    """Tramos seguidos de una voz (pausas de hasta `gap_s`), los `top` más largos, en orden."""
+    """Tramos seguidos de una voz (pausas de hasta `gap_s`), los `top` más largos, en orden.
+
+    Solo con segmentos que tienen palabras: un tramo de aplausos o ruido no sirve para validar.
+    """
     events = sorted(
         (e for e in timeline.events if e.type == EventType.SPEECH and e.speaker_id == speaker_id),
         key=lambda e: e.start_s,
     )
+    events = [e for e in events if len((e.text or "").split()) >= MIN_CUT_WORDS] or events
     blocks: list[list[float]] = []
     for e in events:
         if blocks and e.start_s - blocks[-1][1] <= gap_s:
@@ -350,9 +358,12 @@ def cut_text(timeline: AnalysisTimeline, speaker_id: str, start_s: float, stop_s
 
 
 def review_cuts(
-    session: Session, speaker_ids: list[str], per_voice: int = 6
+    session: Session,
+    speaker_ids: list[str],
+    per_voice: int = 2,  # uno y otro por si hay duda
 ) -> list[dict[str, float | str]]:
-    """Cortes para validar, uno detrás de otro (por orden en el vídeo), de las voces dadas."""
+    """Cortes para validar, agrupados por voz (en el orden en que aparece cada voz en el vídeo)
+    y, dentro de cada voz, por orden en el vídeo: así se valida una voz y se pasa a la siguiente."""
     cuts: list[dict[str, float | str]] = []
     for sid in speaker_ids:
         blocks = voice_blocks(session.timeline, sid, top=per_voice)
@@ -367,7 +378,10 @@ def review_cuts(
                     "texto": cut_text(session.timeline, sid, start, stop),
                 }
             )
-    return sorted(cuts, key=lambda c: float(c["start"]))
+    first = {}
+    for c in sorted(cuts, key=lambda c: float(c["start"])):
+        first.setdefault(c["speaker_id"], float(c["start"]))
+    return sorted(cuts, key=lambda c: (first[c["speaker_id"]], float(c["start"])))
 
 
 LINE_CHARS = 42  # ancho de línea de subtítulo recomendado
@@ -542,7 +556,17 @@ def voices_table(session: Session) -> pd.DataFrame:
     """Una fila por voz: género, de dónde sale, minutos de palabra, intervenciones y evidencia."""
     tl = session.timeline
     codes = speaker_codes(tl)
-    speech = [e for e in tl.events if e.type == EventType.SPEECH and e.speaker_id]
+    speech = sorted(
+        (e for e in tl.events if e.type == EventType.SPEECH and e.speaker_id),
+        key=lambda e: (e.start_s, e.end_s),
+    )
+    # Una intervención = cada vez que la voz toma la palabra hasta que habla otra; no cada
+    # segmento de la transcripción (Whisper parte el habla en trozos de pocos segundos).
+    turns = Counter(
+        e.speaker_id
+        for i, e in enumerate(speech)
+        if i == 0 or speech[i - 1].speaker_id != e.speaker_id
+    )
     rows = []
     for sp in tl.speakers:
         mine = [e for e in speech if e.speaker_id == sp.speaker_id]
@@ -553,7 +577,7 @@ def voices_table(session: Session) -> pd.DataFrame:
                 "genero": sp.gender.value,
                 "origen": sp.gender_source.value,
                 "minutos": round(sum(e.end_s - e.start_s for e in mine) / 60, 2),
-                "intervenciones": len(mine),
+                "intervenciones": turns.get(sp.speaker_id, 0),
                 "evidencia": f"{ev.method}: {ev.phrase}" if ev else "",
             }
         )
@@ -564,14 +588,14 @@ def voices_table(session: Session) -> pd.DataFrame:
 
 
 def timeline_strip(session: Session) -> pd.DataFrame:
-    """Franja de la sesión: tramos coloreados por género (y manos levantadas, si las hay)."""
+    """Franja de la sesión: tramos de voz coloreados por género."""
     f = timeline_to_frame(session.timeline)
-    f = f[f["type"].isin(["speech", "hand_raise"])]
+    f = f[f["type"] == "speech"]
     return pd.DataFrame(
         {
             "inicio_min": f["start_s"] / 60,
             "fin_min": f["end_s"] / 60,
-            "genero": f["gender"].where(f["type"] == "speech", "mano_levantada"),
+            "genero": f["gender"],
         }
     )
 
@@ -664,20 +688,37 @@ def evolution_table(sessions: list[Session]) -> pd.DataFrame:
     """Una fila por sesión (ordenada por fecha si hay ficha, si no por id)."""
     rows = []
     for s in sessions:
-        row = {"sesion": s.session_id, "fecha": (s.source or {}).get("fecha_evento", "")}
+        row = {"sesion": session_label(s), "fecha": (s.source or {}).get("fecha_evento", "")}
         for m in CARD_METRICS:
             r = s.metrics[m]
             row[m] = r.value if r.conclusive else None
-        for m in ("M09", "M06", "M14"):
+        for m in ("M09", "M06"):
             r = s.metrics.get(m)
             row[m] = r.value if r and r.conclusive else None
         rows.append(row)
     return pd.DataFrame(rows).sort_values(["fecha", "sesion"], ignore_index=True)
 
 
+def session_label(session: Session) -> str:
+    """«V005 · sesión 202 · 30/09/2026», con lo que haya en la ficha de la fuente."""
+    src = session.source or {}
+    parts = [session.session_id]
+    if m := re.search(r"sesi[oó]n (\d+)", src.get("titulo", "")):
+        parts.append(f"sesión {m.group(1)}")
+    if fecha := src.get("fecha_evento", ""):
+        parts.append("/".join(reversed(fecha.split("-"))))
+    return " · ".join(parts)
+
+
 def evolution_gender_table(sessions: list[Session]) -> pd.DataFrame:
-    """% de tiempo de palabra por género y sesión (existe aunque la métrica no sea concluyente)."""
-    frames = [gender_time_table(s).assign(sesion=s.session_id) for s in sessions]
+    """% de tiempo de palabra por género y sesión (existe aunque la métrica no sea concluyente).
+
+    En orden de fecha; `sesion` es la etiqueta con número de sesión y fecha (`session_label`).
+    """
+    ordered = sorted(
+        sessions, key=lambda s: ((s.source or {}).get("fecha_evento", ""), s.session_id)
+    )
+    frames = [gender_time_table(s).assign(sesion=session_label(s)) for s in ordered]
     return pd.concat(frames, ignore_index=True)[["sesion", "gender", "porcentaje"]]
 
 

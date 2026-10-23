@@ -7,6 +7,7 @@ No calcula nada con IA, nunca muestra nombres y no analiza caras. Si el vídeo o
 
 from __future__ import annotations
 
+import html
 import os
 from pathlib import Path
 
@@ -23,7 +24,6 @@ from dashboard.data import (
     evolution_table,
     fmt_time,
     gender_time_table,
-    inconclusive_reason,
     interventions_table,
     load_sessions,
     make_clip,
@@ -93,8 +93,8 @@ def page_a11y() -> None:
 
 
 COLORS = alt.Scale(
-    domain=["mujer", "hombre", "desconocido", "sin_atribuir", "mano_levantada"],
-    range=["#8e4b8b", "#2a7b8c", "#a7a39b", "#d9d5cc", "#d98e04"],
+    domain=["mujer", "hombre", "desconocido", "sin_atribuir"],
+    range=["#8e4b8b", "#2a7b8c", "#a7a39b", "#d9d5cc"],
 )
 
 SUBTITLE_LABEL = "Español (automático)"
@@ -108,11 +108,53 @@ SHORT_TITLES = {
     "M09": "M09 Preguntas recibidas",
     "M13": "M13 Sin atribuir",
 }
+METRIC_UNITS = {
+    "M01": "personas",
+    "M02": "%",
+    "M02b": "%",
+    "M03": "turnos por pregunta",
+    "M04": "puntos",
+    "M06": "%",
+    "M13": "%",
+}  # M09 es un cociente (1 = igual): sin unidad
+
+
+def with_unit(key: str, valor: str) -> str:
+    """«41.65» → «41,65 %»; «no concluyente» y «no aplica» quedan igual."""
+    if not valor[:1].isdigit() and not valor.startswith("-"):
+        return valor
+    number = valor.replace(".", ",").replace("-", "−")
+    return f"{number} {METRIC_UNITS[key]}" if key in METRIC_UNITS else number
+
+
+# Qué es cada cifra, en una línea, bajo su tarjeta (definiciones de Ivette, docs/metricas.md).
+METRIC_EXPLAINED = {
+    "M01": "Personas distintas que intervienen, sin contar la Presidencia.",
+    "M02": "% del tiempo de palabra de las mujeres, sobre el tiempo con género conocido.",
+    "M02b": "% de intervenciones (una persona en una pregunta) que pasan de 160 s: "
+    "150 s asignados + 10 s de tolerancia.",
+    "M03": "Turnos por pregunta, sin la Presidencia. Lo esperado es de 3 a 6; "
+    "fuera de ese rango hay que revisar la separación de voces.",
+    "M04": "Puntos: % del tiempo de las mujeres menos % del de los hombres. "
+    "Negativo = las mujeres hablan menos.",
+    "M06": "% de las preguntas al Presidente del Gobierno que hacen mujeres.",
+    "M09": "Preguntas por ministra frente a preguntas por ministro (1 = igual; menos de 1 = "
+    "las ministras reciben menos). Solo descriptiva: también influye la actualidad de cada "
+    "ministerio.",
+    "M13": "% del tiempo de voz sin atribuir o con género desconocido (calidad del dato). "
+    "Por encima del 20 % se avisa.",
+}
 
 st.set_page_config(page_title="VIS Open", layout="wide")
 # Estilo del panel: dashboard/style.css (papel cálido, tinta y un acento; sin recursos externos).
 st.markdown(
     f"<style>{(Path(__file__).parent / 'style.css').read_text(encoding='utf-8')}</style>",
+    unsafe_allow_html=True,
+)
+# Cabecera de marca, a todo lo ancho y por encima de la barra lateral (en las dos pantallas).
+st.markdown(
+    "<div class='brand' role='banner'><div class='brand-name'>VIS <em>Open</em></div>"
+    "<div class='brand-tag'>Presencia y participación de las mujeres en el Congreso</div></div>",
     unsafe_allow_html=True,
 )
 DATA_DIR = Path(os.environ.get("DATA_DIR") or "data")
@@ -488,10 +530,6 @@ if not sessions:
 
 if screen == "Sesión":
     with st.container(key="hero"):
-        st.markdown(
-            "<div class='eyebrow'>VIS Open · Presencia y participación de las mujeres</div>",
-            unsafe_allow_html=True,
-        )
         title_col, pick_col = st.columns([3, 1])
         chosen = pick_col.selectbox(
             "Cambiar de vídeo", [s.session_id for s in sessions], key="sesion"
@@ -507,10 +545,17 @@ if screen == "Sesión":
                 "<div class='chips'>" + "".join(f"<span>{c}</span>" for c in chips if c) + "</div>",
                 unsafe_allow_html=True,
             )
-            st.caption(src.get("cita") or SOURCE_NOTICE)
-            if src.get("url_origen"):
-                st.markdown(f"[Fuente]({src['url_origen']})")
-        st.info(METHOD_NOTICE)
+            cita = html.escape(src.get("cita") or SOURCE_NOTICE)
+            url = src.get("url_origen", "")
+            # La cita es el enlace a la fuente (en azul); no hace falta un segundo «Fuente».
+            st.markdown(
+                f"<a class='source-link' href='{html.escape(url, quote=True)}' target='_blank' "
+                f"rel='noopener'>{cita}</a>"
+                if url.startswith("https://")
+                else f"<span class='source-link'>{cita}</span>",
+                unsafe_allow_html=True,
+            )
+        st.caption(METHOD_NOTICE)
     with st.container(key="nav"):
         st.markdown(
             "<nav class='secnav'>"
@@ -539,15 +584,16 @@ if screen == "Sesión":
             minute = st.number_input(
                 "Ir al minuto", min_value=0.0, max_value=max_minute, step=1.0, key=minute_key
             )
+            from dashboard.videoserver import video_url
+
             st.video(
-                video_file,
+                video_url(video_file),  # sin cargar el fichero en memoria (3,6 GB en V005)
                 start_time=int(minute * 60),
                 subtitles={SUBTITLE_LABEL: subtitles_vtt(s).encode("utf-8")},
             )
             st.caption(
-                "Vídeo original del Congreso, sin alterar. Solo se ve en este equipo. "
-                "Subtítulos para personas sordas: botón «CC» del reproductor (son automáticos, con "
-                "nombres en clave, y pueden tener errores)."
+                "Vídeo original del Congreso, sin alterar. "
+                "Subtítulos (son automáticos, con nombres en clave, y pueden tener errores)."
             )
             st.download_button(
                 "Descargar subtítulos (.vtt)",
@@ -598,10 +644,7 @@ if screen == "Sesión":
                 text=f"Has validado {decided} de {len(all_voices)} voces",
             )
         if cuts:
-            st.caption(
-                f"{len(cuts)} cortes, uno a continuación de otro. Cuando validas una voz en un "
-                "corte, vale para todos los cortes de esa voz."
-            )
+            st.caption(f"{len(cuts)} cortes por validar.")
         for i, cut in enumerate(cuts, 1):
             sid = str(cut["speaker_id"])
             code = codes.get(sid, sid)
@@ -626,8 +669,11 @@ if screen == "Sesión":
                     )
                 else:
                     clip.video(video_file, start_time=int(start), end_time=int(stop))
-            text.caption("Lo que dice en este corte")
-            text.write(str(cut["texto"])[:400])
+            text.caption("Transcripción de este corte")
+            text.markdown(  # como mucho, el tamaño del rótulo de arriba
+                f"<div class='cut-text'>{html.escape(str(cut['texto'])[:400])}</div>",
+                unsafe_allow_html=True,
+            )
             with st.form(f"form_{s.session_id}_{sid}_{i}_{who}"):
                 gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
                 confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
@@ -656,11 +702,17 @@ if screen == "Sesión":
             ):
                 col.metric(
                     SHORT_TITLES.get(key, card["titulo"].split(" (")[0]),
-                    card["valor"],
+                    with_unit(key, card["valor"]),
                     help=card["titulo"],  # el nombre completo, al pasar el ratón
                 )
-        if why := inconclusive_reason(s):
-            st.warning(why)
+                if key in METRIC_EXPLAINED:
+                    col.caption(METRIC_EXPLAINED[key])
+                if card["valor"] in ("no concluyente", "no aplica") and card["detalle"]:
+                    # el motivo, en pequeño y bajo su métrica (no un aviso general)
+                    why = (
+                        card["detalle"].removeprefix("no concluyente: ").removeprefix("no aplica: ")
+                    )
+                    col.caption(f"⚠ {card['valor'].capitalize()}: {why}.")
         for key, label in PENDING_METRICS.items():
             st.caption(f"{key} {label}: no disponible todavía")
         if s.referencia:
@@ -689,7 +741,11 @@ if screen == "Sesión":
         chart(
             alt.Chart(gt)
             .mark_bar()
-            .encode(x="gender", y="minutos", color=alt.Color("gender", scale=COLORS)),
+            .encode(
+                x=alt.X("gender", title=None, axis=alt.Axis(labelAngle=0)),
+                y=alt.Y("minutos", title="minutos"),
+                color=alt.Color("gender", scale=COLORS, legend=None),  # ya lo dice el eje
+            ),
             "Gráfico de barras del tiempo de palabra por género: "
             + say_rows(gt, "gender", "minutos", "minutos")
             + ".",
@@ -698,8 +754,17 @@ if screen == "Sesión":
         chart(
             alt.Chart(timeline_strip(s))
             .mark_bar(height=80)
-            .encode(x="inicio_min", x2="fin_min", color=alt.Color("genero", scale=COLORS))
-            .properties(height=130),
+            .encode(
+                x=alt.X("inicio_min", title=None),  # minutos; sin el rótulo técnico
+                x2="fin_min",
+                color=alt.Color(
+                    "genero",
+                    scale=COLORS,
+                    title="Género",
+                    legend=alt.Legend(orient="bottom", direction="horizontal"),
+                ),
+            )
+            .properties(height=150),
             f"Línea de tiempo de los {s.timeline.duration_s / 60:.0f} minutos de la sesión, "
             "coloreada por el género de quien habla. La transcripción de abajo tiene lo mismo en "
             "texto, en orden.",
@@ -754,7 +819,7 @@ if screen == "Sesión":
             st.header("Análisis de vídeo (MediaPipe, sin caras)")
             st.write(
                 "MediaPipe devuelve puntos del cuerpo; de ahí salen las personas visibles, el "
-                "tiempo en pantalla y las manos levantadas. No lee caras ni género."
+                "tiempo en pantalla. No lee caras ni género."
             )
             vt = video_tables(s)
             if not vt:
@@ -784,27 +849,23 @@ if screen == "Sesión":
                 chart(
                     alt.Chart(vt[0])
                     .mark_bar()
-                    .encode(x="genero", y="minutos", color=alt.Color("genero", scale=COLORS)),
+                    .encode(
+                        x=alt.X("genero", title=None, axis=alt.Axis(labelAngle=0)),
+                        y=alt.Y("minutos", title="minutos"),
+                        color=alt.Color("genero", scale=COLORS, legend=None),
+                    ),
                     "Gráfico de barras del tiempo en pantalla por género: "
                     + say_rows(vt[0], "genero", "minutos", "minutos")
                     + ".",
                 )
                 st.subheader("Pistas con más tiempo en pantalla")
                 st.table(show_tracks(video_tracks_with_totals(s)).style.hide(axis="index"))
-                hands = v.get("manos_levantadas", [])
-                st.subheader("Manos levantadas")
-                st.caption("Zona de la imagen y momento; ▶ mueve el vídeo de arriba.")
-                if not hands:
-                    st.write("No se han detectado manos levantadas.")
-                hand_cols = st.columns(4)
-                for i, h in enumerate(hands):
-                    hand_cols[i % 4].button(
-                        f"▶ {fmt_time(h['inicio_s'])} · zona {h['zona']}",
-                        key=f"hand_{s.session_id}_{i}",
-                        on_click=go_to,
-                        args=(h["inicio_s"],),
-                        disabled=not video_file,
-                    )
+                st.caption(
+                    "Pista: una persona seguida en la imagen (número interno, sin identificarla). "
+                    "Tamaño medio: qué parte de la imagen ocupa de media (más grande = plano más "
+                    "cercano). Centralidad: 1 si suele estar en el centro horizontal de la imagen, "
+                    "0 si en el borde. El género sale del audio, nunca de la imagen."
+                )
     with st.container(key="sec_descargas"):
         st.markdown(
             "<span id='sec-descargas' class='anchor'></span><h2 class='sr-only'>Descargas</h2>",
@@ -835,7 +896,12 @@ else:
         alt.Chart(evolution_gender_table(sessions))
         .mark_bar()
         .encode(
-            x="sesion",
+            x=alt.X(
+                "sesion",
+                title="Sesión",
+                sort=None,  # ya viene en orden de fecha
+                axis=alt.Axis(labelAngle=0, labelExpr="split(datum.label, ' · ')"),
+            ),
             y=alt.Y("porcentaje", scale=alt.Scale(domain=[0, 100])),
             color=alt.Color("gender", scale=COLORS),
             tooltip=["sesion", "gender", "porcentaje"],
@@ -844,7 +910,15 @@ else:
     )
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
     evo = evolution_table(sessions).astype(object).fillna("no concluyente")
+    names = {"sesion": "Sesión", "fecha": "Fecha"} | {
+        k: f"{v} ({METRIC_UNITS[k]})" if k in METRIC_UNITS else v for k, v in SHORT_TITLES.items()
+    }
+    evo = evo.rename(columns={c: names.get(c, c) for c in evo.columns})
     st.table(evo.style.hide(axis="index").format(precision=2, na_rep="-"))
+    st.markdown("**Qué es cada columna**")
+    for key, text in METRIC_EXPLAINED.items():
+        if names[key] in evo.columns:
+            st.caption(f"**{SHORT_TITLES[key]}:** {text}")
 
 
 if sessions and st.session_state.get("voz_abierto"):

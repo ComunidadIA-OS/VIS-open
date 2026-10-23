@@ -103,7 +103,7 @@ def test_m09_and_m06_are_read_from_m09_json(tmp_path):
 def test_m09_is_no_longer_pending():
     from dashboard.data import PENDING_METRICS
 
-    assert "M09" not in PENDING_METRICS and "M14" in PENDING_METRICS
+    assert "M09" not in PENDING_METRICS and "M14" not in PENDING_METRICS  # M14 descartada
 
 
 def test_interventions_never_show_names_only_codes(sessions):
@@ -115,7 +115,8 @@ def test_interventions_never_show_names_only_codes(sessions):
 
 def test_evolution_and_report(sessions):
     evo = evolution_table(sessions)
-    assert len(evo) == 5 and {"M01", "M02", "M03", "M04", "M13", "M14", "M09"} <= set(evo.columns)
+    assert len(evo) == 5 and {"M01", "M02", "M03", "M04", "M13", "M09"} <= set(evo.columns)
+    assert "M14" not in evo.columns
     pdf = report_pdf(sessions[0], compress=False)
     assert pdf.startswith(b"%PDF") and b"datos de ejemplo" in pdf and b"Resumen" in pdf
 
@@ -239,6 +240,15 @@ def test_voice_blocks_and_time_format():
         events=[ev(0, 0, 10), ev(1, 11, 20), ev(2, 100, 105), ev(3, 200, 230)],
     )
     assert voice_blocks(tl, "SPEAKER_00", top=2) == [(0, 20), (200, 230)]
+    words = "Señora ministra, le pregunto por los alquileres."
+    applause = AnalysisTimeline(
+        video_id="A",
+        duration_s=300,
+        speakers=[Speaker(speaker_id="SPEAKER_00")],
+        events=[ev(0, 0, 40).model_copy(update={"text": "(Aplausos)"}),
+                ev(1, 100, 110).model_copy(update={"text": words})],
+    )  # fmt: skip
+    assert voice_blocks(applause, "SPEAKER_00", top=1) == [(100, 110)]  # sin el tramo de aplausos
     assert fmt_time(178) == "2:58" and fmt_time(5) == "0:05"
 
 
@@ -405,12 +415,12 @@ def test_screen_tables_use_minutes_and_percent_format():
          "genero": ["mujer"], "texto": ["hola"]}
     )  # fmt: skip
     out = show_interventions(rows)
-    assert out.loc[0, "inicio"] == "1:30" and out.loc[0, "duración"] == "0:07"
+    assert out.loc[0, "inicio (min:s)"] == "1:30" and out.loc[0, "duración (min:s)"] == "0:07"
     voices = pd.DataFrame(
         {"persona": ["Persona 1"], "genero": ["hombre"], "origen": ["x"],
          "minutos": [13.65], "intervenciones": [4]}
     )  # fmt: skip
-    assert show_voices(voices).loc[0, "tiempo de palabra"] == "13:39"
+    assert show_voices(voices).loc[0, "tiempo de palabra (min:s)"] == "13:39"
     tracks = pd.DataFrame(
         {"pista": ["1"], "minutos_en_pantalla": [10.06], "porcentaje": [11.9],
          "tamano_medio": [float("nan")], "centralidad": [0.5], "genero_por_audio": ["mujer"]}
@@ -419,7 +429,7 @@ def test_screen_tables_use_minutes_and_percent_format():
     assert (
         shown.loc[0, "tiempo en pantalla"] == "10:03" and shown.loc[0, "% del tiempo"] == "11.9 %"
     )
-    assert shown.loc[0, "tamaño medio"] == ""
+    assert shown.loc[0, "tamaño medio (% de la imagen)"] == ""
 
 
 def test_review_cuts_are_listed_one_after_another_and_one_answer_covers_the_voice(tmp_path):
@@ -453,8 +463,10 @@ def test_review_cuts_are_listed_one_after_another_and_one_answer_covers_the_voic
     session = Session("V9", tl)
     cuts = review_cuts(session, ["SPEAKER_00", "SPEAKER_01"])
     assert [(c["speaker_id"], c["start"]) for c in cuts] == [
-        ("SPEAKER_00", 0), ("SPEAKER_01", 100), ("SPEAKER_00", 200),
-    ]  # fmt: skip
+        ("SPEAKER_00", 0),
+        ("SPEAKER_00", 200),
+        ("SPEAKER_01", 100),
+    ]  # fmt: skip  (agrupados por voz)
     assert all(float(c["stop"]) - float(c["start"]) <= SAMPLE_S for c in cuts)
     assert (
         "primero" in cuts[0]["texto"] and cut_text(tl, "SPEAKER_00", 300, 302) == "demasiado corto"
