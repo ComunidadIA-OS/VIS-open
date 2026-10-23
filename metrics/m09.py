@@ -93,7 +93,7 @@ def _result(metric_id: str, name: str, value, sample: dict, reason: str | None, 
         metric_id=metric_id,
         name=name,
         is_example=False,
-        value=value,
+        value=round(value, 2) if isinstance(value, float) else value,  # como el resto de métricas
         conclusive=reason is None,
         reason=reason,
         sample=sample,
