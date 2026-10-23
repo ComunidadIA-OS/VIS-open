@@ -123,6 +123,13 @@ METRIC_UNITS = {
 }  # M09 es un cociente (1 = igual): sin unidad
 
 
+def spanish_number(v):
+    """56.34 → «56,34»; 31.0 → «31»; el texto («no concluyente») queda igual."""
+    if not isinstance(v, (int, float)):
+        return v
+    return f"{v:.2f}".rstrip("0").rstrip(".").replace(".", ",").replace("-", "−")
+
+
 def with_unit(key: str, valor: str) -> str:
     """«41.65» → «41,65 %»; «no concluyente» y «no aplica» quedan igual."""
     if not valor[:1].isdigit() and not valor.startswith("-"):
@@ -1013,6 +1020,11 @@ else:
         "Gráfico de barras. " + explain_evolution(evo_sessions),
     )
     st.caption("Una sesión con todo «desconocido» aún no tiene género asignado: falta revisión.")
+    st.caption(
+        "En el gráfico, el % es sobre todo el tiempo de voz (incluye «desconocido» y «sin "
+        "atribuir»); M02 de la tabla es sobre el tiempo con género conocido. Por eso pueden no "
+        "coincidir cuando hay voces sin género."
+    )
     evo = evolution_table(evo_sessions).astype(object).fillna("no concluyente")
     names = {"sesion": "Sesión", "fecha": "Fecha"} | {
         k: f"{v} ({METRIC_UNITS[k]})" if k in METRIC_UNITS else v for k, v in SHORT_TITLES.items()
@@ -1021,7 +1033,7 @@ else:
     evo = evo.drop(columns=["Fecha"])  # la fecha ya va en el nombre de la sesión
     st.table(
         evo.style.hide(axis="index")
-        .format(precision=2, na_rep="-")
+        .format(spanish_number, na_rep="-")
         .set_properties(**{"font-size": "0.8em"})
         .set_table_styles([{"selector": "th", "props": [("font-size", "0.75em")]}])
     )

@@ -734,10 +734,7 @@ def evolution_table(sessions: list[Session]) -> pd.DataFrame:
     rows = []
     for s in sessions:
         row = {"sesion": session_label(s), "fecha": (s.source or {}).get("fecha_evento", "")}
-        for m in CARD_METRICS:
-            r = s.metrics[m]
-            row[m] = r.value if r.conclusive else None
-        for m in ("M09", "M06"):
+        for m in sorted({*CARD_METRICS, "M09", "M06"}):  # mismo orden que las tarjetas
             r = s.metrics.get(m)
             row[m] = r.value if r and r.conclusive else None
         rows.append(row)
