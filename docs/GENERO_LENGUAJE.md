@@ -14,10 +14,13 @@ El género de una voz sale del **texto de la transcripción** y siempre con evid
 | `self_role` | «Soy la diputada por Girona», «soy el portavoz» | 0,90 | A quien habla |
 | `self_agreement` | «Estoy muy agradecida» | 0,75 | A quien habla |
 | `as_role` | «Como diputada, creo…» | 0,60 | A quien habla; **siempre a revisión** (puede ser un tercero) |
+| `chair_address` | La Presidencia acaba con un tratamiento a solas: «Señora ministra, cuando quiera.», «Señor presidente del Gobierno.» (sin «gracias», 6 palabras como mucho) | 0,80 | A la **voz siguiente**; solo en intervenciones de la Presidencia |
 
 Las referencias a terceros («la señora ministra dijo…») no cuentan como pista. Cargos sin forma propia (portavoz, ponente) toman el género del artículo.
 
 ## Dar la palabra vale para todos los vídeos
+
+Sesión de control (23 oct 2026, visto bueno de Sabrina, pendiente de Ivette): en las intervenciones de la Presidencia se leen unidos los segmentos seguidos (Whisper parte «Pregunta del | diputado don…»), cuentan también los anuncios («…la formula la diputada doña X», «…del diputado don X») como `floor_grant`, y el tratamiento a solas al final da el género de quien responde (`chair_address`). La Presidencia es la voz que más veces da la palabra o anuncia una pregunta.
 
 Regla de Sabrina: «doy la palabra a la señora / al señor = mujer / hombre»: lo que sigue a «tiene la palabra la señora X» (o «el señor X») es de esa persona. Si la diarización ya separó las voces, se usa la voz siguiente (`floor_grant`, 0,85). Si la dejó fusionada con quien da la palabra, `split_on_floor_grant` (`decision/gender_cues.py`) pasa los eventos siguientes, hasta la próxima vez que se da la palabra, a una voz nueva, siempre que sumen al menos 15 s; después se aplica la misma pista. Límites: unos segundos de la Presidencia justo después de la frase (p. ej. leer el título) pueden quedar en la voz nueva, y un clip que empieza a mitad de una intervención no tiene esa frase y sigue en `desconocido`. Pendiente del visto bueno de Ivette. Efecto medido (20 oct 2026): V001 pasa de 0 % a 98,7 % del tiempo con género (mujer); V002–V004 no cambian.
 

@@ -26,7 +26,7 @@ import argparse
 import re
 import tomllib
 import unicodedata
-from collections import defaultdict
+from collections import Counter, defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -46,7 +46,12 @@ from pipeline.timeline import build_review_rows
 CUES_DIR = Path(__file__).parent / "cues"
 PHRASE_MAX_CHARS = 240
 MIN_SPLIT_S = 15.0  # una voz nueva debe sumar al menos esto; menos es ruido (p. ej. una cita)
-METHODS = ("floor_grant", "floor_grant_same_voice", "self_role", "self_agreement", "as_role")
+METHODS = (
+    "floor_grant", "floor_grant_same_voice", "self_role", "self_agreement", "as_role",
+    "chair_address",
+)  # fmt: skip
+VOICE_JOIN_S = 2.0  # segmentos seguidos de una misma voz: una sola intervención
+MIN_OPENINGS_FOR_CHAIR = 2  # la Presidencia da la palabra o anuncia más de una vez
 
 
 def _tokens(text: str) -> list[str]:
@@ -64,6 +69,9 @@ class CueRules:
     confidence: dict[str, float]
     floor_phrases: list[list[str]]
     question_phrases: list[list[str]]
+    chair_announce: list[list[str]]
+    address_max: int
+    address_fillers: set[str]
     lookahead: int
     max_gap_s: float
     address: dict[GenderValue, set[str]]
@@ -95,6 +103,9 @@ def load_rules(language: str = "es", path: Path | None = None) -> CueRules:
         confidence=dict(raw["confidence"]),
         floor_phrases=[_tokens(p) for p in raw["floor_grant"]["phrases"]],
         question_phrases=[_tokens(p) for p in raw.get("question_start", {}).get("phrases", [])],
+        chair_announce=[_tokens(p) for p in raw.get("chair", {}).get("announce_phrases", [])],
+        address_max=raw.get("chair", {}).get("address_max_tokens", 0),
+        address_fillers=_norm_set(raw.get("chair", {}).get("address_fillers", [])),
         lookahead=raw["floor_grant"]["lookahead_tokens"],
         max_gap_s=raw["floor_grant"]["max_gap_s"],
         address={w: _norm_set(raw["address"]["woman"]), m: _norm_set(raw["address"]["man"])},
@@ -124,6 +135,95 @@ def _find(tokens: list[str], phrase: list[str], start: int = 0) -> int | None:
         if tokens[i : i + n] == phrase:
             return i
     return None
+
+
+def voice_groups(speech: list[AnalysisEvent]) -> list[tuple[str | None, list[AnalysisEvent]]]:
+    """Segmentos seguidos de una misma voz (< VOICE_JOIN_S), que se leen como una intervención.
+
+    Whisper corta a veces un anuncio en dos segmentos («Pregunta del | diputado don…»).
+    """
+    groups: list[tuple[str | None, list[AnalysisEvent]]] = []
+    prev = None
+    for e in speech:
+        if groups and prev.speaker_id == e.speaker_id and e.start_s - prev.end_s < VOICE_JOIN_S:
+            groups[-1][1].append(e)
+        else:
+            groups.append((e.speaker_id, [e]))
+        prev = e
+    return groups
+
+
+def _joined(events: list[AnalysisEvent]) -> str:
+    return " ".join(e.text or "" for e in events)
+
+
+def likely_chair(
+    groups: list[tuple[str | None, list[AnalysisEvent]]], rules: CueRules
+) -> str | None:
+    """La voz que más veces da la palabra o anuncia una pregunta, si lo hace al menos dos veces."""
+    phrases = rules.floor_phrases + rules.question_phrases
+    counts = Counter(
+        voice
+        for voice, events in groups
+        if voice and any(_find(_tokens(_joined(events)), p) is not None for p in phrases)
+    )
+    if not counts:
+        return None
+    voice, n = counts.most_common(1)[0]
+    return voice if n >= MIN_OPENINGS_FOR_CHAIR else None
+
+
+def _chair_announcement(tokens: list[str], rules: CueRules) -> GenderValue | None:
+    """Género de quien recibe la palabra en un anuncio (texto ya unido de la Presidencia)."""
+    for phrase in rules.floor_phrases + rules.chair_announce:
+        at = _find(tokens, phrase)
+        if at is None:
+            continue
+        after = tokens[at + len(phrase) : at + len(phrase) + rules.lookahead]
+        if gender := _gender_of_window(after, rules):
+            return gender
+    return None
+
+
+def _chair_address(text: str, rules: CueRules) -> GenderValue | None:
+    """«…Señora ministra, cuando quiera.»: tratamiento a solas al final de la intervención."""
+    sentences = [s for s in re.split(r"[.!?¡¿]", text) if _tokens(s)]
+    if not sentences or "gracias" in _tokens(sentences[-1]):
+        return None
+    tokens = [t for t in _tokens(sentences[-1]) if t not in rules.address_fillers]
+    starts = rules.address[GenderValue.WOMAN] | rules.address[GenderValue.MAN]
+    starts |= rules.roles[GenderValue.WOMAN] | rules.roles[GenderValue.MAN]
+    if not tokens or len(tokens) > rules.address_max or tokens[0] not in starts:
+        return None
+    return _gender_of_window(tokens, rules)
+
+
+def _chair_cues(speech: list[AnalysisEvent], rules: CueRules) -> list[Cue]:
+    """Pistas en las intervenciones de la Presidencia para la voz que habla justo después."""
+    groups = voice_groups(speech)
+    chair = likely_chair(groups, rules)
+    cues: list[Cue] = []
+    for (voice, events), (nxt, nxt_events) in zip(groups, groups[1:], strict=False):
+        if chair is None or voice != chair or nxt in (None, chair):
+            continue
+        if nxt_events[0].start_s - events[-1].end_s > rules.max_gap_s:
+            continue
+        text = _joined(events)
+        method, gender = "floor_grant", _chair_announcement(_tokens(text), rules)
+        if gender is None:
+            method, gender = "chair_address", _chair_address(text, rules)
+        if gender is None:
+            continue
+        evidence = GenderEvidence(
+            gender=gender,
+            method=method,
+            phrase=text.strip()[:PHRASE_MAX_CHARS],
+            start_s=events[0].start_s,
+            event_id=events[0].event_id,
+            confidence=rules.confidence[method],
+        )
+        cues.append(Cue(nxt, evidence))
+    return cues
 
 
 def _gender_of_window(tokens: list[str], rules: CueRules) -> GenderValue | None:
@@ -249,7 +349,7 @@ def extract_cues(timeline: AnalysisTimeline, rules: CueRules) -> list[Cue]:
                 )
             )
             break
-    return cues
+    return cues + _chair_cues(speech, rules)
 
 
 def _floor_gender(event: AnalysisEvent, rules: CueRules) -> GenderValue | None:

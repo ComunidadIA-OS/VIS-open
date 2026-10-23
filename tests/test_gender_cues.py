@@ -264,3 +264,27 @@ def test_control_session_announcement_gives_gender_to_the_next_voice():
     tl = make([("SPEAKER_00", announcement), ("SPEAKER_01", "Gracias. Mi pregunta es clara.")])
     gender, a = gender_of(tl, "SPEAKER_01")
     assert gender == W and a.confidence >= 0.7
+
+
+def test_chair_cues_in_a_control_session():
+    """Presidencia: anuncio de 2018 y tratamiento a solas para dar paso; «gracias» no cuenta."""
+    tl = make(
+        [
+            ("SPEAKER_00", "Pregunta del diputado don Persona 2, del Grupo Mixto."),
+            ("SPEAKER_01", "Señora ministra, ¿qué va a hacer con los alquileres?"),
+            ("SPEAKER_00", "Muchas gracias. Señora ministra, cuando quiera."),
+            ("SPEAKER_02", "Gracias. Le respondo con datos."),
+            (
+                "SPEAKER_00",
+                "Pregunta también dirigida al señor presidente del diputado don Persona 3.",
+            ),
+            ("SPEAKER_03", "Presidente, ¿va a convocar elecciones?"),
+            ("SPEAKER_00", "Muchas gracias, señor Persona 3."),
+            ("SPEAKER_04", "Le contesto enseguida."),
+        ]
+    )
+    got = {
+        sid: gender_of(tl, sid)[0]
+        for sid in ("SPEAKER_01", "SPEAKER_02", "SPEAKER_03", "SPEAKER_04")
+    }
+    assert got == {"SPEAKER_01": M, "SPEAKER_02": W, "SPEAKER_03": M, "SPEAKER_04": U}

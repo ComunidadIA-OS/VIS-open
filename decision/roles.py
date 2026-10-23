@@ -28,15 +28,20 @@ from dataclasses import dataclass, field
 from pathlib import Path
 
 from contracts import AnalysisTimeline, EventType
-from decision.gender_cues import CueRules, _find, _tokens, load_rules
+from decision.gender_cues import (
+    CueRules,
+    _find,
+    _tokens,
+    likely_chair,
+    load_rules,
+    voice_groups,
+)
 
 ROLE_CHAIR = "PRESIDENCIA"
 ROLE_ASK = "PREGUNTA"
 ROLE_GOV = "GOBIERNO"
 MIN_TURN_S = 1.0  # una voz que habla menos que esto en un bloque es ruido, no un papel
 MERGE_GAP_S = 1.0  # intervenciones seguidas de la misma voz a menos de esto son un turno
-MIN_GRANTS_FOR_CHAIR = 2  # la Presidencia da la palabra más de una vez
-CHAIR_JOIN_S = 2.0  # segmentos seguidos de una misma voz: una sola intervención
 
 
 @dataclass(frozen=True)
@@ -101,15 +106,7 @@ def _starts_question(text: str, rules: CueRules) -> bool:
 def find_chair(timeline: AnalysisTimeline, rules: CueRules | None = None) -> str | None:
     """La voz que más veces da la palabra, si lo hace al menos dos veces."""
     rules = rules or load_rules("es")
-    grants = Counter(
-        voice
-        for voice, events in _voice_groups(_speech(timeline))
-        if _opening(events, rules, _opens_any)
-    )
-    if not grants:
-        return None
-    speaker, n = grants.most_common(1)[0]
-    return speaker if n >= MIN_GRANTS_FOR_CHAIR else None
+    return likely_chair(voice_groups(_speech(timeline)), rules)
 
 
 def _merge(turns: list[Turn]) -> list[Turn]:
@@ -124,22 +121,6 @@ def _merge(turns: list[Turn]) -> list[Turn]:
     return out
 
 
-def _voice_groups(speech: list) -> list[tuple[str, list]]:
-    """Segmentos seguidos de una misma voz (< CHAIR_JOIN_S), que se leen como una intervención.
-
-    Whisper corta a veces un anuncio en dos segmentos («Pregunta del | diputado don…»).
-    """
-    groups: list[tuple[str, list]] = []
-    prev = None
-    for e in speech:
-        if groups and prev.speaker_id == e.speaker_id and e.start_s - prev.end_s < CHAIR_JOIN_S:
-            groups[-1][1].append(e)
-        else:
-            groups.append((e.speaker_id, [e]))
-        prev = e
-    return groups
-
-
 def _opening(events: list, rules: CueRules, opens) -> str | None:
     """`event_id` del segmento donde empieza la frase de apertura, si la intervención la tiene."""
     for e in events:
@@ -149,10 +130,6 @@ def _opening(events: list, rules: CueRules, opens) -> str | None:
         if opens(" ".join(x.text or "" for x in events[k:]), rules):
             return events[k].event_id
     return None
-
-
-def _opens_any(text: str, rules: CueRules) -> bool:
-    return _gives_floor(text, rules) or _starts_question(text, rules)
 
 
 def question_blocks(
@@ -166,7 +143,7 @@ def question_blocks(
     # En la sesión de control la pregunta empieza con su anuncio; «tiene la palabra» abre también
     # la réplica. Sin anuncios (otros debates), cada vez que se da la palabra empieza un bloque.
     speech = _speech(timeline)
-    groups = [events for voice, events in _voice_groups(speech) if voice == chair]
+    groups = [events for voice, events in voice_groups(speech) if voice == chair]
     announced = any(_opening(events, rules, _starts_question) for events in groups)
     opens = _starts_question if announced else _gives_floor
     starts = {_opening(events, rules, opens) for events in groups} - {None}
