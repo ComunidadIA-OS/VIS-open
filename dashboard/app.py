@@ -131,6 +131,30 @@ def with_unit(key: str, valor: str) -> str:
     return f"{number} {METRIC_UNITS[key]}" if key in METRIC_UNITS else number
 
 
+# El resto del marco de métricas, con su estado (Ivette, docs/metricas.md §5 y §6, PR #103).
+OTHER_METRICS = [
+    ("M05 Turno más largo", "descartada", "El tiempo está limitado por reglamento."),
+    (
+        "M07 Interrupciones y llamadas al orden",
+        "pendiente",
+        "Evolución futura: rumores y protestas del Diario.",
+    ),
+    ("M08 Palabra cedida por la moderación", "descartada", "El orden lo fija el orden del día."),
+    ("M10 Distribución por cuartiles", "descartada", "El orden de las preguntas está fijado."),
+    ("M12 Temas por género", "pendiente", "Evolución futura: asunto de cada pregunta."),
+    (
+        "M14 Manos levantadas, M15 y M16",
+        "descartada",
+        "En el pleno no se pide la palabra con la mano.",
+    ),
+    ("M17 Equidad", "incluida en M04", "Es el ratio de M04."),
+    (
+        "M18 Cortes de la Presidencia",
+        "pendiente",
+        "Evolución futura: retirar la palabra por tiempo.",
+    ),
+]
+
 # Qué es cada cifra, en una línea, bajo su tarjeta (definiciones de Ivette, docs/metricas.md).
 METRIC_EXPLAINED = {
     "M01": "Personas distintas que intervienen, sin contar la Presidencia.",
@@ -767,6 +791,12 @@ if screen == "Sesión":
                 st.warning(aviso)
         elif s.camara_aviso:
             st.caption(f"Composición de la cámara: sin datos ({s.camara_aviso}).")
+        st.caption("Resto del marco de métricas")
+        st.dataframe(
+            pd.DataFrame(OTHER_METRICS, columns=["Métrica", "Estado", "Motivo"]),
+            hide_index=True,
+            width="stretch",
+        )
 
     with st.container(key="sec_audio"):
         st.markdown("<span id='sec-audio' class='anchor'></span>", unsafe_allow_html=True)
