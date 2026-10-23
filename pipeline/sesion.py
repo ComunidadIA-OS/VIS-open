@@ -46,6 +46,7 @@ def _run(*args: str) -> float:
 
 
 STREAMING = "https://streaming.congreso.es:8443/vod/ondemand/video"
+PLENO = "400"  # el producto analiza solo plenos (sesiones de control); 500 = Diputación Permanente
 
 
 def master_urls(congreso_url: str) -> list[str]:
@@ -178,6 +179,8 @@ def main(argv: list[str] | None = None) -> None:
         return
     if args.pendientes == bool(args.video_id):
         ap.error("indica una sesión (V008), --pendientes o --nuevos")
+    if args.congreso_url and parse_session_url(args.congreso_url).cod_organo != PLENO:
+        raise SystemExit("solo se analizan plenos (codOrgano=400): esta URL es de otro órgano")
     raw = data_dir / "raw" / f"{args.video_id}.mp4" if args.video_id else None
     candidates = [args.hls_url] if args.hls_url else []
     if args.congreso_url and not (args.hls_url or args.video_url) and not raw.is_file():
