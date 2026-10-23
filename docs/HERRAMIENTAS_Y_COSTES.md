@@ -99,3 +99,11 @@ del `.env` (`GPU_PRICE_EUR_H`, `GPU_COUNT`, `LLM_PRICE_*`). Precios de OVH sin I
 Regla práctica: **≈ 0,30 € por hora de vídeo** con 1 GPU, haya preguntas o no; Qwen es menos del
 1 % del coste. No incluye el almacenamiento del vídeo (≈ 2,7 GB por pleno de 5 h). La máquina con
 GPU se paga mientras está encendida, también si no analiza nada: apagarla al terminar cada lote.
+
+## Coste real medido por sesión
+
+<!-- costes-reales:inicio -->
+| Sesión | Tiempo total | Qwen (llamadas / tokens) | Máquina | Qwen | **Total sin IVA** |
+|---|---|---|---|---|---|
+| (aún no hay sesiones medidas) | | | | | |
+<!-- costes-reales:fin -->

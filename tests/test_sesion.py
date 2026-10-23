@@ -150,3 +150,24 @@ def test_session_cost_counts_the_whole_time_and_qwen_tokens():
     assert c["qwen_eur"] == 0.002225
     assert c["total_eur"] == round(3.86 + 0.002225, 4)
     assert sesion.session_cost(seconds, m09, {})["total_eur"] is None  # sin precios, sin €
+
+
+def test_real_cost_table_is_rewritten_between_markers(tmp_path):
+    import json
+
+    from evaluation.costes_reales import END, START, update
+
+    folder = tmp_path / "processed" / "203_pleno_2026"
+    folder.mkdir(parents=True)
+    cost = {
+        "segundos_totales": 3600.0, "qwen_llamadas": 2, "qwen_tokens_in": 900,
+        "qwen_tokens_out": 100, "maquina_eur": 1.93, "qwen_eur": 0.0001, "total_eur": 1.9301,
+    }  # fmt: skip
+    (folder / "coste.json").write_text(json.dumps(cost))
+    doc = tmp_path / "doc.md"
+    doc.write_text("# Costes\n")
+    update(doc, tmp_path / "processed")
+    update(doc, tmp_path / "processed")  # dos veces: no se duplica
+    text = doc.read_text("utf-8")
+    assert text.count(START) == 1 and END in text
+    assert "| 203_pleno_2026 | 60 min | 2 / 1000 | 1,9300 € | 0,0001 € | **1,9301 €** |" in text
