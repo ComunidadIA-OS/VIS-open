@@ -102,8 +102,26 @@ GPU se paga mientras está encendida, también si no analiza nada: apagarla al t
 
 ## Coste real medido por sesión
 
+### Primera medición real: pleno 203 (02/10/2026)
+
+Detectado, descargado y analizado con `pipeline.sesion` en OVH (1 GPU V100S en uso) el 23 oct 2026.
+Vídeo de **4 h 58 min** (2,7 GB, solo audio original).
+
+| Paso | Tiempo |
+|---|---|
+| Detección y descarga (`--buscar`) | ≈ 7 min |
+| Audio y voces en GPU (Whisper + pyannote) | **26,7 min**: unas 11 veces más rápido que el vídeo |
+| Bloques de pregunta | 0,6 s |
+| M09 con Qwen (16 preguntas detectadas) | 3,4 min |
+| **Total** | **≈ 37 min** |
+
+**Coste total calculado del vídeo: ≈ 1,19 € sin IVA** (≈ 1,44 € con IVA) con 1 GPU facturada a
+1,93 €/h; ≈ 2,39 € si la máquina factura 2 GPU. Qwen no se midió en esta sesión (el código aún no
+guardaba los tokens): con 16 llamadas son ≈ 0,002 €. Equivale a **≈ 0,24 € por hora de vídeo**.
+Las siguientes sesiones dejan su `coste.json` completo, con los tokens reales de Qwen.
+
 <!-- costes-reales:inicio -->
 | Sesión | Tiempo total | Qwen (llamadas / tokens) | Máquina | Qwen | **Total sin IVA** |
 |---|---|---|---|---|---|
-| (aún no hay sesiones medidas) | | | | | |
+| 203_pleno_2026 | 37 min | 0 / 0 | 1,1929 € | 0,0000 € | **1,1929 €** |
 <!-- costes-reales:fin -->
