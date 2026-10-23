@@ -46,8 +46,28 @@ Lo único que factura por uso es Qwen: una llamada por pregunta detectada, con e
 
 Para otras instituciones: con 9B, unos **0,2 € por cada 100 sesiones** de control. La medición real se hará al lanzar M09 con Qwen (27 oct) con `evaluation/cost.py`.
 
+## Coste total por sesión (GPU + API)
+
+Lo caro no es Qwen, sino la **GPU** que transcribe y separa las voces. Precios del tarifario oficial de OVHcloud (sin IVA), consultado el 23 oct 2026 en https://www.ovhcloud.com/es-es/public-cloud/prices/ :
+
+| Servicio | Precio |
+|---|---|
+| GPU Tesla V100S, AI Notebooks / AI Training (`ai1-1-gpu`) | 1,93 €/hora (`ai1-le-1-gpu`: 0,90 €/hora) |
+| Qwen3.5-9B (AI Endpoints) | 0,10 € / 0,15 € por millón de tokens (entrada / salida) |
+| Whisper large-v3 / large-v3-turbo (AI Endpoints, alternativa a la GPU propia) | 0,147 € / 0,046 € por hora de audio |
+
+El 23 oct cada sesión de control (unos 100–112 min de bloque de preguntas) tardó **unos 10–15 minutos de GPU** en transcribirse y separar voces (medida aproximada; falta medirla con precisión):
+
+| Id | Minutos analizados | GPU (≈ 10–15 min a 1,93 €/h) | Qwen (M09) | **Total aprox.** |
+|---|---|---|---|---|
+| V004 | 79 | 0,30–0,50 € | 0,0012 € | **≈ 0,3–0,5 €** |
+| V005 | 99 | 0,30–0,50 € | 0,0017 € | **≈ 0,3–0,5 €** |
+| V006 | 112 | 0,30–0,50 € | 0,0019 € | **≈ 0,3–0,5 €** |
+| V007 | 112 | 0,30–0,50 € | 0,0020 € | **≈ 0,3–0,5 €** |
+
+Es poco porque la GPU procesa unas 7–10 veces más rápido que la duración del vídeo. **Ojo:** la GPU se factura por hora **encendida**, procese o no (1,93 € × 24 h ≈ 46 €/día): en producción hay que apagarla al terminar cada lote. El reto pone la máquina; estas cifras son lo que costaría a otra institución.
+
 Otros costes, sin tarifa por uso:
-- **GPU de OVH** (transcripción y voces): pocos minutos por sesión en una V100S (medida aproximada el 23 oct). La pone el reto; el precio por hora está por verificar.
 - **Análisis de vídeo** en CPU local: unos 18 min para V005.
 - **Asistente de voz** (opcional, por uso): una llamada de Whisper por orden hablada y, si se pide, un resumen con Qwen. Precio por verificar en el catálogo de OVH.
 - **Ajuste de Qwen**: horas de GPU de OVH (el 9B cabe en una V100S: 19 GB).
