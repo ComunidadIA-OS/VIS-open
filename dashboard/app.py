@@ -753,7 +753,7 @@ if screen == "Sesión":
         st.markdown("<span id='sec-metricas' class='anchor'></span>", unsafe_allow_html=True)
         # 3. El análisis de la sesión completa.
         st.header("Análisis de la sesión")
-        cards = [(key, metric_card(r)) for key, r in s.metrics.items()]
+        cards = [(key, metric_card(r)) for key, r in sorted(s.metrics.items())]  # M01…M13
         per_row = 3
         for first in range(0, len(cards), per_row):
             for col, (key, card) in zip(
