@@ -463,8 +463,10 @@ def test_review_cuts_are_listed_one_after_another_and_one_answer_covers_the_voic
     session = Session("V9", tl)
     cuts = review_cuts(session, ["SPEAKER_00", "SPEAKER_01"])
     assert [(c["speaker_id"], c["start"]) for c in cuts] == [
-        ("SPEAKER_00", 0), ("SPEAKER_01", 100), ("SPEAKER_00", 200),
-    ]  # fmt: skip
+        ("SPEAKER_00", 0),
+        ("SPEAKER_00", 200),
+        ("SPEAKER_01", 100),
+    ]  # fmt: skip  (agrupados por voz)
     assert all(float(c["stop"]) - float(c["start"]) <= SAMPLE_S for c in cuts)
     assert (
         "primero" in cuts[0]["texto"] and cut_text(tl, "SPEAKER_00", 300, 302) == "demasiado corto"

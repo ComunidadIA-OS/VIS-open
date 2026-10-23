@@ -357,9 +357,12 @@ def cut_text(timeline: AnalysisTimeline, speaker_id: str, start_s: float, stop_s
 
 
 def review_cuts(
-    session: Session, speaker_ids: list[str], per_voice: int = 6
+    session: Session,
+    speaker_ids: list[str],
+    per_voice: int = 2,  # uno y otro por si hay duda
 ) -> list[dict[str, float | str]]:
-    """Cortes para validar, uno detrás de otro (por orden en el vídeo), de las voces dadas."""
+    """Cortes para validar, agrupados por voz (en el orden en que aparece cada voz en el vídeo)
+    y, dentro de cada voz, por orden en el vídeo: así se valida una voz y se pasa a la siguiente."""
     cuts: list[dict[str, float | str]] = []
     for sid in speaker_ids:
         blocks = voice_blocks(session.timeline, sid, top=per_voice)
@@ -374,7 +377,10 @@ def review_cuts(
                     "texto": cut_text(session.timeline, sid, start, stop),
                 }
             )
-    return sorted(cuts, key=lambda c: float(c["start"]))
+    first = {}
+    for c in sorted(cuts, key=lambda c: float(c["start"])):
+        first.setdefault(c["speaker_id"], float(c["start"]))
+    return sorted(cuts, key=lambda c: (first[c["speaker_id"]], float(c["start"])))
 
 
 LINE_CHARS = 42  # ancho de línea de subtítulo recomendado
