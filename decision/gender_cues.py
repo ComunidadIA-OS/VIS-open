@@ -162,11 +162,12 @@ def likely_chair(
 ) -> str | None:
     """La voz que más veces da la palabra o anuncia una pregunta, si lo hace al menos dos veces."""
     phrases = rules.floor_phrases + rules.question_phrases
-    counts = Counter(
-        voice
-        for voice, events in groups
-        if voice and any(_find(_tokens(_joined(events)), p) is not None for p in phrases)
-    )
+
+    def opens(events: list[AnalysisEvent]) -> bool:
+        tokens = _tokens(_joined(events))  # una vez por intervención, no una por frase
+        return any(_find(tokens, p) is not None for p in phrases)
+
+    counts = Counter(voice for voice, events in groups if voice and opens(events))
     if not counts:
         return None
     voice, n = counts.most_common(1)[0]
