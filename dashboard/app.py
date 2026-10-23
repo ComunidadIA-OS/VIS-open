@@ -33,6 +33,7 @@ from dashboard.data import (
     metric_card,
     review_cuts,
     save_review,
+    session_label,
     session_summary,
     show_interventions,
     show_tracks,
@@ -596,7 +597,7 @@ if screen == "Sesión":
             "Cambiar de vídeo",
             [s.session_id for s in sessions],
             key="sesion",
-            format_func=lambda i: f"{i} · otro formato (demo)" if by_id[i].demo else i,
+            format_func=lambda i: session_label(by_id[i]) if by_id[i].demo else i,
         )
         s = next(x for x in sessions if x.session_id == chosen)
         title_col.title(f"Sesión {s.session_id}")

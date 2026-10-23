@@ -18,9 +18,12 @@ COLUMNS = [
     "licencia_verificada", "formato", "idioma", "tramo_inicio", "tramo_fin", "duracion_s",
     "personas_publicas", "base_legal", "ref_consentimiento", "categorias_especiales", "uso",
     "uso_entrenamiento", "sha256", "ruta_drive", "fecha_borrado", "anotadoras", "notas",
+    "tipo_sesion",
 ]  # fmt: skip
 # Solo se exigen cuando aplican.
-OPTIONAL = {"ref_consentimiento", "anotadoras", "notas"}
+OPTIONAL = {"ref_consentimiento", "anotadoras", "notas", "tipo_sesion"}
+# Columnas añadidas después: un manifiesto anterior sin ellas se sigue leyendo.
+NEWER = {"tipo_sesion"}
 REQUIRED = [c for c in COLUMNS if c not in OPTIONAL]
 
 FUENTES = {
@@ -29,6 +32,9 @@ FUENTES = {
 FORMATOS = {"debate", "entrevista", "mesa_redonda", "comparecencia", "sintetico"}
 BASES_LEGALES = {"interes_legitimo", "consentimiento", "no_aplica"}
 USOS = {"evaluacion", "demo", "test"}
+# Solo «control» (sesión de control al Gobierno) tiene las métricas de preguntas.
+# Sin tipo: otro formato (Diputación Permanente, actos).
+TIPOS_SESION = {"control", "pleno", "comision"}
 
 _DATE = re.compile(r"^\d{4}-\d{2}-\d{2}$")
 _TIME = re.compile(r"^\d{2}:[0-5]\d:[0-5]\d$")
@@ -59,7 +65,12 @@ def check_row(row: Mapping[str, str | None]) -> list[str]:
         problems.append("licencia_verificada debe ser 'si' (alguien tiene que verificarla)")
     if get("uso_entrenamiento") and get("uso_entrenamiento") != "no":
         problems.append("uso_entrenamiento debe ser siempre 'no'")
-    for col, valid in (("fuente", FUENTES), ("formato", FORMATOS), ("base_legal", BASES_LEGALES)):
+    for col, valid in (
+        ("fuente", FUENTES),
+        ("formato", FORMATOS),
+        ("base_legal", BASES_LEGALES),
+        ("tipo_sesion", TIPOS_SESION),
+    ):
         if get(col) and get(col) not in valid:
             problems.append(f"{col}='{get(col)}' no es válido; admitidos: {sorted(valid)}")
     if get("uso") and not set(get("uso").split(";")) <= USOS:
@@ -89,7 +100,7 @@ def read_manifest(path: Path) -> dict[str, dict[str, str]]:
         raise ManifestError(f"no existe el manifiesto {path}; créalo a partir de la plantilla")
     with path.open(newline="", encoding="utf-8") as fh:
         reader = csv.DictReader(fh)
-        missing = [c for c in COLUMNS if c not in (reader.fieldnames or [])]
+        missing = [c for c in COLUMNS if c not in (reader.fieldnames or []) and c not in NEWER]
         if missing:
             raise ManifestError(f"al manifiesto le faltan columnas: {missing}")
         return {r["video_id"]: r for r in reader if r.get("video_id")}
@@ -140,9 +151,13 @@ def append_row(row: Mapping[str, str], path: Path) -> None:
     """Añade una fila al manifiesto; crea el fichero con cabecera si no existe."""
     path = Path(path)
     new = not path.is_file()
+    columns = COLUMNS
+    if not new:  # se respeta la cabecera que ya tiene (puede no tener las columnas nuevas)
+        with path.open(newline="", encoding="utf-8") as fh:
+            columns = next(csv.reader(fh), None) or COLUMNS
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("a", newline="", encoding="utf-8") as fh:
-        writer = csv.DictWriter(fh, fieldnames=COLUMNS)
+        writer = csv.DictWriter(fh, fieldnames=columns)
         if new:
             writer.writeheader()
-        writer.writerow({c: row.get(c, "") for c in COLUMNS})
+        writer.writerow({c: row.get(c, "") for c in columns})
