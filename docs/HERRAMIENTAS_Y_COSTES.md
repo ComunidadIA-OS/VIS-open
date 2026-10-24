@@ -104,24 +104,28 @@ GPU se paga mientras está encendida, también si no analiza nada: apagarla al t
 
 ### Primera medición real: pleno 203 (02/10/2026)
 
-Detectado, descargado y analizado con `pipeline.sesion` en OVH (1 GPU V100S en uso) el 23 oct 2026.
-Vídeo de **4 h 58 min** (2,7 GB, solo audio original).
+Detectado, descargado y analizado entero con `pipeline.sesion` en OVH (1 GPU V100S en uso),
+23–24 oct 2026. Vídeo de **4 h 58 min** (2,7 GB, solo audio original).
 
-| Paso | Tiempo |
-|---|---|
-| Detección y descarga (`--buscar`) | ≈ 7 min |
-| Audio y voces en GPU (Whisper + pyannote) | **26,7 min**: unas 11 veces más rápido que el vídeo |
-| Bloques de pregunta | 0,6 s |
-| M09 con Qwen (16 preguntas detectadas) | 3,4 min |
-| **Total** | **≈ 37 min** |
+| Paso | Dónde | Tiempo |
+|---|---|---|
+| Detección y descarga (`--buscar`) | red | ≈ 7 min |
+| Audio y voces (Whisper + pyannote) | GPU | **26,7 min**: unas 11 veces más rápido que el vídeo |
+| Bloques de pregunta | CPU | 0,6 s |
+| M09 con Qwen: 16 llamadas, 23 881 + 1 401 tokens | API | 3,4 min — **0,0026 €** (medido) |
+| Análisis de vídeo (MediaPipe, 2 fotogramas/s; ningún fotograma perdido) | CPU | **37 min** |
+| **Total** | | **≈ 74 min** |
 
-**Coste total calculado del vídeo: ≈ 1,19 € sin IVA** (≈ 1,44 € con IVA) con 1 GPU facturada a
-1,93 €/h; ≈ 2,39 € si la máquina factura 2 GPU. Qwen no se midió en esta sesión (el código aún no
-guardaba los tokens): con 16 llamadas son ≈ 0,002 €. Equivale a **≈ 0,24 € por hora de vídeo**.
-Las siguientes sesiones dejan su `coste.json` completo, con los tokens reales de Qwen.
+**Coste total calculado del vídeo: ≈ 2,39 € sin IVA** (≈ 2,89 € con IVA) con 1 GPU facturada a
+1,93 €/h; ≈ 4,77 € si la máquina factura 2 GPU. Equivale a **≈ 0,48 € por hora de vídeo**.
+
+La mitad del tiempo es el análisis de vídeo en CPU, y la máquina con GPU se paga igual mientras
+tanto. En producción sale más barato hacer el vídeo en una máquina sin GPU, o a la vez que la
+transcripción: el coste bajaría a ≈ 1,2 € por pleno de 5 h. El análisis de vídeo necesita en OVH las
+librerías gráficas libEGL y libGLES (conda-forge, instaladas en una carpeta aparte).
 
 <!-- costes-reales:inicio -->
 | Sesión | Tiempo total | Qwen (llamadas / tokens) | Máquina | Qwen | **Total sin IVA** |
 |---|---|---|---|---|---|
-| 203_pleno_2026 | 37 min | 0 / 0 | 1,1929 € | 0,0000 € | **1,1929 €** |
+| 203_pleno_2026 | 74 min | 16 / 25282 | 2,3844 € | 0,0026 € | **2,3870 €** |
 <!-- costes-reales:fin -->
