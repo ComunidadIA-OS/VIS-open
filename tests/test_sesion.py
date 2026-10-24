@@ -180,9 +180,11 @@ def test_started_session_only_runs_what_is_missing(tmp_path, monkeypatch):
     monkeypatch.delenv("LLM_API_KEY", raising=False)
     out = tmp_path / "processed" / "203_pleno_2026"
     out.mkdir(parents=True)
-    (out / "timeline.json").write_text("{}")  # transcrita, sin vídeo: se completa
+    (out / "timeline.json").write_text("{}")  # transcrita y con M09, sin vídeo: se completa
+    (out / "m09.json").write_text("{}")
     sesion.analyze_session("203_pleno_2026", tmp_path)
-    assert "pipeline.run" not in calls and calls[-1] == "pipeline.video"
+    assert "pipeline.run" not in calls and "metrics.m09" not in calls
+    assert calls[-1] == "pipeline.video"
 
 
 def test_pending_stops_before_starting_if_video_cannot_be_done(tmp_path, monkeypatch):

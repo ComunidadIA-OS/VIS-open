@@ -206,6 +206,13 @@ def missing_for_video() -> list[str]:
     problems = []
     if importlib.util.find_spec("mediapipe") is None:
         problems.append('falta MediaPipe: pip install ".[video]" (una vez por máquina)')
+    else:
+        try:  # cargarlo de verdad: necesita librerías del sistema (libEGL, libGL)
+            from mediapipe.tasks.python import vision  # noqa: F401
+        except (ImportError, OSError) as exc:
+            problems.append(
+                f"MediaPipe no carga ({exc}); en conda: conda install -c conda-forge libegl libgl"
+            )
     if not pose_model().is_file():
         problems.append(f"falta el modelo de pose en {pose_model()} (pose_landmarker_full.task)")
     return problems
@@ -268,9 +275,10 @@ def analyze_session(video_id: str, data_dir: Path, video_step: bool = True) -> N
     if not timeline.is_file():
         seconds["audio_y_voces"] = _run("pipeline.run", str(video))
     seconds["bloques_pregunta"] = _run("decision.roles", str(timeline))
-    engine = "llm" if os.environ.get("LLM_API_KEY") else "rules"
-    print(f"M09/M06 con el motor «{engine}»", flush=True)
-    seconds[f"m09_{engine}"] = _run("metrics.m09", str(timeline), "--engine", engine)
+    if not timeline.with_name("m09.json").is_file():  # ya calculado: no se paga dos veces
+        engine = "llm" if os.environ.get("LLM_API_KEY") else "rules"
+        print(f"M09/M06 con el motor «{engine}»", flush=True)
+        seconds[f"m09_{engine}"] = _run("metrics.m09", str(timeline), "--engine", engine)
     if video_step and not timeline.with_name("video.json").is_file():
         seconds["video"] = _run("pipeline.video", str(video), "--model", str(pose_model()))
     # tiempo real de cada paso, para el documento de costes (GPU encendida = se factura)
