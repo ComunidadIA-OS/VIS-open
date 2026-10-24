@@ -206,6 +206,13 @@ def missing_for_video() -> list[str]:
     problems = []
     if importlib.util.find_spec("mediapipe") is None:
         problems.append('falta MediaPipe: pip install ".[video]" (una vez por máquina)')
+    else:
+        try:  # cargarlo de verdad: necesita librerías del sistema (libEGL, libGL)
+            from mediapipe.tasks.python import vision  # noqa: F401
+        except (ImportError, OSError) as exc:
+            problems.append(
+                f"MediaPipe no carga ({exc}); en conda: conda install -c conda-forge libegl libgl"
+            )
     if not pose_model().is_file():
         problems.append(f"falta el modelo de pose en {pose_model()} (pose_landmarker_full.task)")
     return problems
