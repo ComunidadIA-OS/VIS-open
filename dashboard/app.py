@@ -1010,15 +1010,16 @@ else:
     st.info(EVOLUTION_NOTE)
     facets = {x.session_id: session_facets(x) for x in evo_sessions}
     f_year, f_month, f_kind = st.columns(3)
-    years = f_year.multiselect(
-        "Año", sorted({v[0] for v in facets.values() if v[0]}), placeholder="Todos"
-    )
-    months = f_month.multiselect(
-        "Mes", [m for m in MONTHS if m in {v[1] for v in facets.values()}], placeholder="Todos"
-    )
-    kinds = f_kind.multiselect(
-        "Tipo de sesión", sorted({v[2] for v in facets.values()}), placeholder="Todos"
-    )
+    ALL = "Todos"
+
+    def pick(col, label: str, values: list[str]) -> list[str]:
+        """Lista con «Todos» (marcado al empezar); con «Todos» o vacía no se filtra."""
+        chosen = col.multiselect(label, [ALL, *values], default=[ALL], placeholder=ALL)
+        return [] if ALL in chosen else chosen
+
+    years = pick(f_year, "Año", sorted({v[0] for v in facets.values() if v[0]}))
+    months = pick(f_month, "Mes", [m for m in MONTHS if m in {v[1] for v in facets.values()}])
+    kinds = pick(f_kind, "Tipo de sesión", sorted({v[2] for v in facets.values()}))
     evo_sessions = [
         x
         for x in evo_sessions
