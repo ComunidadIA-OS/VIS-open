@@ -834,7 +834,8 @@ def _video_reading(video: dict | None) -> str:
 
 
 EVOLUTION_NOTE = (
-    "Comparación descriptiva de las sesiones de control analizadas: las diferencias describen "
+    "Comparación descriptiva de las sesiones analizadas (filtra por año, mes o tipo): "
+    "las diferencias describen "
     "esas sesiones concretas y no permiten hablar de tendencia. Al incorporar más sesiones de "
     "cada legislatura, el análisis ganará solidez y precisión."
 )

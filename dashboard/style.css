@@ -126,7 +126,14 @@ html { scroll-behavior: smooth; }
   transition: background 0.2s ease, color 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
 .secnav a:hover { background: var(--accent); color: #fff; border-color: var(--accent); transform: translateY(-1px); }
-.anchor { display: block; position: relative; top: -4.5rem; visibility: hidden; }
+/* La barra de secciones se queda visible bajo la cabecera al bajar por páginas largas. */
+/* Streamlit envuelve el contenedor en otra capa de su mismo tamaño: la fija es esa capa. */
+[data-testid="stLayoutWrapper"]:has(> .st-key-nav), .st-key-nav {
+  position: sticky; top: var(--brand-h); z-index: 999990;
+  background: var(--paper); padding: 0.5rem 0; box-shadow: 0 6px 10px -8px rgba(29, 35, 48, 0.25);
+}
+/* el título de cada sección no queda tapado por la cabecera ni por la barra */
+.anchor { display: block; position: relative; top: calc(-1 * var(--brand-h) - 4.5rem); visibility: hidden; }
 
 /* ---------- Secciones como tarjetas que aparecen suavemente ---------- */
 [class*="st-key-sec_"] {

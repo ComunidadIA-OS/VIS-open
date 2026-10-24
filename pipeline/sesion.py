@@ -23,6 +23,7 @@ Los tokens no se leen de ningún fichero: vienen del entorno del terminal (`read
 from __future__ import annotations
 
 import argparse
+import importlib.util
 import json
 import os
 import re
@@ -181,15 +182,33 @@ def partial(video: Path) -> Path:
     return video.with_name(video.name + ".part")
 
 
+OUTPUTS = ("timeline.json", "m09.json", "video.json")  # una sesión está completa con los tres
+DEFAULT_POSE_MODEL = Path("models/pose_landmarker_full.task")
+
+
 def pending(data_dir: Path) -> list[str]:
-    """Sesiones con fila en el manifiesto y vídeo en data/raw, pero sin timeline todavía."""
+    """Sesiones con fila y vídeo en data/raw a las que les falta algún resultado."""
     rows = read_manifest(data_dir / "manifiesto.csv")
     return [
         vid
         for vid in rows
         if (data_dir / "raw" / f"{vid}.mp4").is_file()
-        and not (data_dir / "processed" / vid / "timeline.json").is_file()
+        and not all((data_dir / "processed" / vid / f).is_file() for f in OUTPUTS)
     ]
+
+
+def pose_model() -> Path:
+    return Path(os.environ.get("POSE_MODEL") or DEFAULT_POSE_MODEL)
+
+
+def missing_for_video() -> list[str]:
+    """Lo que falta para el análisis de vídeo; se comprueba antes de empezar, no a medias."""
+    problems = []
+    if importlib.util.find_spec("mediapipe") is None:
+        problems.append('falta MediaPipe: pip install ".[video]" (una vez por máquina)')
+    if not pose_model().is_file():
+        problems.append(f"falta el modelo de pose en {pose_model()} (pose_landmarker_full.task)")
+    return problems
 
 
 def new_videos(data_dir: Path) -> list[Path]:
@@ -239,22 +258,21 @@ def session_cost(seconds: dict[str, float], m09: dict | None, env=os.environ) ->
     return out
 
 
-def analyze_session(video_id: str, data_dir: Path) -> None:
+def analyze_session(video_id: str, data_dir: Path, video_step: bool = True) -> None:
+    """Hace solo los pasos que le faltan a la sesión (una sesión empezada se completa)."""
     video = data_dir / "raw" / f"{video_id}.mp4"
     require_ready(video, data_dir / "manifiesto.csv")  # antes de gastar GPU
     timeline = data_dir / "processed" / video_id / "timeline.json"
     times_file = timeline.with_name("tiempos.json")
     seconds = json.loads(times_file.read_text("utf-8")) if times_file.is_file() else {}
-    seconds["audio_y_voces"] = _run("pipeline.run", str(video))
+    if not timeline.is_file():
+        seconds["audio_y_voces"] = _run("pipeline.run", str(video))
     seconds["bloques_pregunta"] = _run("decision.roles", str(timeline))
     engine = "llm" if os.environ.get("LLM_API_KEY") else "rules"
     print(f"M09/M06 con el motor «{engine}»", flush=True)
     seconds[f"m09_{engine}"] = _run("metrics.m09", str(timeline), "--engine", engine)
-    model = os.environ.get("POSE_MODEL")
-    if model and Path(model).is_file():
-        seconds["video"] = _run("pipeline.video", str(video), "--model", model)
-    else:
-        print("sin POSE_MODEL: no se analiza el vídeo (el resto ya está en el panel)")
+    if video_step and not timeline.with_name("video.json").is_file():
+        seconds["video"] = _run("pipeline.video", str(video), "--model", str(pose_model()))
     # tiempo real de cada paso, para el documento de costes (GPU encendida = se factura)
     times_file.parent.mkdir(parents=True, exist_ok=True)
     times_file.write_text(json.dumps(seconds, indent=2), encoding="utf-8")
@@ -277,6 +295,7 @@ def main(argv: list[str] | None = None) -> None:
     ap.add_argument("--audio-url")
     ap.add_argument("--congreso-url", help="página de la sesión: escribe su fila del manifiesto")
     ap.add_argument("--set", action="append", default=[], metavar="CAMPO=VALOR")
+    ap.add_argument("--sin-video", action="store_true", help="no hace el análisis de vídeo")
     args = ap.parse_args(argv)
     load_dotenv()
     data_dir = Path(os.environ.get("DATA_DIR") or "data")
@@ -352,9 +371,12 @@ def main(argv: list[str] | None = None) -> None:
         raise SystemExit(str(exc)) from exc
     if not ids:
         print("no hay sesiones pendientes")
+    problems = [] if args.sin_video or not ids else missing_for_video()
+    if problems:  # antes de gastar GPU: o se hace todo, o nada
+        raise SystemExit("no se empieza: " + "; ".join(problems) + " (o usa --sin-video)")
     for vid in ids:
         try:
-            analyze_session(vid, data_dir)
+            analyze_session(vid, data_dir, video_step=not args.sin_video)
         except ManifestError as exc:
             print(f"{vid}: {exc}")  # la sigue otra; esta espera a que se complete su fila
         except subprocess.CalledProcessError as exc:
