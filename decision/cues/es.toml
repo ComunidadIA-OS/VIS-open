@@ -13,6 +13,7 @@ self_agreement = 0.75 # «estoy agradecida / agradecido…»
 floor_grant_same_voice = 0.6  # la diarización juntó a la Presidencia con quien habla
 as_role = 0.6         # «como diputada…»: puede ser una cita o un tercero, así que se revisa
 chair_address = 0.8   # la Presidencia acaba con un tratamiento a solas: «Señora ministra.»
+address_edge = 0.75   # ese tratamiento, pegado por la diarización a la voz de al lado
 
 [floor_grant]
 # Frases con las que quien preside da la palabra; el género se lee en las palabras que siguen.

@@ -186,12 +186,25 @@ def _chair_announcement(tokens: list[str], rules: CueRules) -> GenderValue | Non
     return None
 
 
-def _chair_address(text: str, rules: CueRules) -> GenderValue | None:
-    """«…Señora ministra, cuando quiera.»: tratamiento a solas al final de la intervención."""
-    sentences = [s for s in re.split(r"[.!?¡¿]", text) if _tokens(s)]
-    if not sentences or "gracias" in _tokens(sentences[-1]):
+def _sentences(text: str) -> list[str]:
+    return [s for s in re.split(r"[.!?¡¿]", text) if _tokens(s)]
+
+
+def _chair_address(text: str, rules: CueRules, first: bool = False) -> GenderValue | None:
+    """«…Señora ministra, cuando quiera.»: tratamiento a solas al final (o al principio) del texto.
+
+    «Señora ministra de Transportes, Movilidad…» se lee hasta «de»: el nombre del ministerio
+    (seudonimizado como «Persona N») no dice nada del género y alargaría la frase.
+    """
+    sentences = _sentences(text)
+    if not sentences:
         return None
-    tokens = [t for t in _tokens(sentences[-1]) if t not in rules.address_fillers]
+    sentence = _tokens(sentences[0] if first else sentences[-1])
+    if "gracias" in sentence:
+        return None
+    if "de" in sentence:
+        sentence = sentence[: sentence.index("de")]
+    tokens = [t for t in sentence if t not in rules.address_fillers]
     starts = rules.address[GenderValue.WOMAN] | rules.address[GenderValue.MAN]
     starts |= rules.roles[GenderValue.WOMAN] | rules.roles[GenderValue.MAN]
     if not tokens or len(tokens) > rules.address_max or tokens[0] not in starts:
@@ -224,6 +237,43 @@ def _chair_cues(speech: list[AnalysisEvent], rules: CueRules) -> list[Cue]:
             confidence=rules.confidence[method],
         )
         cues.append(Cue(nxt, evidence))
+    return cues + _edge_address_cues(groups, chair, rules)
+
+
+def _edge_address_cues(groups, chair: str | None, rules: CueRules) -> list[Cue]:
+    """El tratamiento de la Presidencia pegado por la diarización a otra voz.
+
+    «Señora ministra.» a solas al final de la voz anterior o al principio de la siguiente se
+    refiere a quien habla después. Si la voz anterior es la Presidencia ya lo lee `_chair_cues`;
+    y al principio de la voz que sigue a la Presidencia sería quien pregunta dirigiéndose a la
+    ministra, así que ese caso no cuenta. Una pista equivocada choca con las demás y deja la voz
+    en «desconocido» (revisión), nunca cambia el género.
+    """
+    cues: list[Cue] = []
+    for (voice, events), (nxt, nxt_events) in zip(groups, groups[1:], strict=False):
+        if None in (voice, nxt) or chair in (voice, nxt) or voice == nxt:
+            continue
+        if nxt_events[0].start_s - events[-1].end_s > rules.max_gap_s:
+            continue
+        for found, text in (
+            (_chair_address(_joined(events), rules), _sentences(_joined(events))[-1:]),
+            (
+                _chair_address(_joined(nxt_events), rules, first=True),
+                _sentences(_joined(nxt_events))[:1],
+            ),
+        ):
+            if found is None:
+                continue
+            evidence = GenderEvidence(
+                gender=found,
+                method="address_edge",
+                phrase=(text[0].strip() if text else "")[:PHRASE_MAX_CHARS],
+                start_s=nxt_events[0].start_s,
+                event_id=nxt_events[0].event_id,
+                confidence=rules.confidence["address_edge"],
+            )
+            cues.append(Cue(nxt, evidence))
+            break
     return cues
 
 
@@ -474,7 +524,10 @@ def assign_genders(
     for sp in timeline.speakers:
         ev = sorted(by_speaker.get(sp.speaker_id, []), key=lambda e: e.start_s)
         a = GenderAssignment(sp.speaker_id, evidence=ev)
-        genders = {e.gender for e in ev}
+        strong = [e for e in ev if e.confidence >= REVIEW_CONFIDENCE_THRESHOLD]
+        # una pista débil («como diputado…», que puede hablar de otra persona) no basta para
+        # asignar y tampoco anula a las fuertes; se sigue guardando como evidencia
+        genders = {e.gender for e in (strong or ev)}
         if not ev:
             a.needs_review, a.reason = True, "sin pistas en el lenguaje"
         elif len(genders) > 1:
