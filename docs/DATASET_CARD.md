@@ -34,9 +34,10 @@ El único texto que lee un LLM opcional es la transcripción seudonimizada de un
 ## Separación de los datos (entrenamiento, validación, prueba)
 
 - **Seudonimización (decisión del 19 oct):** no se guardan nombres. Cada voz se identifica con un código anónimo (Persona 1, Persona 2…) y, en la evidencia del género y en las transcripciones, el nombre se sustituye por ese código.
-- **Ajuste ligero del modelo de lenguaje (decisión del 19 oct):** se usa solo el **texto** seudonimizado de nuestra transcripción de una sesión, con las preguntas anotadas a mano por Ivette. Nunca se usan audio, vídeo ni huellas de voz. Se comprueba con el Diario de Sesiones (texto oficial del Congreso) y se evalúa con una sesión distinta de la del ajuste. El modelo ajustado no se publica; en el repositorio solo va el código para reproducir el ajuste.
+- **Ajuste ligero del modelo de lenguaje (decisión del 19 oct; no se hace en esta entrega, #51, 26 oct: queda en la hoja de ruta con la sesión de desarrollo V008):** se usaría solo el **texto** seudonimizado de nuestra transcripción de una sesión, con las preguntas anotadas a mano por Ivette. Nunca se usan audio, vídeo ni huellas de voz. Se comprueba con el Diario de Sesiones (texto oficial del Congreso) y se evalúa con una sesión distinta de la del ajuste. El modelo ajustado no se publica; en el repositorio solo va el código para reproducir el ajuste.
 - **Pruebas de código:** datos sintéticos en `tests/`, separados de todo dato real.
-- **Evaluación de calidad:** 3 sesiones del Congreso en esta entrega (6 a 10 como evolución futura), solo para medir. Referencia: el Diario de Sesiones (quién habla y en qué orden) y anotación manual de inicio y fin en 2 o 3 vídeos. Tamaño final: pendiente de Ivette.
+- **Evaluación de calidad:** 3 sesiones de control del Congreso (V005, V006 y V007; 6 a 10 como evolución futura), solo para medir. Referencia: la lista oficial de intervenciones del archivo audiovisual (quién habla y en qué orden). Resultados en `docs/EVALUACION.md`.
+- **Pruebas de la automatización:** el pleno 203 (02/10/2026) y la Diputación Permanente (V004) se analizan pero no entran en los resultados ni en la evolución por defecto.
 - **Anotación de evaluación:** dos personas etiquetan de forma independiente 2 o 3 vídeos y una tercera resuelve desacuerdos.
 
 ## Modelos usados y datos con los que se entrenaron
@@ -51,7 +52,7 @@ Usamos modelos preentrenados de terceros tal cual, salvo el ajuste ligero de Qwe
 | `pyannote/segmentation-3.0` | Segmentación de voces | MIT (acceso restringido) | AISHELL, AliMeeting, AMI, AVA-AVD, DIHARD, Ego4D, MSDWild, REPERE y VoxConverse (conjuntos de entrenamiento). |
 | `pyannote/speaker-diarization-3.1` | Diarización | MIT (acceso restringido) | Mismo pipeline que la versión 3.0, en PyTorch puro; se evalúa (no se entrena aquí) en AISHELL-4, AliMeeting, AMI, AVA-AVD, DIHARD 3, MSDWild, REPERE y VoxConverse. |
 | `pyannote/wespeaker-voxceleb-resnet34-LM` | Embeddings de voz | CC-BY-4.0 | Pendiente de verificar. |
-| MediaPipe / OpenCV (gestos) | Detección de manos | Apache-2.0 | Pendiente de verificar. |
+| MediaPipe / OpenCV | Personas visibles y tiempo en pantalla (sin caras) | Apache-2.0 | Pendiente de verificar. |
 | Qwen3.5 4B y 9B (motor LLM opcional) | Preguntas (M09) y resumen del asistente de voz | Apache-2.0 (21 oct 2026) | Pendiente de verificar. |
 
 Implicaciones: los modelos de voz se entrenaron con corpus mayoritariamente de reuniones y debates y pueden rendir peor con ciertos acentos, idiomas o perfiles de voz. Por eso medimos el error por grupo y mantenemos la revisión humana.

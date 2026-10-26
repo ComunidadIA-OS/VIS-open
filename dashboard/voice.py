@@ -78,7 +78,7 @@ _TENS = {"treinta": 30, "cuarenta": 40, "cincuenta": 50, "sesenta": 60, "setenta
          "ochenta": 80, "noventa": 90}  # fmt: skip
 ACTIONS = (
     "show_session", "go_section", "go_minute", "women_count", "men_count", "gender_time", "gap",
-    "summary", "data_summary", "most_spoken", "pending", "hands", "help", "read_transcript",
+    "summary", "data_summary", "most_spoken", "pending", "help", "read_transcript",
     "explain", "courtesy", "download", "validate_person", "set_annotator", "handsfree_off",
     "val_conf",
     "play_video",
@@ -357,10 +357,6 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
         if has("datos", "cifras", "numeros", "estadisticas"):
             return Command("data_summary", session)
         return Command("summary", session)
-    if "primera mano" in norm:
-        return Command("go_minute", session, minute=-1.0)  # -1: la primera mano levantada
-    if has("manos levantadas", "cuantas manos"):
-        return Command("hands", session)
     if has("tiempo de palabra", "cuanto tiempo", "cuanto hablaron", "cuanto hablan"):
         return Command("gender_time", session)
     if "minuto" in norm:
@@ -417,11 +413,7 @@ def answer(cmd: Command, session, pending: int | None = None) -> str:
         where = "al " + where[3:] if where.startswith("el ") else "a " + where
         return (f"Vídeo {sid} seleccionado. " if cmd.session else "") + f"Te llevo {where}."
     if cmd.action == "go_minute":
-        return (
-            "Hecho."
-            if cmd.minute is None or cmd.minute >= 0
-            else "Llevo el vídeo a la primera mano levantada."
-        )
+        return "Hecho."
     if cmd.action in ("women_count", "men_count"):
         who, n = ("mujer", women) if cmd.action == "women_count" else ("hombre", men)
         plural = {"mujer": "voces de mujer", "hombre": "voces de hombre"}[who]
@@ -451,15 +443,6 @@ def answer(cmd: Command, session, pending: int | None = None) -> str:
     if cmd.action == "pending":
         n = unknown if pending is None else pending
         return f"Quedan {n} voces sin confirmar en la sesión {sid}."
-    if cmd.action == "hands":
-        v = session.video
-        if not v:
-            return f"La sesión {sid} no tiene análisis de vídeo."
-        total = sum(v.get("manos_levantadas_por_zona", {}).values())
-        return (
-            f"Se han detectado {total} manos levantadas en la sesión {sid}. "
-            "En planos amplios se cuenta de menos."
-        )
     if cmd.action == "data_summary":
         duration = session.timeline.duration_s / 60
         return (

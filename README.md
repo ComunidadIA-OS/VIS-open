@@ -113,10 +113,12 @@ El plan detallado de esta entrega, con tareas, responsables, fechas y dependenci
 
 Evolución futura:
 
+- **Automatización:** comprobar la detección automática con el primer pleno que se publique, de principio a fin: vídeo nuevo → manifiesto → validación humana → análisis. Ya está probada con el pleno 203 (ver [`docs/FLUJO.md`](docs/FLUJO.md)). Los plenos se detectan solos; los actos y las comisiones se añaden por enlace.
+- **Ajuste ligero de Qwen** con una sesión de desarrollo (V008, 21/09/2022), distinta de las de evaluación, si mejora frente al modelo sin ajustar. La evaluación del modelo ya se hace con `modelo_por_pregunta` frente a la lista oficial de intervenciones.
 - Pasar de 3 a 6–10 sesiones y, después, al archivo del Congreso, el Senado, el Parlamento Europeo, universidades y salas de conferencias.
-- Más métricas: turno más largo, apertura y cierre, interrupciones, palabra cedida, distribución por cuartil, participación proporcional y tiempo en pantalla.
-- Más métricas con IA: roles, temas y cortes de la Presidencia.
-- Descarga automática de sesiones, una vez confirmado el permiso.
+- Más métricas (`docs/metricas.md`, evolución futura): interrupciones y llamadas al orden (M07), temas por género (M12), cortes de la Presidencia (M18) y M09 controlando el tema (el mismo ministerio con una ministra y con un ministro).
+- Seudonimización: códigos por persona y no por palabra del nombre (hoy dos personas con un apellido en común comparten código).
+- Análisis de vídeo en una máquina sin GPU o a la vez que la transcripción: bajaría el coste por pleno a la mitad (`docs/HERRAMIENTAS_Y_COSTES.md`).
 - Asistente de voz: probarlo con lector de pantalla y con personas usuarias, más idiomas (catalán, francés) y una voz de síntesis mejor.
 - Evaluación ampliada de la separación de voces con la métrica de Albayzin y el corpus Àgora, si su licencia lo permite.
 

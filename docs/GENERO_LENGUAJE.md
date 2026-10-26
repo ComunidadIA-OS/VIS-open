@@ -1,6 +1,6 @@
 # Género por pistas del lenguaje
 
-Estado: **pendiente de validar por Ivette** (reglas y confianzas). Código en `decision/gender_cues.py`; palabras en `decision/cues/es.toml`.
+Estado: **validado por Ivette** el 25 oct 2026 frente a la lista oficial de intervenciones del Congreso (V005–V007): 87 de 87 personas, **83 con género correcto, 0 errores y 4 desconocidas** (las 3 ministras de V006, ya resueltas en la PR #145, y un diputado; detalle en la issue #55). Código en `decision/gender_cues.py`; palabras en `decision/cues/es.toml`.
 
 ## Principio
 
@@ -14,9 +14,10 @@ El género de una voz sale del **texto de la transcripción** y siempre con evid
 | `self_role` | «Soy la diputada por Girona», «soy el portavoz» | 0,90 | A quien habla |
 | `self_agreement` | «Estoy muy agradecida» | 0,75 | A quien habla |
 | `as_role` | «Como diputada, creo…» | 0,60 | A quien habla; **siempre a revisión** (puede ser un tercero) |
-| `chair_address` | La Presidencia acaba con un tratamiento a solas: «Señora ministra, cuando quiera.», «Señor presidente del Gobierno.» (sin «gracias», 6 palabras como mucho) | 0,80 | A la **voz siguiente**; solo en intervenciones de la Presidencia |
+| `chair_address` | La Presidencia acaba con un tratamiento a solas: «Señora ministra, cuando quiera.», «Señor presidente del Gobierno.» (sin «gracias», 6 palabras como mucho; «Señora ministra de [ministerio]» se lee hasta «de») | 0,80 | A la **voz siguiente**; solo en intervenciones de la Presidencia |
+| `address_edge` | Ese mismo tratamiento, pegado por la diarización al final de la voz anterior o al principio de la siguiente | 0,75 | A quien habla **después** del tratamiento |
 
-Las referencias a terceros («la señora ministra dijo…») no cuentan como pista. Cargos sin forma propia (portavoz, ponente) toman el género del artículo.
+En los anuncios, lo que va desde «Grupo» («…del Grupo Parlamentario Popular») no cuenta: el nombre del grupo no dice el género de la persona. Las referencias a terceros («la señora ministra dijo…») no cuentan como pista. Cargos sin forma propia (portavoz, ponente) toman el género del artículo.
 
 ## Dar la palabra vale para todos los vídeos
 
@@ -28,7 +29,7 @@ Regla de Sabrina: «doy la palabra a la señora / al señor = mujer / hombre»: 
 
 1. Sin pistas → `desconocido` + revisión (motivo «sin pistas en el lenguaje»).
 2. Pistas de géneros distintos → `desconocido` + revisión («pistas que se contradicen»); la evidencia se conserva.
-3. Mejor pista con confianza < 0,7 → `desconocido` + revisión, con la sugerencia en `notes`.
+3. Mejor pista con confianza < 0,7 → `desconocido` + revisión, con la sugerencia en `notes`. Una pista débil (< 0,7) tampoco anula a las fuertes: si hay alguna fuerte, se decide con ellas.
 4. En otro caso se asigna el género (`gender_source = pista_lenguaje`) y se guardan las pistas en `Speaker.gender_evidence`.
 
 El CSV de revisión (`ReviewRow`) solo incluye las voces con duda; `gender` queda en blanco para que lo decida la anotadora, y `notes` trae el motivo y hasta 3 pistas con su minuto.

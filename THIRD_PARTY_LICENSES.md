@@ -45,6 +45,7 @@ Extra opcional `[pipeline]`: no se instala en CI ni en los portátiles; se usa e
 | opencv-python-headless | 5.0.0.93 | lectura de fotogramas (extra `[video]`) | Apache-2.0 (campo `License` y clasificador del paquete instalado; la rueda incluye FFmpeg, LGPL) | https://pypi.org/project/opencv-python-headless/ |
 | FFmpeg | binario externo, no se distribuye | extracción de audio y descarga de la emisión HLS sin recodificar (`pipeline.sesion`) | LGPL-2.1+ (GPL-2+ solo si se compila con `--enable-gpl`) | https://github.com/FFmpeg/FFmpeg/blob/master/LICENSE.md |
 | curl | binario externo, no se distribuye | lee la lista de pistas (master playlist) de la emisión del Congreso (`pipeline.sesion`) | licencia curl (SPDX `curl`, inspirada en MIT/X; verificada en la fuente el 23 oct 2026) | https://curl.se/docs/copyright.html |
+| libglvnd (libEGL, libGLES) de conda-forge | biblioteca del sistema, no se distribuye; solo en OVH, en una carpeta aparte (`/workspace/equipo6/glenv`) | la necesita MediaPipe para el análisis de vídeo en una máquina sin pantalla | licencia permisiva tipo MIT (NVIDIA), con componentes MIT y BSD (README oficial, verificado el 26 oct 2026). Sus dependencias de conda-forge (libx11, libxcb y otras de X.Org): licencias pendientes de verificar | https://github.com/NVIDIA/libglvnd/blob/master/README.md |
 
 Modelos (se descargan en tiempo de ejecución, no se incluyen en el repo):
 

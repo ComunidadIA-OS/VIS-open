@@ -2,6 +2,23 @@
 
 Principio (charla de visión del reto): **evaluar sobre nuestro propio contenido, con anotación hecha a mano, y contar los errores con honestidad**. Una cifra sin su error no se publica. Cada capa de VIS Open se evalúa con tres preguntas: ¿se encuentra lo que hay?, ¿el atributo es correcto?, ¿la medida final se acerca a la de una persona?
 
+## Resultados (validación de Ivette, 25–26 oct 2026)
+
+Referencia: la **lista oficial de intervenciones** del archivo audiovisual del Congreso, sobre las tres sesiones de evaluación (V005, V006 y V007). Sustituye a la anotación manual de 150 turnos prevista (#52): es más completa e independiente del sistema. Cada voz se empareja con la persona oficial por el orden y la estructura de las preguntas, sin usar el género; el género solo se compara al final. Detalle en las issues #55 y #144.
+
+| Qué | Resultado |
+|---|---|
+| Personas que intervienen | 87 de 87 (25 / 31 / 31) |
+| Género | 83 correctas (95,4 %), **0 errores**, 4 desconocidas, que son las que el panel manda a Human in the loop. Las 3 ministras de V006 ya se resuelven (PR #145) |
+| Intervenciones | Oficial 66 / 73 / 76; sistema 64 / 74 / 75. 4 casos de voces mezcladas, siempre entre personas del mismo género |
+| Bloques de pregunta | 17 / 18 / 20 frente a 17 / 19 / 20. En V006 falta la pregunta 13 (sin anuncio en la transcripción, #124) |
+| M03 | La pausa de 1 s partía las intervenciones con los aplausos (7,1 / 8,8 / 7,5). Con la nueva definición M03a: 4,1 / 3,9 / 3,8 frente a 3,9 / 3,8 / 3,8 oficiales (PR #142) |
+| M06 | 40 % de 5 / 67 % de 3 / 0 % de 3: **igual que la referencia** en las tres |
+| M09 | 0,75 / 0,86 / 0,81 frente a 0,75 / 0,73 / 0,81: igual en V005 y V007; en V006 falta la pregunta 13 |
+| Modelo (Qwen) | Se evalúa aparte con `modelo_por_pregunta` (si detecta la pregunta y si acierta el cargo): pendiente de Ivette |
+
+Queda opcional el tiempo de palabra (M02), que la lista oficial no da: cronometrar a mano una pregunta o declararlo como límite.
+
 ## Qué se evalúa, con qué y quién
 
 | Capa | Pregunta | Medida | Herramienta | Quién |
@@ -9,11 +26,10 @@ Principio (charla de visión del reto): **evaluar sobre nuestro propio contenido
 | Transcripción | ¿Se entiende lo que se dice? | WER (palabras mal transcritas) en un tramo anotado | pendiente de programar | Ivette anota; Sabrina mide |
 | Separación de voces | ¿Quién habla cuándo? | DER (error de diarización) en un tramo anotado | pendiente de programar | Ivette anota; Sabrina mide |
 | Género por lenguaje | ¿El género asignado es correcto? | F1 por clase (mujer, hombre, desconocido), matriz de confusión y % a revisión | `evaluation/benchmark.py` (`docs/MOTORES_DECISION.md`) | Ivette y Veru anotan 150 turnos (30 ambiguos) |
-| Métricas | ¿Coinciden con el Diario de Sesiones? | Diferencia en número y orden de intervenciones y en género | a mano, con hoja de cálculo | Ivette |
+| Métricas | ¿Coinciden con la referencia oficial? | Diferencia en número y orden de intervenciones, género, M03, M06 y M09 | lista oficial de intervenciones del archivo audiovisual | Ivette (hecho, ver «Resultados») |
 | Vídeo: personas visibles | ¿Se cuentan bien? | Error medio (MAE), sesgo a contar de menos, recall y precisión | `evaluation/video_eval.py` | Ivette anota `personas.csv` |
 | Transcripción | ¿Se transcribe bien lo que se dice? | WER (sustituciones, borrados, inserciones) | `evaluation/asr_diar.py wer` | Un tramo de 5 min transcrito a mano, comprobado con el Diario de Sesiones |
 | Diarización | ¿Se separa bien quién habla? | DER (voz perdida, falsa alarma, confusión), sin margen de tolerancia | `evaluation/asr_diar.py der` | Turnos `speaker_id,start_s,end_s` del mismo tramo |
-| Vídeo: manos levantadas | ¿Se detectan las manos? | Precisión, recall y F1 por solape en el tiempo y la zona | `evaluation/video_eval.py` | Ivette anota `manos.csv` |
 | Vídeo: género de las pistas (por audio) | ¿El audio asigna bien el género a quien sale en pantalla? | % etiquetadas, acierto sobre las etiquetadas y **cuántas mujeres y hombres quedan sin etiquetar** | `evaluation/video_eval.py` | Ivette anota `pistas.csv` |
 
 ## Línea base con la que comparamos
@@ -22,11 +38,10 @@ Una medida solo vale si mejora algo simple:
 
 - **Género:** «todo desconocido». Nuestra regla debe etiquetar bien una parte y dejar en «desconocido» (a revisión) el resto.
 - **Personas visibles:** «siempre una persona en pantalla». El conteo con pose debe tener menos error.
-- **Manos:** «ninguna mano». El detector debe encontrar manos reales sin inventar otras.
 
 ## Límites conocidos del vídeo
 
-El modelo de pose (`pose_landmarker_full`, Apache-2.0) está pensado para una sola persona a menos de ~4 m (ficha del modelo). Con `num_poses` alto sirve, pero en planos amplios del hemiciclo **cuenta de menos** y puede perder manos lejanas. Lo declaramos como límite y lo medimos contra `personas.csv`; no se presenta como conteo exacto de la sala.
+El modelo de pose (`pose_landmarker_full`, Apache-2.0) está pensado para una sola persona a menos de ~4 m (ficha del modelo). Con `num_poses` alto sirve, pero en planos amplios del hemiciclo **cuenta de menos**. Lo declaramos como límite y lo medimos contra `personas.csv`; no se presenta como conteo exacto de la sala.
 
 ## Resultado del género por lenguaje (20 oct 2026)
 
@@ -53,11 +68,10 @@ Se anotan 2 a 5 minutos de una sesión, sin nombres. Tres CSV en UTF-8 (no abrir
 
 ```
 personas.csv   t_s,n_personas        # cuántas personas se ven en ese segundo
-manos.csv      zona,inicio_s,fin_s   # cada mano levantada; zona Z1..Z4 (cuarto de la imagen, de izquierda a derecha)
 pistas.csv     pista,genero          # mujer | hombre | desconocido, para cada pista de video.json
 ```
 
-Después: `python -m evaluation.video_eval data/processed/V001/video.json --personas personas.csv --manos manos.csv --pistas pistas.csv`.
+Después: `python -m evaluation.video_eval data/processed/V001/video.json --personas personas.csv --pistas pistas.csv`.
 
 ## Por qué no usamos el género por la cara (decisión de diseño)
 
@@ -76,15 +90,15 @@ En su lugar, el género sale de las pistas del lenguaje de la sesión y, en el v
 - El voto por audio supone que el primer plano muestra a quien habla.
 - La seudonimización es por reglas y puede dejar pasar un nombre suelto; se revisa antes de publicar.
 - Con 3 sesiones no se pueden sacar tendencias.
-- Las métricas M01–M04 y M13 están en borrador hasta que Ivette las valide.
+- Las métricas siguen la definición de Ivette (`docs/metricas.md`) y están validadas frente a la lista oficial (ver «Resultados»).
 
 ## Para la presentación (texto propuesto para una diapositiva «Evaluación y límites»)
 
 > **Cómo sabemos que las cifras son fiables**
-> - Evaluamos sobre nuestras propias sesiones, con anotación manual de 150 turnos (género) y de un tramo de vídeo (personas y manos).
-> - Medimos: F1 por clase del género, error de conteo y F1 de manos levantadas, y comparamos con el Diario de Sesiones.
+> - Evaluamos sobre nuestras propias sesiones frente a la lista oficial de intervenciones del Congreso.
+> - Género: 83 de 87 personas correctas, 0 errores, 4 a revisión humana. M06 coincide en las 3 sesiones; M09 en 2 de 3.
 > - «Desconocido» siempre visible: lo que no sabemos, no lo inventamos.
 > - Decisión de diseño: sin género por la cara (sesgo medido en la literatura, alto riesgo normativo, licencias incompatibles).
 > - Límites: cuenta lo que ve la cámara; el género depende de las pistas del lenguaje; 3 sesiones no dan tendencias.
 >
-> *Resultados: se rellenan con las cifras reales de `evaluation/` tras la anotación (27–28 oct).*
+> *Cifras: apartado «Resultados» de este documento (validación del 25–26 oct).*

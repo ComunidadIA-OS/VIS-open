@@ -18,10 +18,11 @@ El panel no calcula nada con IA. Solo lee los ficheros que deja el análisis de 
 - `timeline.json`: línea de tiempo (quién habla, desde qué segundo hasta cuál, y su género con la evidencia).
 - `m09.json`: M09 y M06 calculadas con IA sobre los bloques de pregunta (si existe; lo genera `python -m metrics.m09`).
 - `resumen.json` y los resultados de las métricas de `metrics/`.
+- `video.json`: análisis de vídeo (personas visibles y tiempo en pantalla), si existe.
+- `tiempos.json` y `coste.json`: tiempo y coste real de cada paso (los deja `pipeline.sesion`).
 - `data/externos/congreso/`: datos abiertos de composición de la cámara (M04 c). Se descargan
   con `python -m sources.diputados` y no se versionan; si faltan, el panel lo dice y M04 c) se
   queda sin dato (la brecha de tiempo a) y el ratio b) se siguen calculando).
-- Los gestos de mano levantada (tabla de gestos de `contracts/`).
 
 Hasta que existan datos reales, se trabaja con los datos sintéticos de `evaluation/synthetic/muestras/` (`make synthetic`).
 
@@ -32,7 +33,8 @@ en la línea de tiempo: sale de los datos abiertos del Congreso y se calcula de 
 4 bis de la definición de métricas de Ivette):
 
 - **A, el día de la sesión:** quien tenía escaño ese día (`FECHAALTA <= fecha < FECHABAJA`). Debe
-  sumar 350; si no, se avisa y no se usa hasta revisarlo.
+  sumar 350; de 340 a 349 se usa con aviso (vacantes ese día; el denominador es N); con otro
+  número, se avisa y no se usa hasta revisarlo.
 - **B, la legislatura completa:** todas las personas que ocuparon escaño. Debe coincidir con el
   buscador oficial (XV 412, XIV 407, XII 393).
 
@@ -44,29 +46,35 @@ fecha y sha256 de cada fichero y sin volver a bajarlos si ya están). La tabla d
 presentación se imprime con `python -m metrics.diputadas`: % A, % B, diferencia en puntos, brecha
 c) con A y con B, si cambia la conclusión y los avisos.
 
-Estado: XV y XII dan A = 350; **XIV da 349** (sesión del 05/10/2022) y está pendiente de revisar
-con Ivette, así que ese día la brecha c) no se calcula y el panel lo avisa.
+Estado: XV y XII dan A = 350; **XIV da 349** (sesión del 05/10/2022: una vacante), que se usa con
+el aviso «349 escaños ocupados: hay vacantes ese día».
 
 ## Pantalla 1 · Panel de una sesión
 
-1. **Selector de sesión** (lista de las sesiones procesadas).
+1. **Selector de sesión** (lista de las sesiones procesadas). Las que no son sesiones de control
+   (`tipo_sesion` del manifiesto: pleno, comisión o sin tipo, como la Diputación Permanente o un
+   acto) van al final, con su tipo, y sus métricas de preguntas salen «no aplica».
 2. **Ficha de la sesión**: fecha, legislatura, tipo de sesión, enlace a la fuente y aviso «Fuente: Congreso de los Diputados, vídeo sin alterar».
 3. **Cifras principales**, una tarjeta por métrica, separando siempre mujer / hombre / desconocido:
    - M01 Presencia: personas que intervienen, por género y rol.
    - M02 Tiempo de palabra: minutos y porcentaje por género.
    - M02b Uso del tiempo: porcentaje del tiempo asignado en cada pregunta y excesos.
-   - M03 Turnos: turnos por pregunta (rango correcto 3–6).
-   - M04 Brecha de paridad: % de tiempo de las mujeres − % de mujeres entre quienes intervienen;
+   - M03 Intervenciones por pregunta (control de calidad, rango correcto 3–6). La definición
+     nueva, M03a y M03b, está en `docs/metricas.md` (PR #142).
+   - M04 Brecha de paridad: % del tiempo de las mujeres menos su % entre quienes intervienen;
      debajo, el % de diputadas ese día (A) y en la legislatura (B) para la brecha de preguntas.
-     Si la composición no cuadra con 350 escaños, se avisa y no se usa hasta revisarla.
-   - M06 Preguntas al Presidente del Gobierno: % formuladas por mujeres.
-   - M09 Preguntas recibidas: por ministra y por ministro.
+     Con 340–349 escaños se usa con aviso; con otro número, no se usa hasta revisarla.
+   - M06 Preguntas al Presidente del Gobierno (o a la Vicepresidencia Primera si no comparece):
+     % formuladas por mujeres.
+   - M09 Preguntas recibidas: por ministra y por ministro. En la sesión de control cuenta toda
+     pregunta que anuncia la Presidencia; el modelo da el cargo y la cita, nunca las cifras.
    - M13 Sin atribuir: porcentaje de tiempo en que no se sabe quién habla.
-   - M14 Peticiones de palabra con la mano, por género: pendiente del módulo de vídeo.
    Si una métrica no tiene muestra suficiente, la tarjeta dice «no concluyente» en lugar de la
    cifra; si no se aplica a la sesión (por ejemplo, no hay bloques de pregunta), dice «no aplica».
+   Debajo, una tabla con las métricas del marco aún pendientes (M07, M12, M18) y M17 (incluida en
+   M04). Las descartadas para el Congreso (M05, M08, M10, M14–M16) no se muestran.
 4. **Gráfico de barras** del tiempo de palabra por género.
-5. **Línea de tiempo** de la sesión: una franja horizontal coloreada según el género de quien habla en cada momento, con las manos levantadas marcadas.
+5. **Línea de tiempo** de la sesión: una franja horizontal coloreada según el género de quien habla en cada momento; en gris, la parte del vídeo que no se analiza.
 6. **Tabla de intervenciones**: código anónimo de la persona (Persona 1, Persona 2…), minuto de inicio, duración, género y la evidencia del género (la frase y el minuto, con el nombre sustituido por el código, por ejemplo «tiene la palabra la señora [Persona 3]»). Las voces sin pista aparecen como `desconocido`. Nunca se muestran nombres.
 7. **Aviso de método**, siempre visible: «El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la cara ni la voz. Los resultados son orientativos y requieren revisión humana.»
 
@@ -84,7 +92,7 @@ Estilo editorial y sobrio, pensado para proyectar: fondo de papel cálido, tinta
 
 ## Human in the loop: confirmar el género de las voces
 
-Término a usar tal cual en la presentación y el vídeo. En la pantalla de sesión, el vídeo (si el original está en `data/raw/`, solo en el equipo local) va a la izquierda y la pantalla es una sola columna, de arriba abajo: (1) el vídeo completo; (2) «Human in the loop»: los tramos de cada voz `desconocido`, con su clip y el formulario para confirmar; (3) el análisis de la sesión: métricas, tiempo de palabra, línea de tiempo, análisis de vídeo (personas, tiempo en pantalla, manos levantadas), transcripción (cada trozo tiene un ▶ que mueve el vídeo de arriba a ese minuto) e intervenciones. Para cada voz que el lenguaje dejó en `desconocido` se ven sus tramos («Persona 1: de 0:00 a 0:20») con el vídeo en ese punto. Cada anotadora decide mujer, hombre o desconocido y su seguridad; se guarda en `review_anotadora_1.csv` y `review_anotadora_2.csv`. El género solo pasa a las cifras cuando **las dos coinciden** (procedencia `anotacion_percibida`); si no, sigue `desconocido`. El sistema nunca lo decide por la cara ni por la voz: lo decide una persona.
+Término a usar tal cual en la presentación y el vídeo. En la pantalla de sesión, el vídeo (si el original está en `data/raw/`, solo en el equipo local) va a la izquierda y la pantalla es una sola columna, de arriba abajo: (1) el vídeo completo; (2) «Human in the loop»: los tramos de cada voz `desconocido`, con su clip y el formulario para confirmar; (3) el análisis de la sesión: métricas, tiempo de palabra, línea de tiempo, análisis de vídeo (personas visibles y tiempo en pantalla), transcripción (cada trozo tiene un ▶ que mueve el vídeo de arriba a ese minuto) e intervenciones. Para cada voz que el lenguaje dejó en `desconocido` se ven sus tramos («Persona 1: de 0:00 a 0:20») con el vídeo en ese punto. Cada anotadora decide mujer, hombre o desconocido y su seguridad; se guarda en `review_anotadora_1.csv` y `review_anotadora_2.csv`. El género solo pasa a las cifras cuando **las dos coinciden** (procedencia `anotacion_percibida`); si no, sigue `desconocido`. El sistema nunca lo decide por la cara ni por la voz: lo decide una persona.
 
 ## Acceso: usuario, contraseña y segundo factor
 
@@ -97,26 +105,30 @@ Si existe `data/usuarios.json`, el panel pide ID de usuario, contraseña y el c�
 
 ## Human in the loop: cortes uno a continuación de otro
 
-Cada voz que quedó en `desconocido` se valida con **cortes de 9 s**, puestos uno detrás de otro por orden en el vídeo (no agrupados por voz). Cada corte trae su clip, lo que se dice en él y su formulario. Validar una voz en un corte **vale para todos los cortes de esa voz**: los demás pasan a «ya validada por ti como…» y no hace falta repetirlo. Cada anotadora lo hace por su cuenta, y el género solo entra en las cifras cuando las dos coinciden.
+La Presidencia no sale para validar: va fuera de M02 y M04 (`docs/metricas.md`, §2). Cada voz que quedó en `desconocido` se valida con **cortes de 9 s**, puestos uno detrás de otro por orden en el vídeo (no agrupados por voz). Cada corte trae su clip, lo que se dice en él y su formulario. Validar una voz en un corte **vale para todos los cortes de esa voz**: los demás pasan a «ya validada por ti como…» y no hace falta repetirlo. Cada anotadora lo hace por su cuenta, y el género solo entra en las cifras cuando las dos coinciden. El género y la seguridad empiezan sin marcar: «Guardar» sin elegir no registra nada.
 
 ## Informe descargable (PDF)
 
 El botón **«Descargar informe (PDF)»** de la pantalla de sesión genera un PDF (ReportLab, BSD) con:
 
-- La ficha de la sesión y la fuente, y un resumen con una lectura prudente de la brecha (qué pasaría según cómo fueran las voces sin género).
+- La ficha de la sesión y la fuente, y un resumen con la diferencia de tiempo mujeres − hombres (2 × M02 − 100, sobre el tiempo con género conocido) y qué pasaría según cómo fueran las voces sin género.
 - Las métricas con su valor o «no concluyente», y por qué.
 - Análisis de audio: tiempo de palabra por género, línea de tiempo y voces.
-- Análisis de vídeo (MediaPipe, sin caras): personas visibles a lo largo del vídeo, tiempo en pantalla, manos levantadas y pistas.
+- Análisis de vídeo (MediaPipe, sin caras): personas visibles a lo largo del vídeo, tiempo en pantalla y pistas.
 - El método y los límites.
 
 La transcripción completa no va en el PDF: se descarga aparte en un CSV («Descargar transcripción (CSV)»), y el PDF enlaza a él. `python -m dashboard.export` guarda ambos ficheros de todas las sesiones en `data/informes/` (con `--link-base URL` el enlace apunta a un almacenamiento privado donde se suba el CSV).
 
 ## Pantalla 2 · Evolución entre sesiones
 
-Compara las 3 sesiones de esta entrega, ordenadas por fecha:
+Compara las sesiones analizadas, ordenadas por fecha. Filtros por año, mes y tipo de sesión; por
+defecto, solo las sesiones de control (V005–V007, las de evaluación). Las demás (pruebas de la
+automatización como el pleno 203, o la demo V004) se ven eligiéndolas en el filtro:
 
 - **Gráfico** del porcentaje de tiempo de palabra de las mujeres y de la brecha de paridad (M04) en cada sesión.
-- **Tabla resumen**: una fila por sesión con fecha, M01, M02, M02b, M03, M04, M13, M14, M06 y M09.
+- **Tabla resumen**: una fila por sesión con M01, M02, M02b, M03, M04, M06, M09 y M13, en ese orden.
+- **Lectura de la evolución**, con cifras calculadas por el código: compara solo las sesiones de
+  control y nombra aparte las demás.
 - Aviso: «Con 3 sesiones no se pueden sacar tendencias; el gráfico muestra cómo funcionará con más sesiones.»
 
 ## Lo que no debe hacer
@@ -128,6 +140,6 @@ Compara las 3 sesiones de esta entrega, ordenadas por fecha:
 
 ## Cuándo está terminado
 
-- Las dos pantallas y el botón de informe funcionan con los datos sintéticos (20 oct) y con las 3 sesiones reales (27 oct).
+- Las dos pantallas y el botón de informe funcionan con los datos sintéticos (20 oct) y con las 3 sesiones reales (hecho el 23–26 oct, también en OVH).
 - Hay al menos una prueba automática que comprueba que el panel carga una sesión sintética sin errores.
 - Funciona en el portátil, sin GPU.

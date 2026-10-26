@@ -1,5 +1,7 @@
 # Banco de vídeos de VIS Open: propuesta
 
+> **Estado al 26 oct 2026:** propuesta inicial, conservada como referencia. Lo que se hizo: 3 sesiones de control de evaluación (V005–V007) y la descarga de plenos nuevos con `pipeline.sesion` (`docs/FLUJO.md`, `docs/FUENTE_CONGRESO.md`). MediaPipe no se usa para manos levantadas (M14 descartada), solo para personas visibles.
+
 Fecha: 16 oct 2026 (corregido: la Organización no ofrece vídeos) · Estado: **propuesta, pendiente de aprobación del equipo**
 
 > **ACTUALIZACIÓN (Sabrina, 21 oct 2026): no se usa Google Drive para los vídeos de las sesiones.** Se descargan a mano y se guardan en local y en el espacio del equipo en OVHcloud (`/workspace/equipo6/…/raw`). Drive solo se usa, de momento, para vídeos de trabajo (por ejemplo, un recap) compartidos entre las tres. Las secciones de abajo que hablan del Drive son la propuesta original y **ya no aplican**.
