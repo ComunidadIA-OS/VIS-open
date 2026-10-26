@@ -34,6 +34,7 @@ Definiciones formales de las métricas de esta entrega. Borrador de Ivette para 
 | Composición de la cámara calculada de dos maneras (A y B) | Para medir el error de usar la aproximación por legislatura y decidir con datos si el dato de cada día es necesario (apartado 4 bis) |
 | La IA solo clasifica; las cifras las calcula el código | Transparencia y reproducibilidad: cualquier persona puede repetir el cálculo |
 | El género se atribuye por el lenguaje, nunca por la voz o la imagen | Marco ético del proyecto (RNF-05 y RNF-13) y sesgos conocidos de esos sistemas |
+| M03a/M03b cuentan intervenciones y voces, no pausas | La regla anterior (pausa de menos de 1 s) partía cada intervención con los aplausos o rumores: daba 7,1 / 8,8 / 7,5 frente a 3,9 / 3,8 / 3,8 oficiales. Ahora se cuenta por cambio de voz, ignorando los tramos de otra voz de menos de 5 s. El umbral se elige por razón (ninguna intervención real dura menos de 5 s) y el resultado es estable entre 2 y 5 s. Decisión de Ivette, 25/10/2026 |
 
 ## 3. Regla para sacar conclusiones
 
@@ -47,7 +48,7 @@ Si falla alguna, el panel muestra «no concluyente» y explica cuál. En el cód
 
 ## 4. Métricas de esta entrega
 
-M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
+M01, M02 (con la submétrica M02b), M03a, M03b, M04, M06, M09 y M13.
 
 ### M01 · Presencia
 
@@ -59,7 +60,7 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 | Fórmula | Número de persona_id distintas por género y rol |
 | Unidad | Personas y % sobre el total de personas del mismo rol |
 | Salida | Tabla rol × género (PREGUNTA y GOBIERNO) |
-| Casos límite | Una misma persona separada en dos voces por error cuenta dos veces: se revisa con M03 y con la anotación manual |
+| Casos límite | Una misma persona separada en dos voces por error cuenta dos veces: se revisa con M03a/M03b y con la anotación manual |
 | Validación | Comparar con el orden del día (quién pregunta) y el Diario de Sesiones (quién responde) |
 | Test | 3 voces: P1 mujer PREGUNTA, P2 hombre GOBIERNO, P3 mujer GOBIERNO → PREGUNTA: 1 mujer; GOBIERNO: 1 mujer, 1 hombre |
 
@@ -74,6 +75,7 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 | Unidad | Segundos y % |
 | Salida | Por persona, por género y por género × rol. También tiempo medio por persona de cada grupo |
 | Interpretación | El tiempo por intervención está reglado: una diferencia grande indica sobre todo diferencia en el número de intervenciones |
+| Diferencia mujeres − hombres | 2 × M02 − 100, en puntos, sobre el tiempo con género conocido (como M02). Si hay tiempo sin género, el Resumen del panel da además el intervalo posible según cómo fueran esas voces (2022: entre −10,6 y −5,6). Descriptiva y sin umbral: la regla de conclusiones (apartado 3) usa M04, que tiene en cuenta cuántas mujeres intervienen. Ejemplo (2018): las mujeres hablan 12,7 puntos más que los hombres, pero M04 a) es −1,7, porque son el 58 % de quienes intervienen |
 | Muestra mínima | Para publicar la cifra: 4 voces con género conocido y 300 s (apartado 4 ter). Para comparar mujeres y hombres (lo que hacen M02b y M04): además, al menos 2 voces en cada grupo |
 | Validación | Error ≤ 3 puntos en el % de tiempo de mujeres frente a la anotación manual de 20 min |
 | Test | P1 mujer 0–10 s, P2 hombre 10–15 s → mujeres 10 s (66,7 %), hombres 5 s (33,3 %) |
@@ -95,19 +97,26 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 | Validación | Comparar los excesos detectados con la anotación manual de 20 min |
 | Test | P1 habla 170 s en su pregunta → uso 113 %, exceso sí. P2 habla 140 s → uso 93 %, exceso no |
 
-### M03 · Turnos por pregunta (control de calidad)
+### M03a/M03b · Intervenciones y voces por pregunta (control de calidad)
 
 | Campo | Contenido |
 |---|---|
-| Pregunta | ¿Está separando bien las voces el sistema? |
-| Tipo | Determinista |
-| Definición de turno | Intervenciones consecutivas de la misma persona separadas por una pausa de menos de 1 s |
-| Fórmula | Turnos por pregunta = nº de turnos (sin Presidencia) / nº de preguntas válidas |
-| Valor esperado | Unos 4 por pregunta: pregunta, respuesta, réplica y dúplica. Algunas preguntas tienen 2 o 3 (sin réplica o sin dúplica), sobre todo las de grupos que apoyan al Gobierno |
-| Referencia oficial | Lista de intervenciones del archivo audiovisual (sin Presidencia de la Cámara): 2026 = 66 intervenciones (16 preguntas con 4 y 1 con 2); 2022 = 73 (17 con 4, 1 con 2 y 1 con 3); 2018 = 76 (18 con 4 y 2 con 2). El sistema debe acercarse a estas cifras |
-| Umbral | Entre 3 y 6: correcto. Fuera de ese rango: revisar la separación de voces antes de usar el resto de métricas |
-| Dato adicional | Duración media del turno por género (descriptivo) |
-| Test | 2 preguntas con 4 turnos cada una → 4,0 |
+| Pregunta | ¿Está separando bien las voces y las preguntas el sistema? |
+| Tipo | Determinista. Son dos controles complementarios: M03a y M03b |
+| Definición de intervención | Sucesión de fragmentos de la misma voz dentro de un bloque de pregunta. Las pausas no cuentan. Una intervención solo termina cuando habla otra voz (sin contar la Presidencia) durante al menos **5 s seguidos en total**; los tramos más cortos de otra voz (un «gracias», un ruido, un aplauso mal atribuido) no la cortan |
+| M03a · Fórmula | Intervenciones por pregunta = nº de intervenciones (sin Presidencia) / nº de bloques de pregunta |
+| M03a · Valor esperado y umbral | Unos 4 (pregunta, respuesta, réplica y dúplica). Correcto entre 3 y 6. Si hay referencia oficial, la diferencia debe ser como mucho de ±0,5 |
+| M03b · Fórmula | Voces por pregunta = nº de voces (sin Presidencia) que hablan en total al menos 5 s en el bloque |
+| M03b · Valor esperado | 2 (quien pregunta y quien responde). Con 3 o más, aviso con la lista de bloques a revisar |
+| Lectura conjunta | M03a normal y M03b = 2: correcto. M03a alto: una voz partida en varias. M03b de 3 o más: preguntas mal cortadas o juntadas. Los dos altos: revisar la sesión |
+| Referencia oficial | Lista de intervenciones del archivo audiovisual (sin Presidencia de la Cámara): 2026 = 66 intervenciones (16 preguntas con 4 y 1 con 2); 2022 = 73 (17 con 4, 1 con 2 y 1 con 3); 2018 = 76 (18 con 4 y 2 con 2). Es decir, 3,9 / 3,8 / 3,8 por pregunta |
+| Por qué no se usa la pausa | La definición anterior (pausa de menos de 1 s) partía las intervenciones con cada aplauso o rumor: daba 7,1 / 8,8 / 7,5 frente a 3,9 / 3,8 / 3,8 oficiales. Medía aplausos, no la separación de voces, y podía sesgar la duración media por género si un grupo recibe más aplausos o rumores |
+| Por qué 5 s | Es menos que cualquier intervención real. El umbral se aplica al tiempo total seguido de la otra voz, no a los fragmentos de Whisper, así que no depende de cómo corte el texto el modelo. Se confirmará con la sesión de desarrollo (V008) |
+| Sensibilidad (V005 / V006 / V007) | Sin umbral: 4,1 / 4,1 / 4,1. 2 s: 4,1 / 3,9 / 4,1. **5 s: 4,1 / 3,9 / 3,8**. 10 s: 3,8 / 3,8 / 3,4. 20 s: 3,6 / 3,6 / 2,9 (ya borra intervenciones reales). Zona estable entre 2 y 5 s. M03b: 1 bloque con 3 voces o más por sesión desde 5 s (en V006, el bloque 13: límite de Whisper, ver #124) |
+| Validación | Con 5 s: 4,1 / 3,9 / 3,8 frente a 3,9 / 3,8 / 3,8 oficiales (diferencia +0,2 / +0,1 / 0,0) |
+| Plan B | Si no da tiempo a implementarlo antes del cierre: intervención = cambio de voz, sin umbral (4,1 / 4,1 / 4,1; diferencia de +0,3 como mucho) |
+| Dato adicional | Duración media de la intervención por género (descriptivo), calculada con esta definición |
+| Test | Bloque con A 60 s, pausa de 3 s, A 40 s, B 2 s (ruido), A 20 s, B 90 s, A 30 s, B 25 s → M03a = 4 intervenciones (A, B, A, B); M03b = 2 voces |
 
 ### M04 · Brecha y ratio de paridad
 
@@ -254,7 +263,8 @@ Valores que pide `docs/METRICAS_MARCO.md` para cada métrica. Sustituyen a los p
 | M01 | 1 | 0 | No aplica (descriptiva) | No aplica | Recuento por género y rol |
 | M02 | 4 | 300 | No aplica (descriptiva) | % desconocido + sin atribuir | Además, 2 voces por grupo para comparar |
 | M02b | 4 | 300 | No aplica (descriptiva) | % desconocido + sin atribuir | Usa el nº de bloque de pregunta de `decision/roles.py` (reglas, sin IA) |
-| M03 | 2 | 60 | Rango correcto: 3 a 6 turnos por pregunta | No aplica | Control de calidad; necesita el nº de preguntas válidas del orden del día |
+| M03a | 2 | 60 | Rango correcto: 3 a 6 intervenciones por pregunta; con referencia oficial, diferencia de ±0,5 como mucho | No aplica | Control de calidad. Une los fragmentos de la misma voz sin mirar la pausa; los tramos de otra voz de menos de 5 s en total no cortan la intervención. Usa los bloques de `decision/roles.py` |
+| M03b | 2 | 60 | Valor esperado: 2 voces por pregunta; aviso con 3 o más | No aplica | Control de calidad. Cuenta las voces (sin Presidencia) que hablan en total al menos 5 s en el bloque y lista los bloques con 3 o más |
 | M04 | 4 | 600 | **15 puntos** | % desconocido + sin atribuir | Además, 2 voces por grupo y 10 preguntas válidas. La brecha c) necesita un dato externo que no está en la línea de tiempo: el % de diputadas (apartado 4 bis), que se pasa como entrada |
 | M06 | 1 | 0 | No aplica (descriptiva por sesión) | No aplica | Aplica la regla de sustitución (Vicepresidencia Primera si no comparece la Presidencia del Gobierno) e indica el cargo usado. La comparación se hace sumando las 3 sesiones |
 | M09 | 4 | 600 | No aplica en b) por la variable de confusión (solo descriptiva) | No aplica | Usa la salida de Qwen; `confidence` < 0,7 → revisión humana |
@@ -272,6 +282,7 @@ Limitación del marco que afecta a estas métricas: el código suma la duración
 | M06 original (apertura y cierre) | Siempre abre la Presidencia; sustituida por la nueva M06 |
 | M08 Palabra cedida por la moderación | El orden lo fija el orden del día, no la Presidencia |
 | M10 Distribución por cuartiles | El orden de las preguntas está fijado |
+| M11 Rol en el debate | En el Congreso el rol lo fija el formato (preside, pregunta o responde) y lo asignan las reglas de `decision/roles.py` a partir de los anuncios de la Presidencia (apartado 2, regla «Roles»). No hace falta IA |
 | M14 Manos levantadas, M15 y M16 | En el pleno no se pide la palabra levantando la mano y las votaciones son electrónicas. Descarte acordado por el equipo (22/10/2026) |
 | M17 Equidad | Incluida en M04 (ratio) |
 | Conteo de escaños ocupados desde el vídeo | Saber si cada asiento lo ocupa una mujer o un hombre mirando la imagen es inferir el género por la apariencia, que el proyecto prohíbe (RNF-05 y RNF-13). Además, la cámara enfoca a quien habla y no muestra los 350 escaños. Y no hace falta: M04 mide quién podía preguntar, no quién estaba sentada |

@@ -108,7 +108,8 @@ SHORT_TITLES = {
     "M01": "M01 Presencia",
     "M02": "M02 Tiempo de palabra",
     "M02b": "M02b Uso del tiempo",
-    "M03": "M03 Turnos",
+    "M03a": "M03a Intervenciones",
+    "M03b": "M03b Voces",
     "M04": "M04 Brecha de paridad",
     "M06": "M06 Preguntas al Presidente",
     "M09": "M09 Preguntas recibidas",
@@ -118,7 +119,8 @@ METRIC_UNITS = {
     "M01": "personas",
     "M02": "%",
     "M02b": "%",
-    "M03": "turnos/preg.",
+    "M03a": "interv./preg.",
+    "M03b": "voces/preg.",
     "M04": "puntos",
     "M06": "%",
     "M13": "%",
@@ -180,8 +182,10 @@ METRIC_EXPLAINED = {
     "M02": "% del tiempo de palabra de las mujeres, sobre el tiempo con género conocido.",
     "M02b": "% de intervenciones (una persona en una pregunta) que pasan de 160 s: "
     "150 s asignados + 10 s de tolerancia.",
-    "M03": "Turnos por pregunta, sin la Presidencia. Lo esperado es de 3 a 6; "
+    "M03a": "Intervenciones por pregunta, sin la Presidencia. Lo esperado es de 3 a 6; "
     "fuera de ese rango hay que revisar la separación de voces.",
+    "M03b": "Voces por pregunta, sin la Presidencia: se cuentan las que suman 5 s o más. "
+    "Lo esperado son 2; se avisa si alguna pregunta tiene 3 o más.",
     "M04": "Puntos: % del tiempo de las mujeres menos su % entre quienes intervienen. "
     "Negativo = hablan menos de lo que les tocaría.",
     "M06": "% de las preguntas al Presidente del Gobierno que hacen mujeres.",
