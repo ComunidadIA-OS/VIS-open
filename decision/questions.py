@@ -29,6 +29,14 @@ INTERROGATIVES = (
     "cuánto", "cuántos", "cuánta", "cuántas",
 )  # fmt: skip
 _SENTENCE = re.compile(r"[^.!?¿]*\?|[^.!?¿]+")
+REVIEW_CONFIDENCE = 0.5  # por debajo del umbral de 0,7: la pregunta pasa a revisión humana
+
+
+def looks_like_question(sentence: str) -> bool:
+    """Forma de pregunta: signos de interrogación o empieza por una palabra interrogativa."""
+    if "?" in sentence or "¿" in sentence:
+        return True
+    return sentence.strip(" «»\"'¡,;").lower().startswith(INTERROGATIVES)
 
 
 class QuestionDecision(BaseModel):
@@ -156,12 +164,17 @@ class LLMQuestionEngine(LLMEngine):
         cargo = out.cargo_destinatario if out.is_question else None
         if cargo and _squash(cargo) not in _squash(text):
             cargo = None  # un cargo que no está en el texto no se acepta: sería inventado
+        confidence, reason = out.confidence, out.reason
+        if out.is_question and not looks_like_question(out.evidence or ""):
+            # una cita sin forma de pregunta no se cuenta sola: baja de 0,7 y va a revisión humana
+            confidence = min(confidence, REVIEW_CONFIDENCE)
+            reason = "a revisión: la cita no tiene forma de pregunta"
         return QuestionDecision(
             is_question=out.is_question,
-            confidence=out.confidence,
+            confidence=confidence,
             evidence=out.evidence,
             cargo_destinatario=cargo,
-            reason=out.reason,
+            reason=reason,
             **tokens,
         )
 
