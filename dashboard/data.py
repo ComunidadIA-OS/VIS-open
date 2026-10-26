@@ -34,7 +34,7 @@ from metrics.diputadas import DatosCamara
 from metrics.diputadas import cargar as cargar_camara
 from sources.congreso import parse_session_url
 
-CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
+CARD_METRICS = ["M01", "M02", "M02b", "M03a", "M03b", "M04", "M13"]
 # M14 (manos levantadas) se descartó para el Congreso (Ivette, 22 oct 2026): el panel no la
 # muestra; el módulo de vídeo sigue en el código.
 PENDING_METRICS: dict[str, str] = {}
@@ -158,7 +158,7 @@ TIPO_LABELS = {
 
 
 # Métricas que se basan en los bloques de pregunta de la sesión de control (docs/metricas.md).
-QUESTION_METRICS = ("M02b", "M03", "M04", "M06", "M09")
+QUESTION_METRICS = ("M02b", "M03a", "M03b", "M04", "M06", "M09")
 
 
 def _usos(path: Path) -> tuple[dict[str, set[str]], dict[str, str]]:
@@ -810,10 +810,23 @@ def _reading(share: dict[str, float]) -> str:
     )
 
 
+def _share_without_chair(session: Session) -> dict[str, float]:
+    """% del tiempo de palabra por género sin la Presidencia (fuera de M02 y M04, metricas.md §2):
+    así la diferencia mujeres − hombres y su intervalo no cuentan el tiempo de quien preside."""
+    from decision.roles import find_chair
+    from metrics import speech_time_by_gender
+
+    frame = timeline_to_frame(session.timeline)
+    chair = find_chair(session.timeline)
+    if chair is not None:
+        frame = frame[frame["speaker_id"] != chair]
+    t = speech_time_by_gender(frame)
+    return {g: round(100 * s, 2) for g, s in zip(t["gender"], t["share"], strict=True)}
+
+
 def session_summary(session: Session) -> str:
     """Resumen en una frase: duración, voces con género y lectura prudente de la brecha."""
-    gt = gender_time_table(session)
-    share = dict(zip(gt["gender"], gt["porcentaje"], strict=True))
+    share = _share_without_chair(session)
     voices = voices_table(session)
     known = int((voices["genero"] != "desconocido").sum())
     confirmed = len(session.confirmed)

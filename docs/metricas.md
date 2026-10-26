@@ -34,7 +34,7 @@ Definiciones formales de las métricas de esta entrega. Borrador de Ivette para 
 | Composición de la cámara calculada de dos maneras (A y B) | Para medir el error de usar la aproximación por legislatura y decidir con datos si el dato de cada día es necesario (apartado 4 bis) |
 | La IA solo clasifica; las cifras las calcula el código | Transparencia y reproducibilidad: cualquier persona puede repetir el cálculo |
 | El género se atribuye por el lenguaje, nunca por la voz o la imagen | Marco ético del proyecto (RNF-05 y RNF-13) y sesgos conocidos de esos sistemas |
-| M03 cuenta intervenciones, no pausas | La regla anterior (pausa de menos de 1 s) partía cada intervención con los aplausos o rumores: daba 7,1 / 8,8 / 7,5 frente a 3,9 / 3,8 / 3,8 oficiales. Ahora se cuenta por cambio de voz, ignorando los tramos de otra voz de menos de 5 s. El umbral se elige por razón (ninguna intervención real dura menos de 5 s) y el resultado es estable entre 2 y 5 s. Decisión de Ivette, 25/10/2026 |
+| M03a/M03b cuentan intervenciones y voces, no pausas | La regla anterior (pausa de menos de 1 s) partía cada intervención con los aplausos o rumores: daba 7,1 / 8,8 / 7,5 frente a 3,9 / 3,8 / 3,8 oficiales. Ahora se cuenta por cambio de voz, ignorando los tramos de otra voz de menos de 5 s. El umbral se elige por razón (ninguna intervención real dura menos de 5 s) y el resultado es estable entre 2 y 5 s. Decisión de Ivette, 25/10/2026 |
 
 ## 3. Regla para sacar conclusiones
 
@@ -48,7 +48,7 @@ Si falla alguna, el panel muestra «no concluyente» y explica cuál. En el cód
 
 ## 4. Métricas de esta entrega
 
-M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
+M01, M02 (con la submétrica M02b), M03a, M03b, M04, M06, M09 y M13.
 
 ### M01 · Presencia
 
@@ -60,7 +60,7 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 | Fórmula | Número de persona_id distintas por género y rol |
 | Unidad | Personas y % sobre el total de personas del mismo rol |
 | Salida | Tabla rol × género (PREGUNTA y GOBIERNO) |
-| Casos límite | Una misma persona separada en dos voces por error cuenta dos veces: se revisa con M03 y con la anotación manual |
+| Casos límite | Una misma persona separada en dos voces por error cuenta dos veces: se revisa con M03a/M03b y con la anotación manual |
 | Validación | Comparar con el orden del día (quién pregunta) y el Diario de Sesiones (quién responde) |
 | Test | 3 voces: P1 mujer PREGUNTA, P2 hombre GOBIERNO, P3 mujer GOBIERNO → PREGUNTA: 1 mujer; GOBIERNO: 1 mujer, 1 hombre |
 
@@ -97,7 +97,7 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 | Validación | Comparar los excesos detectados con la anotación manual de 20 min |
 | Test | P1 habla 170 s en su pregunta → uso 113 %, exceso sí. P2 habla 140 s → uso 93 %, exceso no |
 
-### M03 · Intervenciones por pregunta (control de calidad)
+### M03a/M03b · Intervenciones y voces por pregunta (control de calidad)
 
 | Campo | Contenido |
 |---|---|

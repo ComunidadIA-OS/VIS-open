@@ -13,7 +13,7 @@ Referencia: la **lista oficial de intervenciones** del archivo audiovisual del C
 | Error por grupo | 0 errores en mujeres y en hombres. Sin género: 0 de 47 mujeres y 1 de 40 hombres (antes de la PR #145: 3 de 47 y 1 de 40) |
 | Intervenciones | Oficial 66 / 73 / 76; sistema 64 / 74 / 75. 4 casos de voces mezcladas, siempre entre personas del mismo género |
 | Bloques de pregunta | 17 / 18 / 20 frente a 17 / 19 / 20. En V006 falta la pregunta 13 (sin anuncio en la transcripción, #124) |
-| M03 | La pausa de 1 s partía las intervenciones con los aplausos (6,7 / 8,9 / 7,1). Con la nueva definición M03a (5 s): 3,82 / 3,89 / 3,65 frente a 3,88 / 3,84 / 3,80 oficiales (PR #142, con los ficheros regenerados el 26/10) |
+| M03a / M03b | La pausa de 1 s partía las intervenciones con los aplausos (6,7 / 8,9 / 7,1). Con la nueva definición M03a (5 s): 3,82 / 3,89 / 3,65 frente a 3,88 / 3,84 / 3,80 oficiales (PR #142, con los ficheros regenerados el 26/10). M03b avisa de los bloques con 3 o más voces |
 | M06 | 40 % de 5 / 67 % de 3 / 0 % de 3: **igual que la referencia** en las tres |
 | M09 | 0,75 / 0,86 / 0,81 frente a 0,75 / 0,73 / 0,81: igual en V005 y V007; en V006 falta la pregunta 13 |
 | Modelo (Qwen) | Se evalúa aparte con `modelo_por_pregunta` (si detecta la pregunta y si acierta el cargo). Pendiente: los m09.json de OVH del 26/10 se generaron sin llamadas al modelo; se medirá cuando se vuelva a lanzar M09 con Qwen |
@@ -27,7 +27,7 @@ Queda opcional el tiempo de palabra (M02), que la lista oficial no da: cronometr
 | Transcripción | ¿Se entiende lo que se dice? | WER (palabras mal transcritas) en un tramo anotado | pendiente de programar | Ivette anota; Sabrina mide |
 | Separación de voces | ¿Quién habla cuándo? | DER (error de diarización) en un tramo anotado | pendiente de programar | Ivette anota; Sabrina mide |
 | Género por lenguaje | ¿El género asignado es correcto? | Aciertos, errores y % a revisión, también por grupo | Lista oficial de intervenciones (ver «Resultados»); los 150 turnos anotados con `evaluation/benchmark.py` quedan como opcional (#52) | Ivette (hecho) |
-| Métricas | ¿Coinciden con la referencia oficial? | Diferencia en número y orden de intervenciones, género, M03, M06 y M09 | lista oficial de intervenciones del archivo audiovisual | Ivette (hecho, ver «Resultados») |
+| Métricas | ¿Coinciden con la referencia oficial? | Diferencia en número y orden de intervenciones, género, M03a/M03b, M06 y M09 | lista oficial de intervenciones del archivo audiovisual | Ivette (hecho, ver «Resultados») |
 | Vídeo: personas visibles | ¿Se cuentan bien? | Error medio (MAE), sesgo a contar de menos, recall y precisión | `evaluation/video_eval.py` | Ivette anota `personas.csv` |
 | Transcripción | ¿Se transcribe bien lo que se dice? | WER (sustituciones, borrados, inserciones) | `evaluation/asr_diar.py wer` | Un tramo de 5 min transcrito a mano, comprobado con el Diario de Sesiones |
 | Diarización | ¿Se separa bien quién habla? | DER (voz perdida, falsa alarma, confusión), sin margen de tolerancia | `evaluation/asr_diar.py der` | Turnos `speaker_id,start_s,end_s` del mismo tramo |
