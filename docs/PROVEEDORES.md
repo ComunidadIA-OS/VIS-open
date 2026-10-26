@@ -34,7 +34,6 @@ El análisis de las sesiones (audio, vídeo, separación de voces, gestos, métr
 
 No forman parte de VIS Open ni reciben datos del sistema; se indican por transparencia.
 
-- **Google Workspace (Drive)**: solo para compartir vídeos de trabajo entre las tres integrantes del equipo (por ejemplo, el recap del avance). **No forma parte de VIS Open** y no guarda vídeos de las sesiones del Congreso (decisión de Sabrina, 21 oct 2026): viven en local y en el espacio del equipo en OVHcloud.
 - **ElevenLabs** (síntesis de voz): solo para la **voz en off del vídeo explicativo** (26 oct 2026). Recibió únicamente el texto del guion y tres frases de ejemplo de la demo del asistente; ningún dato de las sesiones (ni audio, ni vídeo, ni transcripciones). El vídeo lo indica al final: «Voz generada con IA (ElevenLabs)».
 
 ## Cómo se actualiza

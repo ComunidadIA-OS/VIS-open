@@ -8,7 +8,7 @@ El repositorio **no contiene datos reales**: ni audio, ni vídeo, ni transcripci
 
 | Dato | Origen | Dónde vive | ¿Se publica? |
 |---|---|---|---|
-| Vídeos de sesiones del Congreso | Archivo audiovisual del Congreso de los Diputados, reutilizado según su aviso legal (sin alterar, citando fuente y fecha, sin la interpretación simultánea). La Organización no ofrece vídeos | Fuera del repo (`data/`, ignorado por git) y en el espacio del equipo en OVHcloud (`/workspace/equipo6/…/raw`); no se guardan en Google Drive, con un manifiesto por vídeo | No |
+| Vídeos de sesiones del Congreso | Archivo audiovisual del Congreso de los Diputados, reutilizado según su aviso legal (sin alterar, citando fuente y fecha, sin la interpretación simultánea). La Organización no ofrece vídeos | Fuera del repo (`data/`, ignorado por git) y en el espacio del equipo en OVHcloud (`/workspace/equipo6/…/raw`), con un manifiesto por vídeo | No |
 | Línea de tiempo (JSON) | Generada por el pipeline | Fuera del repo | No |
 | Tabla de revisión de voces y de gestos (CSV) | Generada por el pipeline; la rellenan personas en los casos dudosos y, en la evaluación, dos anotadoras | Fuera del repo | No; solo se publican resultados agregados |
 | Datos sintéticos de prueba | Creados a mano en `tests/` | En el repo | Sí |
