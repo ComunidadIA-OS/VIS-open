@@ -8,7 +8,7 @@ Proyecto del Equipo 6 en el reto «Mujeres por la IA Abierta» (SEDIA, Comunidad
 
 **Vídeo explicativo (unos 5 min):** [descargar `VIS_Open_video_explicativo_26oct.mp4`](https://github.com/ComunidadIA-OS/VIS-open/releases/download/video-explicativo-2026-10-26/VIS_Open_video_explicativo_26oct.mp4) · [página de la Release](https://github.com/ComunidadIA-OS/VIS-open/releases/tag/video-explicativo-2026-10-26). Voz generada con IA (ElevenLabs).
 
-**Panel con las sesiones reales:** [https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net](https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net) (OVHcloud; acceso con el token del reto). Con el repositorio solo se ven sesiones sintéticas: los vídeos y los resultados reales no se suben (RGPD y aviso legal del Congreso). Las sesiones reales, con vídeo, están en ese panel y en el vídeo explicativo.
+**Panel con las sesiones reales:** [https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net](https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net) (OVHcloud; acceso con el token del reto). Con el repositorio solo se ven sesiones sintéticas: los vídeos y los resultados reales no se suben (RGPD y aviso legal del Congreso). Las sesiones reales, con vídeo, están en ese panel.
 
 ## Qué hace
 
