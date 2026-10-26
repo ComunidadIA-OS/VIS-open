@@ -59,8 +59,9 @@ el aviso «349 escaños ocupados: hay vacantes ese día».
    - M01 Presencia: personas que intervienen, por género y rol.
    - M02 Tiempo de palabra: minutos y porcentaje por género.
    - M02b Uso del tiempo: porcentaje del tiempo asignado en cada pregunta y excesos.
-   - M03 Intervenciones por pregunta (control de calidad, rango correcto 3–6). La definición
-     nueva, M03a y M03b, está en `docs/metricas.md` (PR #142).
+   - M03a Intervenciones por pregunta y M03b Voces por pregunta (control de calidad). M03a
+     espera de 3 a 6 intervenciones; M03b espera 2 voces y avisa con 3 o más. La definición
+     está en `docs/metricas.md`.
    - M04 Brecha de paridad: % del tiempo de las mujeres menos su % entre quienes intervienen;
      debajo, el % de diputadas ese día (A) y en la legislatura (B) para la brecha de preguntas.
      Con 340–349 escaños se usa con aviso; con otro número, no se usa hasta revisarla.
@@ -126,7 +127,7 @@ defecto, solo las sesiones de control (V005–V007, las de evaluación). Las dem
 automatización como el pleno 203, o la demo V004) se ven eligiéndolas en el filtro:
 
 - **Gráfico** del porcentaje de tiempo de palabra de las mujeres y de la brecha de paridad (M04) en cada sesión.
-- **Tabla resumen**: una fila por sesión con M01, M02, M02b, M03, M04, M06, M09 y M13, en ese orden.
+- **Tabla resumen**: una fila por sesión con M01, M02, M02b, M03a, M03b, M04, M06, M09 y M13, en ese orden.
 - **Lectura de la evolución**, con cifras calculadas por el código: compara solo las sesiones de
   control y nombra aparte las demás.
 - Aviso: «Con 3 sesiones no se pueden sacar tendencias; el gráfico muestra cómo funcionará con más sesiones.»

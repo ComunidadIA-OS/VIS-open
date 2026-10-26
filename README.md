@@ -30,7 +30,8 @@ El audio de una orden hablada se transcribe con `whisper-large-v3-turbo` a trav�
 |---|---|---|
 | M01 | Presencia: cuántas personas intervienen, por género | Código |
 | M02 | Tiempo de palabra por género (con M02b, uso del tiempo asignado) | Código |
-| M03 | Intervenciones por pregunta (control de calidad) | Código |
+| M03a | Intervenciones por pregunta (control de calidad) | Código |
+| M03b | Voces por pregunta (control de calidad) | Código |
 | M04 | Brecha de paridad: % del tiempo de las mujeres menos su % entre quienes intervienen | Código |
 | M06 | Preguntas a quien encabeza el Gobierno, por género de quien pregunta | Código, con el anuncio de la Presidencia |
 | M09 | Preguntas recibidas por ministras y por ministros | Modelo de lenguaje (marca preguntas, con evidencia literal); las cifras, el código |

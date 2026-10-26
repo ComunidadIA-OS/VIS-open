@@ -1,4 +1,4 @@
-"""M01, M02, M02b, M03 y M04 con datos sintéticos: casos de Ivette y límites de cada métrica."""
+"""M01, M02, M02b, M03a/M03b y M04 con datos sintéticos: casos de Ivette y límites."""
 
 import pandas as pd
 import pytest
@@ -13,12 +13,14 @@ from contracts import (
     Speaker,
 )
 from metrics.congreso import (
+    _interventions_by_block,
     assigned_time_use,
+    interventions_per_question,
     parity_gap,
     presence,
     speaking_time,
-    turns,
     unattributed,
+    voices_per_question,
 )
 from metrics.contexto import enriquecer_frame
 from metrics.frame import GENDER_ORDER, timeline_to_frame
@@ -77,10 +79,10 @@ def two_questions() -> pd.DataFrame:
         [
             ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
             ("SPEAKER_01", 5, "¿Va a subir el salario mínimo?"),
-            ("SPEAKER_02", 2.5, "Sí, señoría."),
+            ("SPEAKER_02", 5, "Sí, señoría."),
             ("SPEAKER_00", 2, "Tiene la palabra el señor diputado."),
             ("SPEAKER_01", 5, "¿Y el de vivienda?"),
-            ("SPEAKER_03", 2.5, "También sube."),
+            ("SPEAKER_03", 5, "También sube."),
         ]
     )
 
@@ -177,7 +179,7 @@ def test_m13_is_always_shown_even_with_a_tiny_sample():
 
 
 def plain_frame(spec: list[tuple[str | None, float]]) -> pd.DataFrame:
-    """Eventos consecutivos sin texto: M03 y M04 no necesitan el contexto de bloques."""
+    """Eventos consecutivos sin texto: basta para probar los límites de M03a/M03b y M04."""
     events, t = [], 0.0
     for i, (speaker_id, secs) in enumerate(spec):
         events.append(
@@ -205,58 +207,100 @@ def four_turns_each() -> pd.DataFrame:
     return frame_of(
         [
             ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
-            ("SPEAKER_01", 4, "¿Va a subir el salario mínimo?"),
-            ("SPEAKER_01", 0.5, "Se lo pregunto en serio."),  # pausa < 1 s: mismo turno
-            ("SPEAKER_02", 5, "Sí, señoría."),
-            ("SPEAKER_01", 3.5, "No me convence."),
-            ("SPEAKER_02", 4, "Es lo que hay."),
+            ("SPEAKER_01", 6, "¿Va a subir el salario mínimo?"),
+            ("SPEAKER_01", 0.5, "Se lo pregunto en serio."),  # pausa < 1 s: misma intervención
+            ("SPEAKER_02", 6, "Sí, señoría."),
+            ("SPEAKER_01", 5, "No me convence."),
+            ("SPEAKER_02", 5, "Es lo que hay."),
             ("SPEAKER_00", 2, "Tiene la palabra el señor diputado."),
-            ("SPEAKER_03", 4, "¿Y el de vivienda?"),
+            ("SPEAKER_03", 6, "¿Y el de vivienda?"),
             ("SPEAKER_03", 0.5, "Se lo pregunto otra vez."),
-            ("SPEAKER_04", 5, "También sube."),
-            ("SPEAKER_03", 3.5, "No me lo creo."),
-            ("SPEAKER_04", 4, "Pues es así."),
+            ("SPEAKER_04", 6, "También sube."),
+            ("SPEAKER_03", 5, "No me lo creo."),
+            ("SPEAKER_04", 5, "Pues es así."),
         ]
     )
 
 
-def test_m03_ivette_case_four_turns_per_question():
-    out = turns(four_turns_each())
+def test_m03a_ivette_case_four_interventions_per_question():
+    out = interventions_per_question(four_turns_each())
     assert out.value == pytest.approx(4.0)
-    assert out.details["turnos"] == 8
+    assert out.details["intervenciones"] == 8
     assert out.details["preguntas"] == 2
     assert out.details["por_genero"] == {"mujer": 4, "hombre": 4, "desconocido": 0}
-    assert out.details["duracion_media_turno_s"]["mujer"] == pytest.approx(4.0)
-    assert out.details["duracion_media_turno_s"]["hombre"] == pytest.approx(4.5)
+    assert out.details["duracion_media_intervencion_s"]["mujer"] == pytest.approx(5.75)
+    assert out.details["duracion_media_intervencion_s"]["hombre"] == pytest.approx(5.5)
     assert out.details["dentro_del_rango"] is True
     assert out.details["aviso"] is None
 
 
-def test_m03_out_of_range_is_flagged_but_keeps_the_number():
-    out = turns(two_questions())  # 2 turnos por pregunta: falta la réplica
+def test_m03a_out_of_range_is_flagged_but_keeps_the_number():
+    out = interventions_per_question(two_questions())  # 2 intervenciones: falta la réplica
     assert out.value == pytest.approx(2.0)
     assert out.details["dentro_del_rango"] is False
     assert "revisar la separación de voces" in out.details["aviso"]
 
 
-def test_m03_uses_the_valid_questions_from_the_order_of_the_day():
+def test_m03a_uses_the_valid_questions_from_the_order_of_the_day():
     df = four_turns_each()
     df.attrs["preguntas_validas"] = 1  # el orden del día solo tenía una pregunta válida
-    out = turns(df)
+    out = interventions_per_question(df)
     assert out.details["preguntas"] == 1
     assert out.value == pytest.approx(8.0)
 
 
+def test_m03b_two_voices_per_question():
+    out = voices_per_question(four_turns_each())
+    assert out.value == pytest.approx(2.0)
+    assert out.details["voces"] == 4
+    assert out.details["preguntas"] == 2
+    assert out.details["bloques_con_tres_o_mas"] == []
+    assert out.details["aviso"] is None
+
+
+def test_m03b_warns_and_lists_blocks_with_three_or_more_voices():
+    df = frame_of(
+        [
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 60, "Pregunta."),
+            ("SPEAKER_02", 60, "Respuesta."),
+            ("SPEAKER_03", 6, "Tercera voz."),
+            ("SPEAKER_00", 2, "Tiene la palabra el señor diputado."),
+            ("SPEAKER_01", 60, "Otra pregunta."),
+            ("SPEAKER_02", 60, "Otra respuesta."),
+        ]
+    )
+    out = voices_per_question(df)
+    assert out.value == pytest.approx(2.5)
+    assert out.details["voces"] == 5
+    assert out.details["preguntas"] == 2
+    assert out.details["bloques_con_tres_o_mas"] == [{"bloque": 1, "voces": 3}]
+    assert out.details["numero_bloques_con_tres_o_mas"] == 1
+    assert "3 o más" in out.details["aviso"]
+
+
+def test_m03b_uses_the_valid_questions_from_the_order_of_the_day():
+    df = four_turns_each()
+    df.attrs["preguntas_validas"] = 1
+    out = voices_per_question(df)
+    assert out.details["preguntas"] == 1
+    assert out.value == pytest.approx(4.0)
+
+
 def assigned_time_frame() -> pd.DataFrame:
-    """Dos preguntas: 170 s y 100 s de pregunta; 140 s y 150 s de respuesta."""
+    """Dos preguntas con réplica y dúplica: 170/100 s de pregunta y 140/150 s de respuesta."""
     return frame_of(
         [
             ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
-            ("SPEAKER_01", 170, "Pregunta larga."),
-            ("SPEAKER_02", 140, "Respuesta."),
+            ("SPEAKER_01", 150, "Pregunta larga."),
+            ("SPEAKER_02", 130, "Respuesta."),
+            ("SPEAKER_01", 20, "Réplica."),
+            ("SPEAKER_02", 10, "Dúplica."),
             ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
-            ("SPEAKER_03", 100, "Otra pregunta."),
-            ("SPEAKER_04", 150, "Otra respuesta."),
+            ("SPEAKER_03", 80, "Otra pregunta."),
+            ("SPEAKER_04", 140, "Otra respuesta."),
+            ("SPEAKER_03", 20, "Otra réplica."),
+            ("SPEAKER_04", 10, "Otra dúplica."),
         ]
     )
 
@@ -273,6 +317,80 @@ def test_m02b_ivette_case_use_and_excess():
     }  # fmt: skip
     assert out.details["excesos_por_genero"]["hombre"]["n"] == 0
     assert out.value == pytest.approx(25.0)  # 1 de 4 intervenciones se pasa
+    assert out.details["preguntas_para_media"] == 2
+    assert out.details["preguntas_sin_replica"] == []
+
+
+def test_m02b_marks_questions_without_replica_and_excludes_them_from_mean():
+    df = frame_of(
+        [
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 100, "Pregunta."),
+            ("SPEAKER_02", 100, "Respuesta."),
+            ("SPEAKER_01", 20, "Réplica."),
+            ("SPEAKER_02", 20, "Dúplica."),
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_03", 80, "Otra pregunta."),
+            ("SPEAKER_04", 80, "Otra respuesta."),
+            ("SPEAKER_03", 10, "Otra réplica."),
+            ("SPEAKER_04", 10, "Otra dúplica."),
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 170, "Pregunta sin réplica."),
+            ("SPEAKER_02", 50, "Respuesta sin réplica."),
+        ]
+    )
+    out = assigned_time_use(df)
+    assert out.details["uso_medio_%"] == {
+        "PREGUNTA": {"mujer": pytest.approx(70.0), "hombre": None},
+        "GOBIERNO": {"mujer": None, "hombre": pytest.approx(70.0)},
+    }
+    assert out.details["preguntas_para_media"] == 2
+    assert out.details["preguntas_sin_replica"] == [
+        {"bloque": 3, "intervenciones": 2, "voces": 2}
+    ]
+    assert out.details["excesos_por_genero"]["mujer"]["n"] == 1
+    assert out.details["excesos_por_genero"]["mujer"]["intervenciones"] == 3
+    assert out.value == pytest.approx(16.67)  # la pregunta sin réplica sí cuenta para el exceso
+
+
+def test_m02b_ignores_a_short_interjection_when_counting_interventions():
+    df = frame_of(
+        [
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 100, "Pregunta."),
+            ("SPEAKER_02", 100, "Respuesta."),
+            ("SPEAKER_01", 20, "Réplica."),
+            ("SPEAKER_02", 20, "Dúplica."),
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_03", 100, "Otra pregunta."),
+            ("SPEAKER_04", 100, "Otra respuesta."),
+            ("SPEAKER_03", 20, "Otra réplica."),
+            ("SPEAKER_05", 2, "Un ruido de dos segundos."),
+        ]
+    )
+    out = assigned_time_use(df)
+    assert out.details["preguntas_para_media"] == 1
+    assert out.details["preguntas_sin_replica"] == [
+        {"bloque": 2, "intervenciones": 3, "voces": 2}
+    ]
+
+
+def test_m03_reference_case_ignores_a_short_interjection_from_a_voice_that_returns():
+    # Test de docs/metricas.md: A 60 s, A 40 s, B 2 s, A 20 s, B 90 s, A 30 s, B 25 s.
+    df = frame_of(
+        [
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 60, "A."),
+            ("SPEAKER_01", 40, "A."),
+            ("SPEAKER_02", 2, "B de ruido."),
+            ("SPEAKER_01", 20, "A."),
+            ("SPEAKER_02", 90, "B."),
+            ("SPEAKER_01", 30, "A."),
+            ("SPEAKER_02", 25, "B."),
+            ("SPEAKER_00", 2, "Tiene la palabra el señor diputado."),
+        ]
+    )
+    assert _interventions_by_block(df) == {1: {"intervenciones": 4, "voces": 2}}
 
 
 def test_m02b_needs_two_voices_in_each_group():
@@ -297,7 +415,8 @@ def test_m02b_needs_two_voices_in_each_group():
 def test_m02b_and_m03_without_blocks_are_not_conclusive():
     plain = plain_frame([("SPEAKER_01", 100), ("SPEAKER_02", 100)])
     assert "bloques de pregunta" in assigned_time_use(plain).reason
-    assert "bloques de pregunta" in turns(plain).reason
+    assert "bloques de pregunta" in interventions_per_question(plain).reason
+    assert "bloques de pregunta" in voices_per_question(plain).reason
 
 
 def big_parity_frame() -> pd.DataFrame:
@@ -357,5 +476,5 @@ def test_m04_question_gap_measures_the_error_between_measures_a_and_b():
 
 def test_no_metric_is_labelled_pending():
     frame = plain_frame([("SPEAKER_01", 4)])
-    for metric_id in ("M01", "M02", "M02b", "M03", "M04", "M13"):
+    for metric_id in ("M01", "M02", "M02b", "M03a", "M03b", "M04", "M13"):
         assert "pendiente" not in run_metric(metric_id, frame).name

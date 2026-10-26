@@ -1,6 +1,6 @@
 # Marco de métricas
 
-Código en `metrics/`. M01, M02 (con M02b), M03, M04 y M13 están en `metrics/congreso.py` (Veru), según la definición formal de Ivette (`docs/metricas.md`), con sus mínimos de muestra y umbrales. M09 y M06 están en `metrics/m09.py` (ver `docs/M09_PREGUNTAS.md`). M14 (manos levantadas) se descartó para el Congreso. Aquí está lo común para ajustar o añadir métricas.
+Código en `metrics/`. M01, M02 (con M02b), M03a, M03b, M04 y M13 están en `metrics/congreso.py` (Veru), según la definición formal de Ivette (`docs/metricas.md`), con sus mínimos de muestra y umbrales. M09 y M06 están en `metrics/m09.py` (ver `docs/M09_PREGUNTAS.md`). M14 (manos levantadas) se descartó para el Congreso. Aquí está lo común para ajustar o añadir métricas.
 
 ## Qué hay
 
