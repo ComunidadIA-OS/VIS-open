@@ -24,6 +24,8 @@ TOLERANCE_S = 10.0  # §4: la Presidencia deja terminar la frase
 MIN_PEOPLE_PER_GROUP = 2  # §4 ter: dos voces por grupo para comparar
 TURN_RANGE = (3, 6)  # §4 ter: turnos por pregunta fuera de este rango = revisar las voces
 MIN_QUESTIONS = 10  # §4 ter: M04 necesita 10 preguntas válidas para comparar
+MIN_VOICE_SECONDS = 5.0  # §4: otra voz solo corta la intervención si habla 5 s en total
+MIN_INTERVENTIONS = 4  # §4: una pregunta con menos de 4 intervenciones no usa la réplica
 GAP_THRESHOLD_POINTS = 15.0  # §3: la brecha debe superar 15 puntos
 
 
@@ -38,6 +40,38 @@ def _without_chair(frame: pd.DataFrame) -> pd.DataFrame:
     if "is_chair" not in s.columns:
         return s
     return s[~s["is_chair"].astype(bool)]
+
+
+def _interventions_by_block(frame: pd.DataFrame) -> dict[int, dict[str, int]]:
+    """Intervenciones y voces por bloque con la definición de M03a/M03b (§M03).
+
+    Una voz solo cuenta si habla al menos 5 s en total en el bloque; los tramos más cortos no
+    cortan la intervención de quien sí habla. Las pausas de la misma voz no crean intervenciones
+    nuevas. Lo usan M02b (para marcar las preguntas sin réplica) y M03a/M03b.
+    """
+    if "block_index" not in frame.columns:
+        return {}
+    s = _without_chair(frame)
+    s = s[s["speaker_id"].notna() & s["block_index"].notna()]
+    if s.empty:
+        return {}
+    seconds = s.groupby(["block_index", "speaker_id"], as_index=False)["duration_s"].sum()
+    major = seconds[seconds["duration_s"] >= MIN_VOICE_SECONDS]
+    out: dict[int, dict[str, int]] = {}
+    for block_index, events in s.groupby("block_index", sort=True):
+        voices = sorted(major.loc[major["block_index"] == block_index, "speaker_id"])
+        if not voices:
+            out[int(block_index)] = {"intervenciones": 0, "voces": 0}
+            continue
+        turns = events[events["speaker_id"].isin(voices)].sort_values(["start_s", "end_s"])
+        interventions = 0
+        previous = None
+        for speaker_id in turns["speaker_id"]:
+            if speaker_id != previous:
+                interventions += 1
+                previous = speaker_id
+        out[int(block_index)] = {"intervenciones": interventions, "voces": len(voices)}
+    return out
 
 
 def _questions_by_gender(frame: pd.DataFrame) -> dict[str, int]:
@@ -137,6 +171,9 @@ def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
     Se agrupa por persona y pregunta: quien pregunta tiene ~150 s para pregunta + réplica y quien
     responde otros ~150 s para respuesta + dúplica. Se considera exceso pasar de 160 s (150 s más
     10 s de tolerancia). La Presidencia no entra y las voces sin rol no se comparan.
+
+    Las preguntas con menos de 4 intervenciones (sin réplica) se marcan y quedan fuera de la media
+    de uso, porque el tiempo bajo se debe al tipo de pregunta; sus excesos sí se cuentan.
     """
     if "block_role" not in frame.columns:
         return MetricOutput(
@@ -158,6 +195,11 @@ def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
             reason=f"no concluyente: menos de {MIN_PEOPLE_PER_GROUP} voces por grupo "
             f"({', '.join(short)})",
         )
+    blocks = _interventions_by_block(frame)
+    valid_for_mean = {
+        i for i, data in blocks.items() if data["intervenciones"] >= MIN_INTERVENTIONS
+    }
+    without_replica = sorted(set(blocks) - valid_for_mean)
     units = (
         s.groupby(["block_index", "speaker_id"], as_index=False)
         .agg(gender=("gender", "first"), role=("block_role", "first"),
@@ -165,10 +207,16 @@ def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
     )
     units["use"] = 100 * units["seconds"] / QUESTION_SECONDS
     over = units["seconds"] > QUESTION_SECONDS + TOLERANCE_S
+    mean_units = units[units["block_index"].isin(valid_for_mean)]
     use = {
         role: {
-            g: round(units.loc[(units["role"] == role) & (units["gender"] == g), "use"].mean(), 2)
-            if ((units["role"] == role) & (units["gender"] == g)).any()
+            g: round(
+                mean_units.loc[
+                    (mean_units["role"] == role) & (mean_units["gender"] == g), "use"
+                ].mean(),
+                2,
+            )
+            if ((mean_units["role"] == role) & (mean_units["gender"] == g)).any()
             else None
             for g in (W, M)
         }
@@ -190,6 +238,15 @@ def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
             "uso_medio_%": use,
             "excesos_por_genero": excess,
             "intervenciones": int(len(units)),
+            "preguntas_para_media": len(valid_for_mean),
+            "preguntas_sin_replica": [
+                {
+                    "bloque": i,
+                    "intervenciones": blocks[i]["intervenciones"],
+                    "voces": blocks[i]["voces"],
+                }
+                for i in without_replica
+            ],
             "umbral_exceso_s": QUESTION_SECONDS + TOLERANCE_S,
         },
     )

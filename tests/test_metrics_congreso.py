@@ -248,15 +248,19 @@ def test_m03_uses_the_valid_questions_from_the_order_of_the_day():
 
 
 def assigned_time_frame() -> pd.DataFrame:
-    """Dos preguntas: 170 s y 100 s de pregunta; 140 s y 150 s de respuesta."""
+    """Dos preguntas con réplica y dúplica: 170/100 s de pregunta y 140/150 s de respuesta."""
     return frame_of(
         [
             ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
-            ("SPEAKER_01", 170, "Pregunta larga."),
-            ("SPEAKER_02", 140, "Respuesta."),
+            ("SPEAKER_01", 150, "Pregunta larga."),
+            ("SPEAKER_02", 130, "Respuesta."),
+            ("SPEAKER_01", 20, "Réplica."),
+            ("SPEAKER_02", 10, "Dúplica."),
             ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
-            ("SPEAKER_03", 100, "Otra pregunta."),
-            ("SPEAKER_04", 150, "Otra respuesta."),
+            ("SPEAKER_03", 80, "Otra pregunta."),
+            ("SPEAKER_04", 140, "Otra respuesta."),
+            ("SPEAKER_03", 20, "Otra réplica."),
+            ("SPEAKER_04", 10, "Otra dúplica."),
         ]
     )
 
@@ -273,6 +277,62 @@ def test_m02b_ivette_case_use_and_excess():
     }  # fmt: skip
     assert out.details["excesos_por_genero"]["hombre"]["n"] == 0
     assert out.value == pytest.approx(25.0)  # 1 de 4 intervenciones se pasa
+    assert out.details["preguntas_para_media"] == 2
+    assert out.details["preguntas_sin_replica"] == []
+
+
+def test_m02b_marks_questions_without_replica_and_excludes_them_from_mean():
+    df = frame_of(
+        [
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 100, "Pregunta."),
+            ("SPEAKER_02", 100, "Respuesta."),
+            ("SPEAKER_01", 20, "Réplica."),
+            ("SPEAKER_02", 20, "Dúplica."),
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_03", 80, "Otra pregunta."),
+            ("SPEAKER_04", 80, "Otra respuesta."),
+            ("SPEAKER_03", 10, "Otra réplica."),
+            ("SPEAKER_04", 10, "Otra dúplica."),
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 170, "Pregunta sin réplica."),
+            ("SPEAKER_02", 50, "Respuesta sin réplica."),
+        ]
+    )
+    out = assigned_time_use(df)
+    assert out.details["uso_medio_%"] == {
+        "PREGUNTA": {"mujer": pytest.approx(70.0), "hombre": None},
+        "GOBIERNO": {"mujer": None, "hombre": pytest.approx(70.0)},
+    }
+    assert out.details["preguntas_para_media"] == 2
+    assert out.details["preguntas_sin_replica"] == [
+        {"bloque": 3, "intervenciones": 2, "voces": 2}
+    ]
+    assert out.details["excesos_por_genero"]["mujer"]["n"] == 1
+    assert out.details["excesos_por_genero"]["mujer"]["intervenciones"] == 3
+    assert out.value == pytest.approx(16.67)  # la pregunta sin réplica sí cuenta para el exceso
+
+
+def test_m02b_ignores_a_short_interjection_when_counting_interventions():
+    df = frame_of(
+        [
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 100, "Pregunta."),
+            ("SPEAKER_02", 100, "Respuesta."),
+            ("SPEAKER_01", 20, "Réplica."),
+            ("SPEAKER_02", 20, "Dúplica."),
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_03", 100, "Otra pregunta."),
+            ("SPEAKER_04", 100, "Otra respuesta."),
+            ("SPEAKER_03", 20, "Otra réplica."),
+            ("SPEAKER_05", 2, "Un ruido de dos segundos."),
+        ]
+    )
+    out = assigned_time_use(df)
+    assert out.details["preguntas_para_media"] == 1
+    assert out.details["preguntas_sin_replica"] == [
+        {"bloque": 2, "intervenciones": 3, "voces": 2}
+    ]
 
 
 def test_m02b_needs_two_voices_in_each_group():
