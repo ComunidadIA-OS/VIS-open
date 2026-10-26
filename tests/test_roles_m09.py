@@ -281,3 +281,11 @@ def test_head_of_government_comes_from_the_chair_announcement(announcement, carg
     m9 = compute_m09(blocks, GENDERS, judgements, min_voices=1, min_seconds=0, head_voice=voice)
     assert m6.sample == {"preguntas_al_presidente": 2 if cargo else 0}
     assert len(m9.details["presidente_del_gobierno"]) == (2 if cargo else 0)
+
+
+def test_questions_not_counted_say_why(timeline):
+    blocks = question_blocks(timeline)
+    judgements = [Judgement(1, False, 0.9), Judgement(2, True, 0.9), Judgement(3, True, 0.9)]
+    m9 = compute_m09(blocks, GENDERS, judgements, min_voices=1, min_seconds=0)
+    reasons = {x["pregunta"]: x["motivo"] for x in m9.details["no_contadas"]}
+    assert reasons == {1: "el modelo no la marca como pregunta", 4: "sin texto de quien pregunta"}

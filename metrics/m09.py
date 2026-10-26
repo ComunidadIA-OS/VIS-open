@@ -152,9 +152,18 @@ def compute_m09(
     pm_questions: list[dict] = []
     review: list[int] = []
     mismatches: list[dict] = []
+    skipped: list[dict] = []  # por qué no cuenta cada pregunta: se puede comprobar a mano
     for b in blocks:
         j = by_index.get(b.index)
         if j is None or not j.is_question or b.answerer is None:
+            why = (
+                "sin respuesta detectada" if b.answerer is None
+                else "sin texto de quien pregunta" if j is None
+                else "el modelo no la marca como pregunta"
+            )  # fmt: skip
+            skipped.append(
+                {"pregunta": b.index, "motivo": why, "evidencia": j.evidence if j else None}
+            )
             continue
         if j.confidence < threshold:
             review.append(b.index)  # no se cuenta hasta que una persona lo revise
@@ -212,6 +221,7 @@ def compute_m09(
         "tasa_por_voz": {g: round(r, 3) for g, r in rates.items()},
         "presidente_del_gobierno": pm_questions,
         "pendientes_de_revision": review,
+        "no_contadas": skipped,
         "destinatario_distinto_de_quien_responde": mismatches,
         "nota": CONFOUNDING_NOTE,
     }

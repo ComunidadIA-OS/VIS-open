@@ -298,3 +298,30 @@ def test_parliamentary_group_does_not_cancel_the_gender_of_the_announcement():
     tl = make([("SPEAKER_00", announcement), ("SPEAKER_01", "Gracias. Mi pregunta es clara.")])
     gender, a = gender_of(tl, "SPEAKER_01")
     assert gender == W and a.confidence >= 0.7
+
+
+def test_minister_address_with_ministry_name_and_misattributed_voice():
+    """«Señora ministra de [ministerio]» y el tratamiento pegado a la voz de al lado (V006)."""
+    tl = make(
+        [
+            ("SPEAKER_00", "Gracias. Tiene la palabra la diputada doña Persona 2."),
+            ("SPEAKER_01", "Gracias. ¿Qué va a hacer el Gobierno? Señora ministra."),
+            ("SPEAKER_02", "Gracias. Le respondo con datos."),
+            ("SPEAKER_00", "Gracias. Pregunta de la diputada doña Persona 3."),
+            ("SPEAKER_03", "¿Cuándo llegará el tren?"),
+            ("SPEAKER_04", "Señora ministra de Persona 5, Persona 6. Gracias, señora presidenta."),
+        ]
+    )
+    assert gender_of(tl, "SPEAKER_02")[0] == W  # «Señora ministra.» al final de quien pregunta
+    assert gender_of(tl, "SPEAKER_04")[0] == W  # al principio de la ministra, con el ministerio
+
+
+def test_weak_cue_does_not_cancel_strong_ones():
+    tl = make(
+        [
+            ("SPEAKER_00", "Gracias. Tiene la palabra la señora ministra."),
+            ("SPEAKER_01", "Gracias. Usted viene aquí como diputado y no explica nada."),
+        ]
+    )
+    gender, a = gender_of(tl, "SPEAKER_01")
+    assert gender == W and a.confidence >= 0.7
