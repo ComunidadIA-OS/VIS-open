@@ -9,13 +9,14 @@ Referencia: la **lista oficial de intervenciones** del archivo audiovisual del C
 | Qué | Resultado |
 |---|---|
 | Personas que intervienen | 87 de 87 (25 / 31 / 31) |
-| Género | 83 correctas (95,4 %), **0 errores**, 4 desconocidas, que son las que el panel manda a Human in the loop. Las 3 ministras de V006 ya se resuelven (PR #145) |
+| Género | 86 correctas (98,9 %), **0 errores**, 1 desconocida (un diputado), que es la que el panel manda a Human in the loop. Antes de mejorar la regla del lenguaje (PR #145) eran 83 correctas y 4 desconocidas, 3 de ellas ministras |
+| Error por grupo | 0 errores en mujeres y en hombres. Sin género: 0 de 47 mujeres y 1 de 40 hombres (antes de la PR #145: 3 de 47 y 1 de 40) |
 | Intervenciones | Oficial 66 / 73 / 76; sistema 64 / 74 / 75. 4 casos de voces mezcladas, siempre entre personas del mismo género |
 | Bloques de pregunta | 17 / 18 / 20 frente a 17 / 19 / 20. En V006 falta la pregunta 13 (sin anuncio en la transcripción, #124) |
-| M03 | La pausa de 1 s partía las intervenciones con los aplausos (7,1 / 8,8 / 7,5). Con la nueva definición M03a: 4,1 / 3,9 / 3,8 frente a 3,9 / 3,8 / 3,8 oficiales (PR #142) |
+| M03 | La pausa de 1 s partía las intervenciones con los aplausos (6,7 / 8,9 / 7,1). Con la nueva definición M03a (5 s): 3,82 / 3,89 / 3,65 frente a 3,88 / 3,84 / 3,80 oficiales (PR #142, con los ficheros regenerados el 26/10) |
 | M06 | 40 % de 5 / 67 % de 3 / 0 % de 3: **igual que la referencia** en las tres |
 | M09 | 0,75 / 0,86 / 0,81 frente a 0,75 / 0,73 / 0,81: igual en V005 y V007; en V006 falta la pregunta 13 |
-| Modelo (Qwen) | Se evalúa aparte con `modelo_por_pregunta` (si detecta la pregunta y si acierta el cargo): pendiente de Ivette |
+| Modelo (Qwen) | Se evalúa aparte con `modelo_por_pregunta` (si detecta la pregunta y si acierta el cargo). Pendiente: los m09.json de OVH del 26/10 se generaron sin llamadas al modelo; se medirá cuando se vuelva a lanzar M09 con Qwen |
 
 Queda opcional el tiempo de palabra (M02), que la lista oficial no da: cronometrar a mano una pregunta o declararlo como límite.
 
@@ -25,7 +26,7 @@ Queda opcional el tiempo de palabra (M02), que la lista oficial no da: cronometr
 |---|---|---|---|---|
 | Transcripción | ¿Se entiende lo que se dice? | WER (palabras mal transcritas) en un tramo anotado | pendiente de programar | Ivette anota; Sabrina mide |
 | Separación de voces | ¿Quién habla cuándo? | DER (error de diarización) en un tramo anotado | pendiente de programar | Ivette anota; Sabrina mide |
-| Género por lenguaje | ¿El género asignado es correcto? | F1 por clase (mujer, hombre, desconocido), matriz de confusión y % a revisión | `evaluation/benchmark.py` (`docs/MOTORES_DECISION.md`) | Ivette y Veru anotan 150 turnos (30 ambiguos) |
+| Género por lenguaje | ¿El género asignado es correcto? | Aciertos, errores y % a revisión, también por grupo | Lista oficial de intervenciones (ver «Resultados»); los 150 turnos anotados con `evaluation/benchmark.py` quedan como opcional (#52) | Ivette (hecho) |
 | Métricas | ¿Coinciden con la referencia oficial? | Diferencia en número y orden de intervenciones, género, M03, M06 y M09 | lista oficial de intervenciones del archivo audiovisual | Ivette (hecho, ver «Resultados») |
 | Vídeo: personas visibles | ¿Se cuentan bien? | Error medio (MAE), sesgo a contar de menos, recall y precisión | `evaluation/video_eval.py` | Ivette anota `personas.csv` |
 | Transcripción | ¿Se transcribe bien lo que se dice? | WER (sustituciones, borrados, inserciones) | `evaluation/asr_diar.py wer` | Un tramo de 5 min transcrito a mano, comprobado con el Diario de Sesiones |
@@ -96,7 +97,7 @@ En su lugar, el género sale de las pistas del lenguaje de la sesión y, en el v
 
 > **Cómo sabemos que las cifras son fiables**
 > - Evaluamos sobre nuestras propias sesiones frente a la lista oficial de intervenciones del Congreso.
-> - Género: 83 de 87 personas correctas, 0 errores, 4 a revisión humana. M06 coincide en las 3 sesiones; M09 en 2 de 3.
+> - Género: 86 de 87 personas correctas, 0 errores, 1 a revisión humana. M06 coincide en las 3 sesiones; M09 en 2 de 3.
 > - «Desconocido» siempre visible: lo que no sabemos, no lo inventamos.
 > - Decisión de diseño: sin género por la cara (sesgo medido en la literatura, alto riesgo normativo, licencias incompatibles).
 > - Límites: cuenta lo que ve la cámara; el género depende de las pistas del lenguaje; 3 sesiones no dan tendencias.
