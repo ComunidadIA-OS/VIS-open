@@ -43,7 +43,7 @@ Efecto de la regla en V005–V007: M09 y M06 no cambian (0,75 / 0,86 / 0,81 y 40
 Lo que queda:
 - **No hay cifras manipuladas** en ningún caso: los números los calcula el código.
 - El filtro también quita porcentajes legítimos del tema («una subida del 5 por ciento»): se acepta, el resumen es orientativo.
-- El resumen nombra «la diputada» o «la ministra» aunque sus instrucciones le piden no mencionar el género: es género sacado del lenguaje, como el método, pero incumple la instrucción. Límite conocido; se puede filtrar más adelante (hoja de ruta).
+- El resumen nombraba «la diputada» o «la ministra» aunque sus instrucciones le piden no mencionar el género. Ahora el panel quita el cargo con género cuando va delante de «Persona N» (`without_gendered_titles`): «La diputada Persona 2 preguntó» → «Persona 2 preguntó». Límite conocido: si el modelo escribe el cargo sin «Persona N» («la ministra respondió»), se queda.
 - Límites de la prueba: 13 casos, una sola pasada (temperatura 0); es una comprobación, no una garantía.
 
 Queda opcional el tiempo de palabra (M02), que la lista oficial no da: cronometrar a mano una pregunta o declararlo como límite.

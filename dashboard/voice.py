@@ -613,6 +613,22 @@ MAX_SUMMARY_OUTPUT = 700
 
 
 _PERCENT = re.compile(r"%|\bpor\s*ciento\b|\bporcentaje", re.IGNORECASE)
+_TITLE = (
+    r"(?:señor|señora|diputad[oa]|ministr[oa]|vicepresident[ea]|president[ea]|portavoz|"
+    r"secretari[oa])"
+)
+_GENDERED_TITLE = re.compile(
+    rf"\b(?:(?:el|la|los|las)\s+)?(?:{_TITLE}\s+)*{_TITLE}"  # «la señora ministra»
+    r"(?:\s+(?:de\s+la|del|de)\s+[\wÀ-ÿ]+(?:\s+(?:y|de|del)?\s*[\wÀ-ÿ]+){0,3}?)?"
+    r"\s+(?=Persona \d+)",
+    re.IGNORECASE,
+)
+
+
+def without_gendered_titles(text: str) -> str:
+    """«La diputada Persona 2» → «Persona 2»: el resumen no da el género de nadie, igual que el
+    resto del panel. Si el modelo escribe el cargo sin «Persona N», se queda (límite conocido)."""
+    return _GENDERED_TITLE.sub("", text)
 
 
 def without_percentages(text: str) -> str:
@@ -670,7 +686,8 @@ def content_summary(session, cache=None, engine=None) -> str:
         f"{engine.base_url}/chat/completions", build_summary_request(engine, text), engine._headers
     )
     body = reply["choices"][0]["message"]["content"] if isinstance(reply, dict) else ""
-    body = without_percentages(" ".join(re.sub(r"[#*_`>|]", " ", str(body)).split()))
+    body = " ".join(re.sub(r"[#*_`>|]", " ", str(body)).split())  # texto plano
+    body = without_gendered_titles(without_percentages(body))
     if not body:
         return "No he podido resumir la sesión: el modelo no devolvió texto."
     if len(body) > MAX_SUMMARY_OUTPUT:
