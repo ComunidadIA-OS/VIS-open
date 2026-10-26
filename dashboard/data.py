@@ -790,15 +790,16 @@ def _reading(share: dict[str, float]) -> str:
         f"hombres el {m:.1f} %; el {rest:.1f} % no tiene género."
     )
     if rest < 1:
-        return text + f" La brecha (mujeres − hombres) es de {w - m:+.1f} puntos."
+        return text + f" La diferencia de tiempo (mujeres − hombres) es de {w - m:+.1f} puntos."
     verdict = (
-        "El sentido de la brecha podría cambiar según quiénes sean esas voces: no es concluyente "
-        "hasta confirmarlas."
+        "El sentido de la diferencia podría cambiar según quiénes sean esas voces: no es "
+        "concluyente hasta confirmarlas."
         if low <= 0 <= high
-        else "El sentido de la brecha no cambiaría, pero su tamaño sí."
+        else "El sentido de la diferencia no cambiaría, pero su tamaño sí."
     )
     return (
-        text + f" La brecha (mujeres − hombres) estaría entre {low:+.1f} y {high:+.1f} puntos "
+        text + f" La diferencia de tiempo (mujeres − hombres) estaría entre {low:+.1f} y "
+        f"{high:+.1f} puntos "
         f"según cómo fueran esas voces. {verdict}"
     )
 
@@ -860,7 +861,7 @@ def evolution_reading(sessions: list[Session]) -> tuple[list[str], list[str]]:
     others = [session_label(s) for s in real if s not in control]
     specs = [
         ("M02", "Tiempo de palabra de las mujeres (M02)", " %", True),
-        ("M04", "Brecha de paridad, mujeres − hombres (M04)", " puntos", True),
+        ("M04", "Brecha de paridad (M04: % de tiempo − % de personas)", " puntos", True),
         ("M09", "Preguntas por ministra frente a ministro (M09; 1 = igual)", "", False),
     ]
     lines = []

@@ -262,9 +262,15 @@ def _cuenta_lista(mujeres: set[str], todas: set[str]) -> Conteo:
                   round(100 * n_mujeres / total, 2) if total else None)  # fmt: skip
 
 
+VACANTES_MIN = 340  # §4 bis: de 340 a 349 escaños ocupados vale, con aviso (vacantes ese día)
+
+
 def _control(conteo: Conteo, esperado: int | None, etiqueta: str, avisos: list[str]) -> Conteo:
     if esperado is None or conteo.total == esperado:
         return conteo
+    if esperado == EXPECTED_SEATS and VACANTES_MIN <= conteo.total < esperado:
+        avisos.append(f"{conteo.total} escaños ocupados: hay vacantes ese día")
+        return conteo  # el denominador es N: un escaño vacío no es una persona que pueda preguntar
     avisos.append(
         f"la medida {etiqueta} suma {conteo.total} (se esperaban {esperado}): no se usa "
         "hasta revisarlo"
