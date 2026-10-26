@@ -34,10 +34,10 @@ El audio de una orden hablada se transcribe con `whisper-large-v3-turbo` a trav�
 | M03b | Voces por pregunta (control de calidad) | Código |
 | M04 | Brecha de paridad: % del tiempo de las mujeres menos su % entre quienes intervienen | Código |
 | M06 | Preguntas a quien encabeza el Gobierno, por género de quien pregunta | Código, con el anuncio de la Presidencia |
-| M09 | Preguntas recibidas por ministras y por ministros | Modelo de lenguaje (marca preguntas, con evidencia literal); las cifras, el código |
+| M09 | Preguntas recibidas por ministras y por ministros | Código, con el anuncio de la Presidencia; el modelo de lenguaje (Qwen) da el cargo al que va cada pregunta, con la cita literal |
 | M13 | Porcentaje de tiempo sin atribuir (calidad del dato) | Código |
 
-Definiciones completas en `docs/metricas.md`. Descartadas para el Congreso: M05, M08, M10 y M14–M16 (por ejemplo, en el pleno no se pide la palabra levantando la mano).
+Definiciones completas en `docs/metricas.md`. **Validación** frente a la lista oficial de intervenciones del Congreso (3 sesiones, 87 personas): 86 con el género correcto, 0 errores y 1 a revisión humana; M06 coincide en las 3 sesiones y M09 en 2 de 3. Detalle en [`docs/EVALUACION.md`](docs/EVALUACION.md). Descartadas para el Congreso: M05, M08, M10 y M14–M16 (por ejemplo, en el pleno no se pide la palabra levantando la mano).
 
 Las cifras las calcula siempre el código; el modelo de lenguaje solo clasifica frases (por ejemplo, si una intervención es una pregunta dirigida a alguien) y devuelve la frase que lo justifica. Si la muestra es insuficiente, la métrica se marca como «no concluyente».
 
@@ -61,12 +61,14 @@ make test                                 # pruebas con datos sintéticos
 make check                                # estilo del código y pruebas
 python -m sources.diputados                # composición de la cámara (M04 c), datos abiertos
 python -m streamlit run dashboard/app.py  # el panel y el asistente de voz
+python -m pipeline.sesion --buscar        # detecta y descarga los plenos nuevos (fila pendiente de validar)
+python -m pipeline.sesion --pendientes    # analiza las sesiones validadas que falten
 node tests/vad.test.mjs                   # prueba del detector de voz (necesita Node)
 ```
 
 Para el asistente de voz hablado, en `.env`: `LLM_BASE_URL`, `LLM_API_KEY` y, opcional, `VOICE_ASR_MODEL` (por defecto `whisper-large-v3-turbo`). El resumen del contenido usa `LLM_MODEL`. Nada de esto va al repositorio.
 
-El vídeo debe tener su fila completa en el manifiesto (ver `docs/FUENTE_CONGRESO.md`); si no, no se analiza. Los resultados quedan en `data/processed/<vídeo>/`, que no se sube al repositorio.
+El vídeo debe tener su fila completa en el manifiesto (ver `docs/FUENTE_CONGRESO.md`); si no, no se analiza. Los plenos nuevos se detectan solos con `--buscar`; las comisiones y los actos se añaden por enlace (`--congreso-url` o `--hls-url`). Flujo completo en [`docs/FLUJO.md`](docs/FLUJO.md). Los resultados quedan en `data/processed/<vídeo>/`, que no se sube al repositorio.
 
 ## Estructura
 
@@ -121,6 +123,7 @@ Evolución futura:
 - Seudonimización: códigos por persona y no por palabra del nombre (hoy dos personas con un apellido en común comparten código).
 - Análisis de vídeo en una máquina sin GPU o a la vez que la transcripción: bajaría el coste por pleno a la mitad (`docs/HERRAMIENTAS_Y_COSTES.md`).
 - Asistente de voz: probarlo con lector de pantalla y con personas usuarias, más idiomas (catalán, francés) y una voz de síntesis mejor.
+- Medir la transcripción (WER) y la separación de voces (DER) con un tramo de 5 min anotado a mano: el código está (`evaluation/asr_diar.py`), falta la anotación.
 - Evaluación ampliada de la separación de voces con la métrica de Albayzin y el corpus Àgora, si su licencia lo permite.
 
 ## Equipo
