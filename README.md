@@ -4,6 +4,8 @@ VIS Open es una herramienta de código abierto que mide la presencia y la partic
 
 Proyecto del Equipo 6 en el reto «Mujeres por la IA Abierta» (SEDIA, Comunidad IA de Código Abierto).
 
+**Vídeo explicativo (unos 5 min):** [descargar `VIS_Open_video_explicativo_26oct.mp4`](https://github.com/ComunidadIA-OS/VIS-open/releases/download/video-explicativo-2026-10-26/VIS_Open_video_explicativo_26oct.mp4) · [página de la Release](https://github.com/ComunidadIA-OS/VIS-open/releases/tag/video-explicativo-2026-10-26). Voz generada con IA (ElevenLabs).
+
 ## Qué hace
 
 1. Toma una sesión del Congreso descargada sin modificar, con su ficha en el manifiesto (fuente, fecha y huella digital).
