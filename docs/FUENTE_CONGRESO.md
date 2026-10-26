@@ -28,9 +28,26 @@ Añade la fila a `data/manifiesto.csv` (o `--manifest`) y lista lo que falta. El
 
 Cada ejecución escribe `source.json` junto a la salida con fuente, URL, licencia, sha256 y una `cita` lista para copiar: fuente, fecha de la sesión y fecha de última actualización consultada (usa `fecha_descarga`). *Pendiente de confirmar con Sabrina qué fecha exige exactamente el aviso legal como «fecha de última actualización».*
 
-## Descarga automática: desactivada
+## Descarga de la emisión (`pipeline.sesion`)
 
-`AUTO_DOWNLOAD=false` por defecto y **no hay código de red**. `CongresoSource.download()` valida la URL y lanza `DownloadDisabled`; es el punto de entrada para implementarla cuando se compruebe el `robots.txt` de app.congreso.es y la Organización confirme que se permite.
+La descarga la hace `pipeline.sesion` (ver [`FLUJO.md`](FLUJO.md)); `CongresoSource.download()` sigue
+desactivado (`AUTO_DOWNLOAD=false`) y no se usa.
+
+- **Plenos nuevos, solos:** `python -m pipeline.sesion --buscar` mira si existe en
+  `streaming.congreso.es` la emisión del pleno siguiente al último del manifiesto
+  (`leg15/400/15_000400_203/cortes/…/manifest.m3u8`), la descarga sin recodificar y escribe su fila
+  con `licencia_verificada=pendiente`. Nombre: `<sesión>_pleno_<año>`. Una persona valida la fila
+  antes de analizar.
+- **Por enlace** (comisiones, actos, plenos antiguos): `--congreso-url` con la página de la sesión
+  (la emisión sale de su legislatura, órgano y número) o `--hls-url` con la lista de pistas.
+- **Solo el audio original.** La lista de pistas de 2026 trae «Versión original» y «Castellano»
+  (la interpretación simultánea, que las condiciones no permiten usar): se coge solo la original, y
+  si no la hay, se para. En 2018 y 2022 hay un solo audio dentro del vídeo.
+- La descarga se escribe en `<id>.mp4.part` y solo al terminar pasa a `<id>.mp4`, con su sha256.
+- **Lo que no se automatiza:** `www.congreso.es` (videoteca, Diario de Sesiones, `robots.txt`)
+  responde 403 a los programas, así que el Diario de Sesiones se descarga a mano; además su número
+  no coincide con el de la sesión (la sesión 202 de 2026 es el DSCD-15-PL-209). El `robots.txt` de
+  `app.congreso.es` redirige a una página de acceso (comprobado el 23 oct 2026).
 
 ## Analizar solo un tramo del vídeo
 

@@ -1,5 +1,7 @@
 # Plan de trabajo de la entrega
 
+> **Estado al 26 oct 2026:** este es el plan inicial y se conserva como referencia. Cambios desde entonces: M14 (manos levantadas) se descartó para el Congreso y se añadieron M02b y M06 (`docs/metricas.md`); M09 se hizo el 23–26 oct con Qwen y la regla de la pregunta anunciada; el ajuste ligero de Qwen no se hace (#51); se añadió la automatización de sesiones nuevas (`docs/FLUJO.md`). El estado real de cada tarea está en el tablero de GitHub.
+
 Plan del equipo para el reto «Mujeres por la IA Abierta», actualizado el 19 de octubre de 2026. Cada persona dispone de unas 2 horas por día laborable; los fines de semana no se cuentan.
 
 ## Fechas clave

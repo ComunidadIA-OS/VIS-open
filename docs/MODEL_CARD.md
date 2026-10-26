@@ -42,7 +42,7 @@ Medir, en debates grabados, la presencia, la participación y el protagonismo de
 
 ## Cómo se trata el género
 
-Ningún modelo lo infiere de la cara ni de la voz. Decisión del 16 oct (pendiente de implementar): la IA lo toma del lenguaje de la transcripción («la señora / el señor X» de la Presidencia, concordancias) con la frase y el minuto como evidencia; sin pista o con pistas contradictorias queda `desconocido` y pasa a revisión humana. No se usa el tono de voz: sería categorización biométrica (AI Act, Anexo III 1.b). En la evaluación se mide el acuerdo con dos anotadoras (kappa de Cohen). `desconocido` siempre es visible.
+Ningún modelo lo infiere de la cara ni de la voz. Decisión del 16 oct, implementada con reglas (`decision/gender_cues.py`, ver `docs/GENERO_LENGUAJE.md`) y validada frente a la lista oficial del Congreso (83 de 87 personas correctas, 0 errores, 4 a revisión): el género se toma del lenguaje de la transcripción («la señora / el señor X» de la Presidencia, concordancias) con la frase y el minuto como evidencia; sin pista o con pistas contradictorias queda `desconocido` y pasa a revisión humana. No se usa el tono de voz: sería categorización biométrica (AI Act, Anexo III 1.b). En la evaluación se mide el acuerdo con dos anotadoras (kappa de Cohen). `desconocido` siempre es visible.
 
 ## Asistente de voz
 
