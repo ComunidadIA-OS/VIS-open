@@ -622,3 +622,36 @@ def test_measure_a_with_vacancies_is_used_with_a_warning():
     ok = _control(Conteo(349, 156, 193, 0, 44.7), 350, "A", avisos)
     assert ok.porcentaje == 44.7 and "349 escaños ocupados" in avisos[0]
     assert _control(Conteo(137, 30, 107, 0, 21.9), 350, "A", []).porcentaje is None  # fuera
+
+
+def test_summary_leaves_the_chair_out_of_the_gender_shares():
+    from contracts import AnalysisEvent, AnalysisTimeline, EventType, Provenance, Speaker
+    from contracts.enums import GenderSource, GenderValue
+    from dashboard.data import Session, _share_without_chair
+
+    events, t = [], 0.0
+    for _ in range(3):  # la Presidencia (sin género) da la palabra tres veces
+        for sid, text, secs in (
+            ("SPEAKER_00", "Tiene la palabra la señora diputada.", 30),
+            ("SPEAKER_01", "Gracias, presidenta.", 60),
+            ("SPEAKER_02", "Le respondo.", 60),
+        ):
+            events.append(
+                AnalysisEvent(
+                    event_id=f"e{len(events)}", type=EventType.SPEECH, start_s=t, end_s=t + secs,
+                    speaker_id=sid, text=text, provenance=Provenance.OBSERVED,
+                )
+            )  # fmt: skip
+            t += secs + 1
+    known = {"SPEAKER_01": GenderValue.WOMAN, "SPEAKER_02": GenderValue.MAN}
+    speakers = [
+        Speaker(
+            speaker_id=sid,
+            gender=known.get(sid, GenderValue.UNKNOWN),
+            gender_source=GenderSource.LANGUAGE_CUE if sid in known else GenderSource.UNKNOWN,
+        )
+        for sid in ("SPEAKER_00", "SPEAKER_01", "SPEAKER_02")
+    ]
+    tl = AnalysisTimeline(video_id="P", duration_s=t, speakers=speakers, events=events)
+    share = _share_without_chair(Session("P", tl))
+    assert share.get("desconocido", 0) == 0 and share["mujer"] == share["hombre"] == 50.0
