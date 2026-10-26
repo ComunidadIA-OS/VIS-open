@@ -743,12 +743,17 @@ def video_tracks_with_totals(session: Session, top: int = 12) -> pd.DataFrame:
     return pd.concat([tracks.astype({"pista": str}), totals], ignore_index=True)
 
 
+EVOLUTION_ORDER = ["M01", "M02", "M02b", "M03a", "M03b", "M04", "M06", "M09", "M13"]
+
+
 def evolution_table(sessions: list[Session]) -> pd.DataFrame:
     """Una fila por sesión (ordenada por fecha si hay ficha, si no por id)."""
     rows = []
     for s in sessions:
         row = {"sesion": session_label(s), "fecha": (s.source or {}).get("fecha_evento", "")}
-        for m in sorted({*CARD_METRICS, "M09", "M06"}):  # mismo orden que las tarjetas
+        for m in EVOLUTION_ORDER:
+            if m not in s.metrics and m not in ("M06", "M09"):
+                continue
             r = s.metrics.get(m)
             row[m] = r.value if r and r.conclusive else None
         rows.append(row)
