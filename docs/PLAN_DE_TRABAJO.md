@@ -9,8 +9,8 @@ Plan del equipo para el reto «Mujeres por la IA Abierta», actualizado el 19 de
 | Fecha | Hito |
 |---|---|
 | 28 oct | Cierre del código y evaluación grupal |
-| 30 oct, 08:00 (hora de Madrid) | Entrega oficial: repositorio público con README y presentación .pptx (máximo 20 diapositivas) |
-| 4 nov, 08:00 | Entrega del vídeo explicativo de 5 minutos y presentación corta (5 minutos con demo) en el evento |
+| 30 oct, 08:00 (hora de Madrid) | Entrega oficial: repositorio público con README, presentación .pptx (máximo 20 diapositivas) y vídeo explicativo de unos 5 minutos |
+| 4 nov | Presentación corta (5 minutos con demo) en la final de Barcelona |
 
 ## Alcance de esta entrega
 
