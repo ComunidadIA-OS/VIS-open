@@ -281,6 +281,7 @@ Limitación del marco que afecta a estas métricas: el código suma la duración
 | M06 original (apertura y cierre) | Siempre abre la Presidencia; sustituida por la nueva M06 |
 | M08 Palabra cedida por la moderación | El orden lo fija el orden del día, no la Presidencia |
 | M10 Distribución por cuartiles | El orden de las preguntas está fijado |
+| M11 Rol en el debate | En el Congreso el rol lo fija el formato (preside, pregunta o responde) y lo asignan las reglas de `decision/roles.py` a partir de los anuncios de la Presidencia (apartado 2, regla «Roles»). No hace falta IA |
 | M14 Manos levantadas, M15 y M16 | En el pleno no se pide la palabra levantando la mano y las votaciones son electrónicas. Descarte acordado por el equipo (22/10/2026) |
 | M17 Equidad | Incluida en M04 (ratio) |
 | Conteo de escaños ocupados desde el vídeo | Saber si cada asiento lo ocupa una mujer o un hombre mirando la imagen es inferir el género por la apariencia, que el proyecto prohíbe (RNF-05 y RNF-13). Además, la cámara enfoca a quien habla y no muestra los 350 escaños. Y no hace falta: M04 mide quién podía preguntar, no quién estaba sentada |
