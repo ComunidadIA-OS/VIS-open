@@ -122,6 +122,22 @@ keep = [
   "Real", "Decreto", "Decreto-ley", "Ley", "Orgánica", "Boletín", "Oficial", "Diario", "Sesiones",
   "DANA", "Oriente", "Medio", "Valenciana", "Mazón", "Plan", "Integral", "Respuesta", "Crisis",
   "Señorías", "Señoría", "Dios", "Navidad", "Europeo", "Banco", "Central", "Mundial", "Ibex",
+  # Comunidades y ciudades autónomas y grandes ciudades (no se añaden provincias que también son
+  # apellidos frecuentes, como León, Soria o Toledo: mejor redactar de más).
+  "Ceuta", "Melilla", "Canarias", "Baleares", "Asturias", "Cantabria", "Navarra", "Aragón",
+  "Murcia", "Extremadura", "Castilla", "Mancha", "Rioja", "País", "Vasco", "Sevilla", "Bilbao",
+  "Zaragoza", "Málaga", "Alicante", "Valladolid", "Vigo", "Gijón", "Córdoba", "Granada",
+  # Países y lugares frecuentes en los plenos
+  "Ucrania", "Rusia", "Israel", "Palestina", "Gaza", "Marruecos", "Sáhara", "Francia",
+  "Alemania", "Italia", "Portugal", "Estados", "Unidos", "China", "Venezuela", "Argentina",
+  "México", "Cuba", "Bruselas", "Washington", "Europa", "Latinoamérica", "América", "África",
+  # Ministerios y áreas de gobierno («Ministra de Transportes, Movilidad y Agenda Urbana»)
+  "Transportes", "Movilidad", "Agenda", "Urbana", "Industria", "Comercio", "Turismo", "Ciencia",
+  "Innovación", "Universidades", "Vivienda", "Igualdad", "Defensa", "Cultura", "Deporte",
+  "Trabajo", "Agricultura", "Pesca", "Alimentación", "Transición", "Ecológica", "Reto",
+  "Demográfico", "Inclusión", "Migraciones", "Asuntos", "Exteriores", "Cooperación", "Política",
+  "Territorial", "Memoria", "Democrática", "Derechos", "Consumo", "Juventud", "Infancia",
+  "Función", "Pública", "Transformación", "Digital", "Relaciones", "Presidencia", "Funcionamiento",
 ]
 
 # Palabras que, solas como frase («Gracias.», «Presidente.»), NO se redactan. Cualquier otra
