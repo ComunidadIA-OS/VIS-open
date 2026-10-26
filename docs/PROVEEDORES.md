@@ -21,7 +21,6 @@ El análisis de las sesiones (audio, vídeo, separación de voces, gestos, métr
 | **Hugging Face** | Nada de las sesiones; solo descarga de modelos (con un token para los de acceso restringido, como pyannote) | Obtener modelos | Descarga en tiempo de ejecución | Condiciones de cada modelo | Usado |
 | **GitHub** (organización de la Comunidad IA de Código Abierto) | Código, documentación, datos sintéticos y frases de prueba sintetizadas. **Ningún dato real** | Repositorio público el 29 oct; el vídeo explicativo va como adjunto de una Release | Según GitHub | Condiciones de GitHub | Usado |
 | **Google Workspace (Drive)** | **Solo vídeos de trabajo para las tres integrantes del equipo** (por ejemplo, el recap del avance); nadie más tiene acceso. **Los vídeos de las sesiones del Congreso NO se guardan en Drive** (decisión de Sabrina, 21 oct 2026): viven en local y en el espacio del equipo en OVHcloud | Compartir entre el equipo | Ver `docs/BANCO_VIDEOS.md` | No aplica mientras no se suban datos de sesiones (si algún día se suben, Google actúa como encargado del tratamiento y haría falta su anexo) | Uso limitado; sin datos de sesiones |
-| **ElevenLabs** (síntesis de voz) | **Solo el texto del guion del vídeo explicativo** (y tres frases de ejemplo de la demo del asistente). Ningún dato de las sesiones, ni audio ni transcripciones | Voz en off del vídeo explicativo (26 oct 2026); el vídeo lo indica al final: «Voz generada con IA (ElevenLabs)» | Cuenta de Sabrina; **por verificar** retención | **Por verificar** | Solo para el vídeo explicativo, **no es parte del producto** |
 | **Congreso de los Diputados** | Nada: es la **fuente** de los vídeos | Sesiones públicas, reutilizadas sin alterar y citando la fuente | Aviso legal del Congreso (`docs/FUENTE_CONGRESO.md`) | No aplica | Verificado |
 | **Herramienta de desarrollo con IA** (Claude Code, Anthropic) | Código del repositorio y, si se ejecutan pruebas con datos locales, lo que salga por pantalla (puede incluir fragmentos de transcripción **seudonimizada**). No se envían audio ni vídeo | Escribir y probar el código | **Por verificar** según las condiciones de la cuenta del equipo | **Por verificar** | Usado. **Decisión pendiente:** si se acepta que vea texto seudonimizado en las pruebas o se evita (ver `docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`) |
 
@@ -29,8 +28,14 @@ El análisis de las sesiones (audio, vídeo, separación de voces, gestos, métr
 
 - Reconocimiento facial, ni propio ni de terceros.
 - APIs de pago obligatorias: todo funciona con modelos abiertos; Qwen puede servirse desde un servidor propio compatible con OpenAI.
-- La voz de síntesis de OVH (NVIDIA Riva) y otras voces en la nube en el producto: la voz del asistente es la del navegador, en local. (ElevenLabs solo se usó para la voz del vídeo explicativo, ver la tabla.)
+- La voz de síntesis de OVH (NVIDIA Riva) y otras voces en la nube: la voz del asistente es la del navegador, en local.
 - Servicios de analítica o de publicidad en el panel: no hay estadísticas de uso ni recursos externos.
+
+## Herramientas usadas fuera del sistema
+
+No forman parte de VIS Open ni reciben datos del sistema; se indican por transparencia.
+
+- **ElevenLabs** (síntesis de voz): solo para la **voz en off del vídeo explicativo** (26 oct 2026). Recibió únicamente el texto del guion y tres frases de ejemplo de la demo del asistente; ningún dato de las sesiones (ni audio, ni vídeo, ni transcripciones). El vídeo lo indica al final: «Voz generada con IA (ElevenLabs)».
 
 ## Cómo se actualiza
 
