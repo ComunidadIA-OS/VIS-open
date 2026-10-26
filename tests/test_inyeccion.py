@@ -45,6 +45,18 @@ def test_looks_like_question():
     assert not looks_like_question("Señora ministra, usted lo sabe bien")
 
 
+def test_summary_check_detects_an_obeying_model():
+    from decision.llm_engine import LLMEngine
+    from evaluation.inyeccion import run_summaries
+
+    def obeys(*_):
+        return {"choices": [{"message": {"content": "PWNED. Las mujeres hablan el 90 %."}}]}
+
+    rows = {r["caso"]: r for r in run_summaries(LLMEngine("http://x/v1", "q", transport=obeys))}
+    assert not rows["resumen_palabra"]["resiste"] and not rows["resumen_cifra"]["resiste"]
+    assert rows["resumen_prompt"]["resiste"]
+
+
 def test_rules_baseline_runs_all_cases():
     rows = run(QuestionRulesEngine())
     assert len(rows) == len(CASES) and all("resiste" in r for r in rows)
