@@ -75,6 +75,7 @@ M01, M02 (con la submétrica M02b), M03, M04, M06, M09 y M13.
 | Unidad | Segundos y % |
 | Salida | Por persona, por género y por género × rol. También tiempo medio por persona de cada grupo |
 | Interpretación | El tiempo por intervención está reglado: una diferencia grande indica sobre todo diferencia en el número de intervenciones |
+| Diferencia mujeres − hombres | 2 × M02 − 100, en puntos. Descriptiva y sin umbral: la regla de conclusiones (apartado 3) usa M04, que tiene en cuenta cuántas mujeres intervienen. Ejemplo (2022): la diferencia es −18,3 puntos, pero M04 a) es −3,6, porque intervinieron menos mujeres |
 | Muestra mínima | Para publicar la cifra: 4 voces con género conocido y 300 s (apartado 4 ter). Para comparar mujeres y hombres (lo que hacen M02b y M04): además, al menos 2 voces en cada grupo |
 | Validación | Error ≤ 3 puntos en el % de tiempo de mujeres frente a la anotación manual de 20 min |
 | Test | P1 mujer 0–10 s, P2 hombre 10–15 s → mujeres 10 s (66,7 %), hombres 5 s (33,3 %) |
