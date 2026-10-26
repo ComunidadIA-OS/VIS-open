@@ -99,7 +99,7 @@ def judge_blocks(blocks: Sequence[QuestionBlock], engine) -> list[Judgement]:
     """Pasa el texto de quien pregunta en cada bloque por un motor de preguntas."""
     out = []
     for b in blocks:
-        text = b.asker_text
+        text = b.question_text  # con la pregunta que lee la Presidencia
         d = engine.ask(text) if text else None
         out.append(
             Judgement(

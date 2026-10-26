@@ -289,3 +289,29 @@ def test_questions_not_counted_say_why(timeline):
     m9 = compute_m09(blocks, GENDERS, judgements, min_voices=1, min_seconds=0)
     reasons = {x["pregunta"]: x["motivo"] for x in m9.details["no_contadas"]}
     assert reasons == {1: "el modelo no la marca como pregunta", 4: "sin texto de quien pregunta"}
+
+
+def test_question_read_by_the_chair_reaches_the_model():
+    """V006 bloque 2: la Presidencia lee la pregunta y el diputado solo argumenta."""
+    events, t = [], 0.0
+
+    def add(speaker, text, seconds):
+        nonlocal t
+        events.append(
+            AnalysisEvent(
+                event_id=f"e{len(events)}", type=EventType.SPEECH, start_s=t, end_s=t + seconds,
+                speaker_id=speaker, text=text, provenance=Provenance.OBSERVED,
+            )
+        )  # fmt: skip
+        t += seconds + 2
+
+    for asker, answerer in ((A1, MIN_F), (A2, MIN_M)):
+        add(CHAIR, "Pregunta del diputado don Persona 4. ¿Qué medidas va a tomar el Gobierno?", 6)
+        add(asker, "Gracias, presidenta. Señor presidente, los datos son malos.", 60)
+        add(answerer, "Le respondo con datos.", 90)
+        add(CHAIR, "Gracias, señor ministro.", 2)
+    speakers = [Speaker(speaker_id=s) for s in (CHAIR, A1, A2, MIN_F, MIN_M)]
+    timeline = AnalysisTimeline(video_id="L", duration_s=t + 5, speakers=speakers, events=events)
+    b = question_blocks(timeline)[0]
+    assert "?" not in b.asker_text and "¿Qué medidas" in b.question_text
+    assert "Gracias, señor ministro" not in b.question_text  # lo de después de la respuesta no

@@ -67,14 +67,27 @@ class QuestionBlock:
     asker: str | None = None
     answerer: str | None = None
     turns: list[Turn] = field(default_factory=list)  # sin Presidencia, fundidos
+    chair_turns: list[Turn] = field(default_factory=list)  # lo que dice la Presidencia en el bloque
 
     def seconds(self, speaker_id: str) -> float:
         return sum(t.seconds for t in self.turns if t.speaker_id == speaker_id)
 
     @property
     def asker_text(self) -> str:
-        """Lo que dice quien pregunta en el bloque (para que el modelo decida si es pregunta)."""
+        """Lo que dice quien pregunta en el bloque."""
         return " ".join(t.text for t in self.turns if t.speaker_id == self.asker).strip()
+
+    @property
+    def question_text(self) -> str:
+        """Texto para que el modelo decida si hay pregunta: quien pregunta y, antes de que responda
+        el Gobierno, también la Presidencia, que en las sesiones de control lee la pregunta del
+        orden del día (V005 bloque 11, V006 bloque 2: sin esto el modelo no la veía)."""
+        first_answer = next(
+            (t.start_s for t in self.turns if t.speaker_id == self.answerer), float("inf")
+        )
+        said = [t for t in self.chair_turns if t.start_s < first_answer]
+        said += [t for t in self.turns if t.speaker_id == self.asker]
+        return " ".join(t.text for t in sorted(said, key=lambda t: t.start_s)).strip()
 
     def role_of(self, speaker_id: str) -> str | None:
         if speaker_id == self.chair:
@@ -157,6 +170,8 @@ def question_blocks(
                 blocks.append(current)
             elif current is not None:
                 current.end_s = max(current.end_s, e.end_s)  # la Presidencia corta o ordena
+            if current is not None:
+                current.chair_turns.append(Turn(chair, e.start_s, e.end_s, e.text or ""))
             continue
         if current is None:
             continue
