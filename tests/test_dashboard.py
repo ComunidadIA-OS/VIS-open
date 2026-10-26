@@ -313,6 +313,10 @@ def test_report_has_summary_timeline_voices_and_prudent_reading(sessions):
     assert "podría cambiar" in _reading({"mujer": 20.0, "hombre": 50.0, "desconocido": 30.0})
     assert "no cambiaría" in _reading({"mujer": 10.0, "hombre": 80.0, "desconocido": 10.0})
     assert "+" in _reading({"mujer": 50.0, "hombre": 50.0})
+    # 2 × M02 − 100 (metricas.md): V006 con 36,5 / 52,8 / 10,7 → −18,3, no −16,3
+    assert "−18,3" in _reading({"mujer": 36.5, "hombre": 52.8, "desconocido": 10.7}).replace(
+        "-", "−"
+    ).replace(".", ",")
 
 
 def test_voice_transcripts_csv_and_export_link_to_the_csv(sessions, tmp_path):
