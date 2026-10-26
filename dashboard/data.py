@@ -781,16 +781,23 @@ def evolution_gender_table(sessions: list[Session]) -> pd.DataFrame:
 
 
 def _reading(share: dict[str, float]) -> str:
-    """Lectura prudente de la brecha: qué pasaría según cómo fueran las voces sin género."""
+    """Lectura prudente de la diferencia de tiempo mujeres − hombres (docs/metricas.md, M02).
+
+    Diferencia = 2 × M02 − 100: sobre el tiempo con género conocido. Si hay voces sin género, se
+    dice entre qué valores estaría según quiénes fueran esas voces.
+    """
     w, m = share.get("mujer", 0.0), share.get("hombre", 0.0)
     rest = share.get("desconocido", 0.0) + share.get("sin_atribuir", 0.0)
-    low, high = w - (m + rest), (w + rest) - m
+    known = w + m
+    diff = 2 * 100 * w / known - 100 if known else 0.0
+    low, high = w - (m + rest), (w + rest) - m  # con todas esas voces de un lado o del otro
     text = (
         f"Con el género asignado, las mujeres tienen el {w:.1f} % del tiempo de palabra y los "
-        f"hombres el {m:.1f} %; el {rest:.1f} % no tiene género."
+        f"hombres el {m:.1f} %; el {rest:.1f} % no tiene género. La diferencia de tiempo "
+        f"(mujeres − hombres, sobre el tiempo con género conocido) es de {diff:+.1f} puntos."
     )
     if rest < 1:
-        return text + f" La diferencia de tiempo (mujeres − hombres) es de {w - m:+.1f} puntos."
+        return text
     verdict = (
         "El sentido de la diferencia podría cambiar según quiénes sean esas voces: no es "
         "concluyente hasta confirmarlas."
@@ -798,9 +805,8 @@ def _reading(share: dict[str, float]) -> str:
         else "El sentido de la diferencia no cambiaría, pero su tamaño sí."
     )
     return (
-        text + f" La diferencia de tiempo (mujeres − hombres) estaría entre {low:+.1f} y "
-        f"{high:+.1f} puntos "
-        f"según cómo fueran esas voces. {verdict}"
+        text + f" Según quiénes sean las voces sin género, estaría entre {low:+.1f} y "
+        f"{high:+.1f} puntos. {verdict}"
     )
 
 
