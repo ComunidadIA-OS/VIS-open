@@ -45,9 +45,11 @@ def _without_chair(frame: pd.DataFrame) -> pd.DataFrame:
 def _interventions_by_block(frame: pd.DataFrame) -> dict[int, dict[str, int]]:
     """Intervenciones y voces por bloque con la definición de M03a/M03b (§M03).
 
-    Una voz solo cuenta si habla al menos 5 s en total en el bloque; los tramos más cortos no
-    cortan la intervención de quien sí habla. Las pausas de la misma voz no crean intervenciones
-    nuevas. Lo usan M02b (para marcar las preguntas sin réplica) y M03a/M03b.
+    Una intervención es una sucesión de fragmentos de la misma voz; las pausas no la cortan.
+    Solo la corta otra voz cuando su tramo seguido dura al menos 5 s. Los tramos más cortos se
+    ignoran aunque esa voz vuelva a hablar más tarde (test de referencia en `docs/metricas.md`).
+    Para M03b, una voz cuenta si suma al menos 5 s en total en el bloque. Lo usan M02b (para
+    marcar las preguntas sin réplica) y M03a/M03b.
     """
     if "block_index" not in frame.columns:
         return {}
@@ -55,22 +57,31 @@ def _interventions_by_block(frame: pd.DataFrame) -> dict[int, dict[str, int]]:
     s = s[s["speaker_id"].notna() & s["block_index"].notna()]
     if s.empty:
         return {}
-    seconds = s.groupby(["block_index", "speaker_id"], as_index=False)["duration_s"].sum()
-    major = seconds[seconds["duration_s"] >= MIN_VOICE_SECONDS]
     out: dict[int, dict[str, int]] = {}
     for block_index, events in s.groupby("block_index", sort=True):
-        voices = sorted(major.loc[major["block_index"] == block_index, "speaker_id"])
-        if not voices:
-            out[int(block_index)] = {"intervenciones": 0, "voces": 0}
-            continue
-        turns = events[events["speaker_id"].isin(voices)].sort_values(["start_s", "end_s"])
+        events = events.sort_values(["start_s", "end_s"])
+        runs: list[list] = []
+        for speaker_id, duration in events[["speaker_id", "duration_s"]].itertuples(
+            index=False, name=None
+        ):
+            if runs and runs[-1][0] == speaker_id:
+                runs[-1][1] += float(duration)
+            else:
+                runs.append([speaker_id, float(duration)])
         interventions = 0
         previous = None
-        for speaker_id in turns["speaker_id"]:
-            if speaker_id != previous:
-                interventions += 1
-                previous = speaker_id
-        out[int(block_index)] = {"intervenciones": interventions, "voces": len(voices)}
+        for speaker_id, duration in runs:
+            if duration < MIN_VOICE_SECONDS:
+                continue
+            if speaker_id == previous:
+                continue
+            interventions += 1
+            previous = speaker_id
+        seconds = events.groupby("speaker_id")["duration_s"].sum()
+        out[int(block_index)] = {
+            "intervenciones": interventions,
+            "voces": int((seconds >= MIN_VOICE_SECONDS).sum()),
+        }
     return out
 
 

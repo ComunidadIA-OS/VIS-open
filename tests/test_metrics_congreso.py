@@ -13,6 +13,7 @@ from contracts import (
     Speaker,
 )
 from metrics.congreso import (
+    _interventions_by_block,
     assigned_time_use,
     parity_gap,
     presence,
@@ -333,6 +334,24 @@ def test_m02b_ignores_a_short_interjection_when_counting_interventions():
     assert out.details["preguntas_sin_replica"] == [
         {"bloque": 2, "intervenciones": 3, "voces": 2}
     ]
+
+
+def test_m03_reference_case_ignores_a_short_interjection_from_a_voice_that_returns():
+    # Test de docs/metricas.md: A 60 s, A 40 s, B 2 s, A 20 s, B 90 s, A 30 s, B 25 s.
+    df = frame_of(
+        [
+            ("SPEAKER_00", 2, "Tiene la palabra la señora diputada."),
+            ("SPEAKER_01", 60, "A."),
+            ("SPEAKER_01", 40, "A."),
+            ("SPEAKER_02", 2, "B de ruido."),
+            ("SPEAKER_01", 20, "A."),
+            ("SPEAKER_02", 90, "B."),
+            ("SPEAKER_01", 30, "A."),
+            ("SPEAKER_02", 25, "B."),
+            ("SPEAKER_00", 2, "Tiene la palabra el señor diputado."),
+        ]
+    )
+    assert _interventions_by_block(df) == {1: {"intervenciones": 4, "voces": 2}}
 
 
 def test_m02b_needs_two_voices_in_each_group():
