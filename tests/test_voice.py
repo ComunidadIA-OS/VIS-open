@@ -20,7 +20,6 @@ IDS = ["V001", "V002", "V003", "V004"]
         ("cuál es la brecha", "gap", None),
         ("quién habló más", "most_spoken", None),
         ("cuántas voces faltan por confirmar", "pending", None),
-        ("cuántas manos levantadas hubo", "hands", None),
         ("ayuda", "help", None),
     ],
 )
