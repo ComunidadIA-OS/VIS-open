@@ -35,8 +35,10 @@ def test_falls_back_to_synthetic_and_computes_cards(sessions):
 
 def test_synthetic_sessions_get_question_blocks_from_the_text(sessions):
     s = next(x for x in sessions if x.session_id.endswith("equilibrado"))
-    assert s.metrics["M03"].conclusive is True
-    assert s.metrics["M03"].details["preguntas"] > 0
+    assert s.metrics["M03a"].conclusive is True
+    assert s.metrics["M03a"].details["preguntas"] > 0
+    assert s.metrics["M03b"].conclusive is True
+    assert s.metrics["M03b"].details["preguntas"] > 0
     assert s.metrics["M04"].conclusive is True
 
 
@@ -44,7 +46,8 @@ def test_metric_card_says_not_applicable_without_question_blocks():
     from metrics import MetricResult
 
     r = MetricResult(
-        metric_id="M03", name="M03 Turnos", is_example=False, value=None, conclusive=False,
+        metric_id="M03a", name="M03a Intervenciones", is_example=False, value=None,
+        conclusive=False,
         reason="no aplica: no se han detectado bloques de pregunta", sample={},
     )  # fmt: skip
     assert metric_card(r)["valor"] == "no aplica"
@@ -61,8 +64,8 @@ def test_inconclusive_reason_ignores_metrics_that_do_not_apply():
     s = Session(
         "X", tl,
         metrics={
-            "M03": MetricResult(
-                metric_id="M03", name="M03", is_example=False, value=None,
+            "M03a": MetricResult(
+                metric_id="M03a", name="M03a", is_example=False, value=None,
                 conclusive=False, reason="no aplica: sin bloques", sample={},
             )
         },
@@ -115,7 +118,9 @@ def test_interventions_never_show_names_only_codes(sessions):
 
 def test_evolution_and_report(sessions):
     evo = evolution_table(sessions)
-    assert len(evo) == 5 and {"M01", "M02", "M03", "M04", "M13", "M09"} <= set(evo.columns)
+    assert len(evo) == 5 and {
+        "M01", "M02", "M03a", "M03b", "M04", "M13", "M09"
+    } <= set(evo.columns)
     assert "M14" not in evo.columns
     pdf = report_pdf(sessions[0], compress=False)
     assert pdf.startswith(b"%PDF") and b"datos de ejemplo" in pdf and b"Resumen" in pdf

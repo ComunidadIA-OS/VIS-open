@@ -34,7 +34,7 @@ from metrics.diputadas import DatosCamara
 from metrics.diputadas import cargar as cargar_camara
 from sources.congreso import parse_session_url
 
-CARD_METRICS = ["M01", "M02", "M02b", "M03", "M04", "M13"]
+CARD_METRICS = ["M01", "M02", "M02b", "M03a", "M03b", "M04", "M13"]
 # M14 (manos levantadas) se descartó para el Congreso (Ivette, 22 oct 2026): el panel no la
 # muestra; el módulo de vídeo sigue en el código.
 PENDING_METRICS: dict[str, str] = {}
@@ -158,7 +158,7 @@ TIPO_LABELS = {
 
 
 # Métricas que se basan en los bloques de pregunta de la sesión de control (docs/metricas.md).
-QUESTION_METRICS = ("M02b", "M03", "M04", "M06", "M09")
+QUESTION_METRICS = ("M02b", "M03a", "M03b", "M04", "M06", "M09")
 
 
 def _usos(path: Path) -> tuple[dict[str, set[str]], dict[str, str]]:

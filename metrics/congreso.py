@@ -1,4 +1,4 @@
-"""M01, M02 (con M02b), M03, M04 y M13 de la sesión de control, según `docs/metricas.md`.
+"""M01, M02 (con M02b), M03a/M03b, M04 y M13 de la sesión de control, según `docs/metricas.md`.
 
 Cada función es pura: DataFrame de eventos → `MetricOutput`, y todas las cifras salen de pandas
 (regla 3). El frame debe venir de `metrics.contexto.enriquecer_frame`, que añade `block_role`
@@ -13,7 +13,7 @@ from __future__ import annotations
 import pandas as pd
 
 from contracts import GenderValue
-from decision.roles import MERGE_GAP_S, ROLE_ASK, ROLE_GOV
+from decision.roles import ROLE_ASK, ROLE_GOV
 from metrics.frame import GENDER_ORDER, UNATTRIBUTED, speech, speech_time_by_gender
 from metrics.registry import MetricOutput, gap_is_conclusive, metric
 
@@ -22,9 +22,9 @@ MAX_UNATTRIBUTED_PCT = 20.0  # % de tiempo sin atribuir a partir del cual se avi
 QUESTION_SECONDS = 150.0  # §4: ~150 s para quien pregunta y ~150 s para quien responde
 TOLERANCE_S = 10.0  # §4: la Presidencia deja terminar la frase
 MIN_PEOPLE_PER_GROUP = 2  # §4 ter: dos voces por grupo para comparar
-TURN_RANGE = (3, 6)  # §4 ter: turnos por pregunta fuera de este rango = revisar las voces
+INTERVENTION_RANGE = (3, 6)  # §4 ter: intervenciones por pregunta fuera de rango = revisar
 MIN_QUESTIONS = 10  # §4 ter: M04 necesita 10 preguntas válidas para comparar
-MIN_VOICE_SECONDS = 5.0  # §4: otra voz solo corta la intervención si habla 5 s en total
+MIN_VOICE_SECONDS = 5.0  # §4: otra voz solo corta la intervención si su tramo dura 5 s o más
 MIN_INTERVENTIONS = 4  # §4: una pregunta con menos de 4 intervenciones no usa la réplica
 GAP_THRESHOLD_POINTS = 15.0  # §3: la brecha debe superar 15 puntos
 
@@ -42,14 +42,13 @@ def _without_chair(frame: pd.DataFrame) -> pd.DataFrame:
     return s[~s["is_chair"].astype(bool)]
 
 
-def _interventions_by_block(frame: pd.DataFrame) -> dict[int, dict[str, int]]:
-    """Intervenciones y voces por bloque con la definición de M03a/M03b (§M03).
+def _block_interventions(frame: pd.DataFrame) -> dict[int, dict]:
+    """Intervenciones (voz, género y duración) y voces por bloque con la definición de M03.
 
     Una intervención es una sucesión de fragmentos de la misma voz; las pausas no la cortan.
     Solo la corta otra voz cuando su tramo seguido dura al menos 5 s. Los tramos más cortos se
-    ignoran aunque esa voz vuelva a hablar más tarde (test de referencia en `docs/metricas.md`).
-    Para M03b, una voz cuenta si suma al menos 5 s en total en el bloque. Lo usan M02b (para
-    marcar las preguntas sin réplica) y M03a/M03b.
+    ignoran aunque esa voz vuelva a hablar más tarde (issue #143 y test de `docs/metricas.md`).
+    Para M03b, una voz cuenta si suma al menos 5 s en total en el bloque.
     """
     if "block_index" not in frame.columns:
         return {}
@@ -57,32 +56,44 @@ def _interventions_by_block(frame: pd.DataFrame) -> dict[int, dict[str, int]]:
     s = s[s["speaker_id"].notna() & s["block_index"].notna()]
     if s.empty:
         return {}
-    out: dict[int, dict[str, int]] = {}
+    out: dict[int, dict] = {}
     for block_index, events in s.groupby("block_index", sort=True):
         events = events.sort_values(["start_s", "end_s"])
         runs: list[list] = []
-        for speaker_id, duration in events[["speaker_id", "duration_s"]].itertuples(
-            index=False, name=None
-        ):
+        for speaker_id, gender, duration in events[
+            ["speaker_id", "gender", "duration_s"]
+        ].itertuples(index=False, name=None):
             if runs and runs[-1][0] == speaker_id:
-                runs[-1][1] += float(duration)
+                runs[-1][2] += float(duration)
             else:
-                runs.append([speaker_id, float(duration)])
-        interventions = 0
-        previous = None
-        for speaker_id, duration in runs:
+                runs.append([speaker_id, gender, float(duration)])
+        interventions: list[dict] = []
+        for speaker_id, gender, duration in runs:
             if duration < MIN_VOICE_SECONDS:
                 continue
-            if speaker_id == previous:
-                continue
-            interventions += 1
-            previous = speaker_id
+            if interventions and interventions[-1]["speaker_id"] == speaker_id:
+                interventions[-1]["duration_s"] += duration
+            else:
+                interventions.append(
+                    {"speaker_id": speaker_id, "gender": gender, "duration_s": duration}
+                )
         seconds = events.groupby("speaker_id")["duration_s"].sum()
         out[int(block_index)] = {
             "intervenciones": interventions,
             "voces": int((seconds >= MIN_VOICE_SECONDS).sum()),
         }
     return out
+
+
+def _interventions_by_block(frame: pd.DataFrame) -> dict[int, dict[str, int]]:
+    """Nº de intervenciones y de voces por bloque; lo usa M02b."""
+    return {
+        block: {
+            "intervenciones": len(data["intervenciones"]),
+            "voces": data["voces"],
+        }
+        for block, data in _block_interventions(frame).items()
+    }
 
 
 def _questions_by_gender(frame: pd.DataFrame) -> dict[str, int]:
@@ -264,60 +275,94 @@ def assigned_time_use(frame: pd.DataFrame) -> MetricOutput:
 
 
 @metric(
-    metric_id="M03",
-    name="M03 Turnos por pregunta (control de calidad)",
+    metric_id="M03a",
+    name="M03a Intervenciones por pregunta (control de calidad)",
     min_speakers_known_gender=2,
     min_known_gender_seconds=60,
 )
-def turns(frame: pd.DataFrame) -> MetricOutput:
-    """Turnos por pregunta = turnos sin Presidencia / preguntas válidas (§M03).
+def interventions_per_question(frame: pd.DataFrame) -> MetricOutput:
+    """Intervenciones por pregunta = intervenciones sin Presidencia / preguntas (§M03a).
 
-    Un turno son intervenciones seguidas de la misma persona con menos de 1 s de pausa. Se esperan
-    unos 4 por pregunta y el rango correcto es 3–6; fuera de él se avisa de que hay que revisar la
-    separación de voces. Si el orden del día dice cuántas preguntas válidas hay, se puede fijar en
-    `frame.attrs["preguntas_validas"]`; si no, se usan los bloques detectados.
+    Se esperan unos 4 por pregunta y el rango correcto es 3–6; fuera de él se avisa de que hay
+    que revisar la separación de voces. Si el orden del día dice cuántas preguntas válidas hay,
+    se puede fijar en `frame.attrs["preguntas_validas"]`; si no, se usan los bloques detectados.
     """
-    if "block_index" not in frame.columns:
+    blocks = _block_interventions(frame)
+    if not blocks:
         return MetricOutput(
             value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
         )
-    s = _without_chair(frame)
-    s = s[s["speaker_id"].notna() & s["block_index"].notna()]
-    s = s.sort_values(["block_index", "start_s", "end_s"])
-    if s.empty:
-        return MetricOutput(
-            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
-        )
-    new = (
-        (s["block_index"] != s["block_index"].shift())
-        | (s["speaker_id"] != s["speaker_id"].shift())
-        | (s["start_s"] - s["end_s"].shift() >= MERGE_GAP_S)
-    )
-    per_turn = s.assign(turn=new.cumsum()).groupby("turn", as_index=False).agg(
-        gender=("gender", "first"), seconds=("duration_s", "sum")
-    )
-    questions = int(frame.attrs.get("preguntas_validas") or s["block_index"].nunique())
-    counts = per_turn["gender"].value_counts().to_dict()  # fmt: skip
+    items = [item for data in blocks.values() for item in data["intervenciones"]]
+    questions = int(frame.attrs.get("preguntas_validas") or len(blocks))
+    if questions <= 0:
+        return MetricOutput(value=0.0, reason="no aplica: no hay preguntas válidas")
+    per = pd.DataFrame(items, columns=["speaker_id", "gender", "duration_s"])
+    counts = per["gender"].value_counts().to_dict()
     by = {g: int(counts.get(g, 0)) for g in (W, M, UNKNOWN)}
-    value = len(per_turn) / questions
-    inside = TURN_RANGE[0] <= value <= TURN_RANGE[1]
+    value = len(items) / questions
+    inside = INTERVENTION_RANGE[0] <= value <= INTERVENTION_RANGE[1]
     return MetricOutput(
         value=round(value, 2),
         details={
-            "turnos": int(len(per_turn)),
+            "intervenciones": len(items),
             "preguntas": questions,
             "por_genero": by,
-            "duracion_media_turno_s": {
-                g: round(per_turn.loc[per_turn["gender"] == g, "seconds"].mean(), 2)
-                if (per_turn["gender"] == g).any()
+            "duracion_media_intervencion_s": {
+                g: round(per.loc[per["gender"] == g, "duration_s"].mean(), 2)
+                if (per["gender"] == g).any()
                 else None
                 for g in (W, M, UNKNOWN)
             },
-            "rango_correcto": list(TURN_RANGE),
+            "rango_correcto": list(INTERVENTION_RANGE),
             "dentro_del_rango": inside,
             "aviso": None
             if inside
-            else f"fuera del rango {TURN_RANGE[0]}–{TURN_RANGE[1]}: revisar la separación de voces",
+            else f"fuera del rango {INTERVENTION_RANGE[0]}–{INTERVENTION_RANGE[1]}: "
+            "revisar la separación de voces",
+        },
+    )
+
+
+@metric(
+    metric_id="M03b",
+    name="M03b Voces por pregunta (control de calidad)",
+    min_speakers_known_gender=2,
+    min_known_gender_seconds=60,
+)
+def voices_per_question(frame: pd.DataFrame) -> MetricOutput:
+    """Voces por pregunta = media de voces con 5 s o más por pregunta (§M03b).
+
+    En cada bloque se cuentan las voces (sin Presidencia) que suman al menos 5 s en total. El
+    valor esperado es 2 voces por pregunta; se avisa y se listan los bloques con 3 o más.
+    Si el orden del día fija `frame.attrs["preguntas_validas"]`, se usa como denominador.
+    """
+    blocks = _block_interventions(frame)
+    if not blocks:
+        return MetricOutput(
+            value=0.0, reason="no aplica: no se han detectado bloques de pregunta"
+        )
+    questions = int(frame.attrs.get("preguntas_validas") or len(blocks))
+    if questions <= 0:
+        return MetricOutput(value=0.0, reason="no aplica: no hay preguntas válidas")
+    total = sum(data["voces"] for data in blocks.values())
+    over = [
+        {"bloque": block, "voces": data["voces"]}
+        for block, data in sorted(blocks.items())
+        if data["voces"] >= 3
+    ]
+    aviso = None
+    if over:
+        aviso = "3 o más voces en los bloques: " + ", ".join(str(x["bloque"]) for x in over)
+    value = total / questions
+    return MetricOutput(
+        value=round(value, 2),
+        details={
+            "voces": total,
+            "preguntas": questions,
+            "media_voces_por_pregunta": round(value, 2),
+            "bloques_con_tres_o_mas": over,
+            "numero_bloques_con_tres_o_mas": len(over),
+            "aviso": aviso,
         },
     )
 
