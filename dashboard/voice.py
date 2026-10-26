@@ -441,7 +441,10 @@ def answer(cmd: Command, session, pending: int | None = None) -> str:
             reason = (m04.reason or "").removeprefix("no concluyente: ")
             return f"La brecha no es concluyente en la sesión {sid}: {reason}."
         gap = es_num(m04.value)
-        return f"La brecha en la sesión {sid} es de {gap} puntos, mujeres menos hombres. {NOTE}"
+        return (
+            f"La brecha en la sesión {sid} es de {gap} puntos: el porcentaje del tiempo de las "
+            f"mujeres menos su porcentaje entre quienes intervienen. {NOTE}"
+        )
     if cmd.action == "most_spoken":
         top = voices.iloc[0]
         return f"Habló más {top['persona']}, con {es_num(top['minutos'])} minutos."

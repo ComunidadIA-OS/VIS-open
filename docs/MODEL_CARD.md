@@ -14,7 +14,7 @@ VIS Open es una herramienta de código abierto (Apache-2.0) que combina modelos 
 | Alineado de palabras | WhisperX | BSD-2-Clause | Opcional (`WHISPER_ALIGN`) |
 | Diarización (quién habla) | pyannote `speaker-diarization-3.1` | MIT | Acceso restringido en Hugging Face: exige aceptar condiciones y un token |
 | Embeddings de voz | pyannote `wespeaker-voxceleb-resnet34-LM` | CC-BY-4.0 | Exige atribución |
-| Gestos de levantar la mano | MediaPipe y OpenCV | Apache-2.0 (verificada el 20 y el 21 oct 2026) | Sin reconocimiento facial; el modelo de pose es para una persona a menos de ~4 m: no apto para reconocer identidad |
+| Análisis de vídeo: personas visibles y tiempo en pantalla (M14, manos levantadas, descartada para el Congreso) | MediaPipe y OpenCV | Apache-2.0 (verificada el 20 y el 21 oct 2026) | Sin reconocimiento facial; el modelo de pose es para una persona a menos de ~4 m: no apto para reconocer identidad |
 | Órdenes de voz (asistente) | `whisper-large-v3-turbo` por API (OVHcloud AI Endpoints) | MIT (etiqueta de Hugging Face, 21 oct 2026) | Solo transcribe la orden hablada; el audio no se guarda en el equipo |
 | Resumen del contenido y M09 | Qwen3.5 (4B o 9B) por API compatible con OpenAI | Apache-2.0 (etiqueta de Hugging Face, 21 oct 2026) | Salida cerrada con esquema; el resumen se marca como IA |
 | Detector de voz (manos libres) | **No es un modelo entrenado**: reglas de señal (volumen, espectro, periodicidad del tono, variación de sílabas) | Código propio, Apache-2.0 | `dashboard/vad.js`; probado con 8 ruidos sintéticos y 4 frases sintetizadas |

@@ -20,7 +20,7 @@ Medir de forma transparente la presencia, la participación y el protagonismo de
 ## Seudonimización y minimización de datos
 
 - **Sin nombres:** VIS Open no guarda nombres. Cada voz se identifica con un código anónimo (Persona 1, Persona 2…). En la evidencia del género y en las transcripciones, el nombre se sustituye por ese código.
-- **Solo lo necesario:** se guarda el tiempo de palabra, el turno, el género con su evidencia y los gestos de mano levantada; no se guardan imágenes de caras ni huellas de voz fuera del proceso de análisis.
+- **Solo lo necesario:** se guarda el tiempo de palabra, el turno, el género con su evidencia y el recuento de personas visibles en el vídeo; no se guardan imágenes de caras ni huellas de voz fuera del proceso de análisis.
 - **Límite honesto:** seudonimizar reduce el riesgo, pero la voz y la imagen siguen siendo datos personales y, según el RGPD, los datos seudonimizados también lo son. Por eso se mantienen la base legal, los avisos y la supervisión humana.
 - **Ajuste del modelo:** el único ajuste previsto (Qwen, para la métrica M09) usa solo texto seudonimizado; el modelo ajustado no se publica.
 

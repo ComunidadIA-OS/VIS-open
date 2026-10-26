@@ -9,7 +9,7 @@ Proyecto del Equipo 6 en el reto «Mujeres por la IA Abierta» (SEDIA, Comunidad
 1. Toma una sesión del Congreso descargada sin modificar, con su ficha en el manifiesto (fuente, fecha y huella digital).
 2. Extrae el audio, lo transcribe y separa a cada persona que habla.
 3. Asigna a cada voz un código anónimo (Persona 1, Persona 2…) y su género **solo por pistas del lenguaje** («la señora…», «el señor…», «tiene la palabra…»), con la frase y el minuto como evidencia. No se guardan nombres: en la evidencia, el nombre se sustituye por el código. Si no hay pista, el género queda como `desconocido` y pasa a revisión humana.
-4. Detecta en el vídeo las peticiones de palabra con la mano levantada, a partir de la postura del cuerpo y sin reconocer caras.
+4. Analiza el vídeo (personas visibles y tiempo en pantalla) a partir de la postura del cuerpo, sin reconocer caras ni deducir el género de la imagen.
 5. Calcula las métricas con código determinista y las muestra en un panel con el informe de cada sesión (PDF, transcripción en CSV y subtítulos).
 6. **Se puede usar sin ver la pantalla ni usar el ratón:** el panel tiene un asistente de voz y un modo manos libres (ver abajo).
 
@@ -29,12 +29,14 @@ El audio de una orden hablada se transcribe con `whisper-large-v3-turbo` a trav�
 | ID | Qué mide | Cómo se calcula |
 |---|---|---|
 | M01 | Presencia: cuántas personas intervienen, por género | Código |
-| M02 | Tiempo de palabra por persona y por género | Código |
-| M03 | Número de turnos por género | Código |
-| M04 | Brecha de paridad en el tiempo de palabra | Código |
-| M13 | Porcentaje de tiempo sin atribuir | Código |
-| M14 | Peticiones de palabra con la mano | Código, a partir del vídeo |
-| M09 | Preguntas recibidas por cada persona | Modelo de lenguaje, con evidencia literal |
+| M02 | Tiempo de palabra por género (con M02b, uso del tiempo asignado) | Código |
+| M03 | Intervenciones por pregunta (control de calidad) | Código |
+| M04 | Brecha de paridad: % del tiempo de las mujeres menos su % entre quienes intervienen | Código |
+| M06 | Preguntas a quien encabeza el Gobierno, por género de quien pregunta | Código, con el anuncio de la Presidencia |
+| M09 | Preguntas recibidas por ministras y por ministros | Modelo de lenguaje (marca preguntas, con evidencia literal); las cifras, el código |
+| M13 | Porcentaje de tiempo sin atribuir (calidad del dato) | Código |
+
+Definiciones completas en `docs/metricas.md`. Descartadas para el Congreso: M05, M08, M10 y M14–M16 (por ejemplo, en el pleno no se pide la palabra levantando la mano).
 
 Las cifras las calcula siempre el código; el modelo de lenguaje solo clasifica frases (por ejemplo, si una intervención es una pregunta dirigida a alguien) y devuelve la frase que lo justifica. Si la muestra es insuficiente, la métrica se marca como «no concluyente».
 
@@ -101,7 +103,7 @@ La lista completa, con versiones, fuentes y fecha de verificación (última revi
 | Pydantic | Formatos de datos | MIT |
 | `whisper-large-v3-turbo` (vía API de OVHcloud) | Transcribir las órdenes de voz | MIT |
 | Detector de voz, avatar y componentes del panel | Modo manos libres y asistente | Código propio (Apache-2.0); usa funciones del navegador (Web Audio, WebGL, síntesis de voz), sin librerías de terceros |
-| OpenCV y MediaPipe | Gestos (manos levantadas) | Apache-2.0 |
+| OpenCV y MediaPipe | Análisis de vídeo (personas visibles, tiempo en pantalla) | Apache-2.0 |
 | Streamlit y Altair | Panel y gráficos | Apache-2.0 y BSD-3-Clause |
 | Qwen3.5 (4B y 9B) | Modelo de lenguaje (M09 y resumen) | Apache-2.0 |
 

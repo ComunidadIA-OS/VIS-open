@@ -52,6 +52,7 @@ from dashboard.data import (
 )
 from dashboard.pdf_report import report_pdf
 from decision.pseudonymize import speaker_codes
+from decision.roles import find_chair
 
 
 def big(chart: alt.Chart, description: str = "") -> alt.Chart:
@@ -181,8 +182,8 @@ METRIC_EXPLAINED = {
     "150 s asignados + 10 s de tolerancia.",
     "M03": "Turnos por pregunta, sin la Presidencia. Lo esperado es de 3 a 6; "
     "fuera de ese rango hay que revisar la separación de voces.",
-    "M04": "Puntos: % del tiempo de las mujeres menos % del de los hombres. "
-    "Negativo = las mujeres hablan menos.",
+    "M04": "Puntos: % del tiempo de las mujeres menos su % entre quienes intervienen. "
+    "Negativo = hablan menos de lo que les tocaría.",
     "M06": "% de las preguntas al Presidente del Gobierno que hacen mujeres.",
     "M09": "Preguntas por ministra frente a preguntas por ministro (1 = igual; menos de 1 = "
     "las ministras reciben menos). Solo descriptiva: también influye la actualidad de cada "
@@ -689,10 +690,11 @@ if screen == "Sesión":
     with st.container(key="sec_hitl"):
         st.markdown("<span id='sec-hitl' class='anchor'></span>", unsafe_allow_html=True)
         # 2. Human in the loop: los tramos de las voces que quedaron «desconocido».
+        chair = find_chair(s.timeline)  # va fuera de M02 y M04: no se valida su género
         pending = [
             r
             for r in voices_to_review(DATA_DIR / "processed" / s.session_id)
-            if r.speaker_id not in s.confirmed
+            if r.speaker_id not in s.confirmed and r.speaker_id != chair
         ]
         st.header(f"Human in the loop ({len(pending)} voces sin confirmar)")
         if not pending:
@@ -757,10 +759,16 @@ if screen == "Sesión":
                 unsafe_allow_html=True,
             )
             with st.form(f"form_{s.session_id}_{sid}_{i}_{who}"):
-                gender = st.radio("Género", ["mujer", "hombre", "desconocido"], horizontal=True)
-                confidence = st.radio("Seguridad", ["alta", "media", "baja"], horizontal=True)
+                gender = st.radio(
+                    "Género", ["mujer", "hombre", "desconocido"], horizontal=True, index=None
+                )
+                confidence = st.radio(
+                    "Seguridad", ["alta", "media", "baja"], horizontal=True, index=None
+                )
                 notes = st.text_input("Notas (opcional, sin nombres)")
-                if st.form_submit_button("Guardar"):
+                if st.form_submit_button("Guardar") and (gender is None or confidence is None):
+                    st.warning("Elige el género y la seguridad antes de guardar.")
+                elif gender and confidence:
                     save_review(
                         folder,
                         who,
@@ -1012,14 +1020,20 @@ else:
     f_year, f_month, f_kind = st.columns(3)
     ALL = "Todos"
 
-    def pick(col, label: str, values: list[str]) -> list[str]:
-        """Lista con «Todos» (marcado al empezar); con «Todos» o vacía no se filtra."""
-        chosen = col.multiselect(label, [ALL, *values], default=[ALL], placeholder=ALL)
+    def pick(col, label: str, values: list[str], start: list[str] | None = None) -> list[str]:
+        """Lista con «Todos»; con «Todos» o vacía no se filtra. `start`: lo marcado al empezar."""
+        first = [v for v in (start or []) if v in values] or [ALL]
+        chosen = col.multiselect(label, [ALL, *values], default=first, placeholder=ALL)
         return [] if ALL in chosen else chosen
 
     years = pick(f_year, "Año", sorted({v[0] for v in facets.values() if v[0]}))
     months = pick(f_month, "Mes", [m for m in MONTHS if m in {v[1] for v in facets.values()}])
-    kinds = pick(f_kind, "Tipo de sesión", sorted({v[2] for v in facets.values()}))
+    kinds = pick(
+        f_kind,
+        "Tipo de sesión",
+        sorted({v[2] for v in facets.values()}),
+        start=["sesión de control"],  # los resultados: V005-V007; lo demás, pruebas o demo
+    )
     evo_sessions = [
         x
         for x in evo_sessions

@@ -31,6 +31,8 @@ Reglas que cumple la cadena: todo en local salvo las dos API opcionales; el gén
 | V005 | Pleno, sesión 202 (30/09/2026), sesión de control, XV legislatura | Evaluación |
 | V006 | Pleno, sesión 207 (05/10/2022), sesión de control, XIV legislatura | Evaluación |
 | V007 | Pleno, sesión 142 (19/09/2018), sesión de control, XII legislatura | Evaluación |
+| V008 | Pleno, sesión 201 (21/09/2022), sesión de control, XIV legislatura | Ajuste de Qwen (no se usa para evaluar) |
+| 203_pleno_2026 | Pleno, sesión 203 (02/10/2026), convalidación de decretos-ley | Prueba de la automatización (no se compara) |
 
 ## Coste estimado de API por sesión (Qwen, M09)
 

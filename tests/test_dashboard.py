@@ -604,3 +604,12 @@ def test_session_type_from_manifest_decides_question_metrics(tmp_path):
     by_id = {s.session_id: s for s in load_sessions(tmp_path)}
     assert by_id["V001"].demo and "otro formato" in session_label(by_id["V001"])
     assert not by_id["V002"].demo  # control: métricas de preguntas aunque sea de test
+
+
+def test_measure_a_with_vacancies_is_used_with_a_warning():
+    from metrics.diputadas import Conteo, _control
+
+    avisos: list[str] = []
+    ok = _control(Conteo(349, 156, 193, 0, 44.7), 350, "A", avisos)
+    assert ok.porcentaje == 44.7 and "349 escaños ocupados" in avisos[0]
+    assert _control(Conteo(137, 30, 107, 0, 21.9), 350, "A", []).porcentaje is None  # fuera
