@@ -23,12 +23,11 @@ Principios ya aplicados: **sin nombres** (códigos anónimos), **sin reconocimie
 
 - **Responsable del tratamiento:** **DECIDIR.** En el reto, el equipo; en un despliegue real, la entidad que use la herramienta (una sala de debates, una institución, la propia Comunidad).
   **Propuesta (26 oct, a aprobar por Sabrina y Veru):** en el reto, el Equipo 6 (Sabrina como directora del proyecto); en producción, la entidad que despliegue VIS Open, que decide qué sesiones se analizan y para qué.
-- **Encargados / subencargados:** OVHcloud, GitHub, Hugging Face, Google Workspace (ver `docs/PROVEEDORES.md`). **VERIFICAR** que hay contrato de encargado (art. 28 RGPD) con cada uno que reciba datos personales.
+- **Encargados / subencargados:** OVHcloud, GitHub y Hugging Face (ver `docs/PROVEEDORES.md`; Google Workspace y ElevenLabs no forman parte de VIS Open). **VERIFICAR** que hay contrato de encargado (art. 28 RGPD) con cada uno que reciba datos personales.
   Comprobado en las fuentes oficiales el 26 oct 2026 (las condiciones concretas de la cuenta del reto siguen **por verificar**):
   - **OVHcloud**: sí trata datos (vídeos, transcripciones, Qwen). Publica su acuerdo de encargado según el art. 28 RGPD como parte de sus condiciones (versión UE de 23/01/2023, con cláusulas contractuales tipo). En el reto la cuenta es de la Organización.
   - **GitHub**: no recibe datos personales de las sesiones (solo código y datos sintéticos), así que no hace falta. Su acuerdo de protección de datos existe para los planes de pago.
   - **Hugging Face**: solo se descargan modelos y se ejecutan en nuestra máquina; no trata datos, así que no hace falta.
-  - **Google Workspace (Drive)**: no recibe datos de las sesiones; si algún día los recibiera, haría falta su anexo de tratamiento (Cloud Data Processing Addendum).
   - **ElevenLabs**: no es proveedor del sistema; solo se usó para la voz del vídeo explicativo, sin datos de las sesiones (`docs/PROVEEDORES.md`).
 - **Delegado de protección de datos:** **DECIDIR** si hace falta según quién despliegue.
   **Propuesta (26 oct, a aprobar por Sabrina y Veru):** el equipo no lo necesita (no es un organismo público ni hace observación a gran escala). Una autoridad u organismo público que despliegue VIS Open sí lo necesita (art. 37.1.a RGPD).
