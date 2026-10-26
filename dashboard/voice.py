@@ -612,6 +612,18 @@ MAX_SUMMARY_INPUT = 24_000  # caracteres de transcripción que se envían al mod
 MAX_SUMMARY_OUTPUT = 700
 
 
+_PERCENT = re.compile(r"%|\bpor\s*ciento\b|\bporcentaje", re.IGNORECASE)
+
+
+def without_percentages(text: str) -> str:
+    """Quita las frases con porcentajes: las cifras de participación solo las da el código.
+
+    Un texto hostil de la sesión puede hacer que el modelo escriba un porcentaje falso
+    (prueba de inyección del 26 oct, `docs/EVALUACION.md`)."""
+    sentences = re.split(r"(?<=[.!?])\s+", text.strip())
+    return " ".join(s for s in sentences if not _PERCENT.search(s))
+
+
 def transcript_for_summary(session, limit: int = MAX_SUMMARY_INPUT) -> str:
     """«Persona N: texto» en orden; si no cabe, se toman turnos repartidos por toda la sesión."""
     from dashboard.data import transcript_turns
@@ -658,7 +670,7 @@ def content_summary(session, cache=None, engine=None) -> str:
         f"{engine.base_url}/chat/completions", build_summary_request(engine, text), engine._headers
     )
     body = reply["choices"][0]["message"]["content"] if isinstance(reply, dict) else ""
-    body = " ".join(re.sub(r"[#*_`>|]", " ", str(body)).split())  # texto plano
+    body = without_percentages(" ".join(re.sub(r"[#*_`>|]", " ", str(body)).split()))
     if not body:
         return "No he podido resumir la sesión: el modelo no devolvió texto."
     if len(body) > MAX_SUMMARY_OUTPUT:
