@@ -626,9 +626,45 @@ _GENDERED_TITLE = re.compile(
 
 
 def without_gendered_titles(text: str) -> str:
-    """«La diputada Persona 2» → «Persona 2»: el resumen no da el género de nadie, igual que el
-    resto del panel. Si el modelo escribe el cargo sin «Persona N», se queda (límite conocido)."""
+    """«La diputada Persona 2» → «Persona 2»: el género del resumen no lo pone el modelo. Si
+    escribe el cargo sin «Persona N», se queda (límite conocido)."""
     return _GENDERED_TITLE.sub("", text)
+
+
+SUMMARY_GENDER = {"mujer": "mujer", "hombre": "hombre", "desconocido": "género desconocido"}
+
+
+def voice_genders(session) -> dict[str, str]:
+    """«Persona N» → género validado, solo para las voces cuyo código no aparece también como nombre
+    citado en la transcripción: si un código es ambiguo, mejor sin género que con el de otra
+    persona."""
+    from decision.pseudonymize import speaker_codes
+
+    tl = getattr(session, "timeline", None)
+    if tl is None:  # sin línea de tiempo no hay voces: el resumen va sin género
+        return {}
+    cited = set(re.findall(r"Persona \d+", " ".join(e.text or "" for e in tl.events)))
+    gender = {sp.speaker_id: sp.gender.value for sp in tl.speakers}
+    return {
+        code: gender[sid]
+        for sid, code in speaker_codes(tl).items()
+        if code not in cited and gender.get(sid) in SUMMARY_GENDER
+    }
+
+
+def with_validated_gender(text: str, genders: Mapping[str, str]) -> str:
+    """«Persona 2 preguntó» → «Persona 2 (mujer) preguntó», solo la primera vez que sale cada
+    voz. El género es el del panel (código y revisión humana), nunca el que diga el modelo."""
+    seen: set[str] = set()
+
+    def tag(m: re.Match) -> str:
+        code = m.group(0)
+        if code in seen or code not in genders:
+            return code
+        seen.add(code)
+        return f"{code} ({SUMMARY_GENDER[genders[code]]})"
+
+    return re.sub(r"Persona \d+\b", tag, text)
 
 
 def without_percentages(text: str) -> str:
@@ -688,6 +724,7 @@ def content_summary(session, cache=None, engine=None) -> str:
     body = reply["choices"][0]["message"]["content"] if isinstance(reply, dict) else ""
     body = " ".join(re.sub(r"[#*_`>|]", " ", str(body)).split())  # texto plano
     body = without_gendered_titles(without_percentages(body))
+    body = with_validated_gender(body, voice_genders(session))
     if not body:
         return "No he podido resumir la sesión: el modelo no devolvió texto."
     if len(body) > MAX_SUMMARY_OUTPUT:
