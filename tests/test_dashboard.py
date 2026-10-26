@@ -118,9 +118,7 @@ def test_interventions_never_show_names_only_codes(sessions):
 
 def test_evolution_and_report(sessions):
     evo = evolution_table(sessions)
-    assert len(evo) == 5 and {
-        "M01", "M02", "M03a", "M03b", "M04", "M13", "M09"
-    } <= set(evo.columns)
+    assert len(evo) == 5 and {"M01", "M02", "M03a", "M03b", "M04", "M13", "M09"} <= set(evo.columns)
     assert "M14" not in evo.columns
     pdf = report_pdf(sessions[0], compress=False)
     assert pdf.startswith(b"%PDF") and b"datos de ejemplo" in pdf and b"Resumen" in pdf
