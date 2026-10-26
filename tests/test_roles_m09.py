@@ -315,3 +315,34 @@ def test_question_read_by_the_chair_reaches_the_model():
     b = question_blocks(timeline)[0]
     assert "?" not in b.asker_text and "¿Qué medidas" in b.question_text
     assert "Gracias, señor ministro" not in b.question_text  # lo de después de la respuesta no
+
+
+def test_announced_question_counts_even_if_the_model_says_no():
+    """Sesión de control: la pregunta anunciada existe como acto, aunque no tenga «¿?»."""
+    events, t = [], 0.0
+
+    def add(speaker, text, seconds):
+        nonlocal t
+        events.append(
+            AnalysisEvent(
+                event_id=f"e{len(events)}", type=EventType.SPEECH, start_s=t, end_s=t + seconds,
+                speaker_id=speaker, text=text, provenance=Provenance.OBSERVED,
+            )
+        )  # fmt: skip
+        t += seconds + 2
+
+    for asker, answerer in ((A1, MIN_F), (A2, MIN_M)):
+        add(CHAIR, "Pregunta del diputado don Persona 4.", 4)
+        add(asker, "Los datos son malos y usted lo sabe.", 60)
+        add(answerer, "Le respondo con datos.", 90)
+    speakers = [Speaker(speaker_id=s) for s in (CHAIR, A1, A2, MIN_F, MIN_M)]
+    timeline = AnalysisTimeline(video_id="A", duration_s=t + 5, speakers=speakers, events=events)
+    blocks = question_blocks(timeline)
+    assert all(b.announced for b in blocks)
+    judgements = [Judgement(1, False, 0.9), Judgement(2, True, 0.95, "señor ministro")]
+    m9 = compute_m09(blocks, GENDERS, judgements, min_voices=1, min_seconds=0)
+    assert m9.details["no_contadas"] == [] and m9.sample["preguntas_validas"] == 2
+    from metrics.m09 import model_view
+
+    view = model_view(blocks, judgements)
+    assert view[0]["modelo_es_pregunta"] is False and view[1]["modelo_cargo"] == "señor ministro"

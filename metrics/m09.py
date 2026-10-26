@@ -133,6 +133,38 @@ def _result(metric_id: str, name: str, value, sample: dict, reason: str | None, 
     )
 
 
+def counts_as_question(b: QuestionBlock, j: Judgement | None, threshold: float) -> bool:
+    """¿Entra en M09 y M06? En la sesión de control, toda pregunta que anuncia la Presidencia
+    (registrada, anunciada y con turno), aunque el diputado argumente sin preguntar: lo decide
+    la estructura, no el modelo (decisión de Ivette, 26/10). En otros formatos decide el modelo,
+    con confianza de 0,7 o más. El modelo da siempre el cargo y la cita, nunca las cifras."""
+    if b.answerer is None:
+        return False
+    if b.announced:
+        return True
+    return bool(j and j.is_question and j.confidence >= threshold)
+
+
+def model_view(blocks: Sequence[QuestionBlock], judgements: Sequence[Judgement]) -> list[dict]:
+    """Lo que dijo el modelo en cada bloque, aunque no decida el recuento: para evaluarlo
+    frente a la lista oficial (¿detecta la pregunta?, ¿acierta el cargo?)."""
+    by_index = {j.block_index: j for j in judgements}
+    out = []
+    for b in blocks:
+        j = by_index.get(b.index)
+        out.append(
+            {
+                "pregunta": b.index,
+                "anunciada": b.announced,
+                "modelo_es_pregunta": j.is_question if j else None,
+                "modelo_confianza": j.confidence if j else None,
+                "modelo_cargo": j.cargo_destinatario if j else None,
+                "modelo_evidencia": j.evidence if j else None,
+            }
+        )
+    return out
+
+
 def compute_m09(
     blocks: Sequence[QuestionBlock],
     genders: Mapping[str, str],
@@ -155,31 +187,32 @@ def compute_m09(
     skipped: list[dict] = []  # por qué no cuenta cada pregunta: se puede comprobar a mano
     for b in blocks:
         j = by_index.get(b.index)
-        if j is None or not j.is_question or b.answerer is None:
+        if not counts_as_question(b, j, threshold):
             why = (
                 "sin respuesta detectada" if b.answerer is None
                 else "sin texto de quien pregunta" if j is None
-                else "el modelo no la marca como pregunta"
+                else "el modelo no la marca como pregunta" if not j.is_question
+                else "confianza del modelo menor de 0,7"
             )  # fmt: skip
             skipped.append(
                 {"pregunta": b.index, "motivo": why, "evidencia": j.evidence if j else None}
             )
+            if why.startswith("confianza"):
+                review.append(b.index)  # no se cuenta hasta que una persona lo revise
             continue
-        if j.confidence < threshold:
-            review.append(b.index)  # no se cuenta hasta que una persona lo revise
-            continue
-        if is_head_of_government(j.cargo_destinatario) or b.answerer == head_voice:
+        cargo = j.cargo_destinatario if j else None
+        if is_head_of_government(cargo) or b.answerer == head_voice:
             pm_questions.append({"pregunta": b.index, "pregunta_voz": b.asker,
                                  "responde_voz": b.answerer})  # fmt: skip
             continue
         received[b.answerer] += 1
-        said, answered = mentioned_gender(j.cargo_destinatario), _gender(genders, b.answerer)
+        said, answered = mentioned_gender(cargo), _gender(genders, b.answerer)
         if said and answered in ("mujer", "hombre") and said != answered:
             # la pregunta nombra a otra persona de la que responde: cuenta para quien responde
             mismatches.append(
                 {
                     "pregunta": b.index,
-                    "cargo": j.cargo_destinatario,
+                    "cargo": cargo,
                     "genero_mencionado": said,
                     "genero_quien_responde": answered,
                 }
@@ -253,8 +286,8 @@ def compute_m06(
     asked = Counter()
     for b in blocks:
         j = by_index.get(b.index)
-        if j and j.is_question and j.confidence >= threshold and (
-            is_head_of_government(j.cargo_destinatario) or b.answerer == head_voice
+        if counts_as_question(b, j, threshold) and (
+            (j and is_head_of_government(j.cargo_destinatario)) or b.answerer == head_voice
         ):  # fmt: skip
             asked[_gender(genders, b.asker)] += 1
     total = sum(asked.values())
@@ -303,6 +336,8 @@ def main(argv: Sequence[str] | None = None) -> None:
     voice, cargo = head_of_government(timeline, blocks)
     out = {
         "preguntas": len(blocks),
+        # lo que dijo el modelo en cada bloque, para evaluarlo frente a la lista oficial
+        "modelo_por_pregunta": model_view(blocks, judgements),
         "consumo": {
             "llamadas": sum(1 for j in judgements if j.tokens_in or j.tokens_out),
             "tokens_in": sum(j.tokens_in for j in judgements),

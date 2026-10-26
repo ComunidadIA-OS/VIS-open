@@ -718,7 +718,7 @@ if screen == "Sesión":
         folder = DATA_DIR / "processed" / s.session_id
         answers = annotator_answers(folder, who)  # lo que ya has validado tú, por voz
         cuts = review_cuts(s, [r.speaker_id for r in pending])
-        all_voices = voices_to_review(folder)
+        all_voices = [r for r in voices_to_review(folder) if r.speaker_id != chair]
         decided = sum(
             1 for r in all_voices if r.speaker_id in answers or r.speaker_id in s.confirmed
         )
