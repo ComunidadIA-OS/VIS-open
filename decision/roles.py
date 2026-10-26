@@ -68,6 +68,7 @@ class QuestionBlock:
     answerer: str | None = None
     turns: list[Turn] = field(default_factory=list)  # sin Presidencia, fundidos
     chair_turns: list[Turn] = field(default_factory=list)  # lo que dice la Presidencia en el bloque
+    announced: bool = False  # la Presidencia la anunció como pregunta (sesión de control)
 
     def seconds(self, speaker_id: str) -> float:
         return sum(t.seconds for t in self.turns if t.speaker_id == speaker_id)
@@ -166,7 +167,8 @@ def question_blocks(
         if e.speaker_id == chair:
             if e.event_id in starts:
                 current = QuestionBlock(index=len(blocks) + 1, chair=chair,
-                                        start_s=e.start_s, end_s=e.end_s)  # fmt: skip
+                                        start_s=e.start_s, end_s=e.end_s,
+                                        announced=announced)  # fmt: skip
                 blocks.append(current)
             elif current is not None:
                 current.end_s = max(current.end_s, e.end_s)  # la Presidencia corta o ordena
