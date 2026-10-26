@@ -327,13 +327,15 @@ def test_report_has_summary_timeline_voices_and_prudent_reading(sessions):
 def test_voice_transcripts_csv_and_export_link_to_the_csv(sessions, tmp_path):
     import csv as _csv
 
-    from dashboard.data import transcript_csv, voice_transcripts
+    from dashboard.data import METHOD_NOTICE, transcript_csv, voice_transcripts
     from dashboard.export import export_session
 
     s = sessions[0]
     by_voice = voice_transcripts(s)
     assert by_voice and all(k.startswith("Persona ") or k == "sin atribuir" for k in by_voice)
-    rows = list(_csv.DictReader(transcript_csv(s).splitlines()))
+    lines = transcript_csv(s).splitlines()
+    assert lines[0] == f"# {METHOD_NOTICE}"  # el aviso de método viaja con el CSV
+    rows = list(_csv.DictReader(lines[1:]))
     assert rows and list(rows[0]) == ["inicio_s", "inicio", "persona", "genero", "texto"]
     report, table = export_session(s, tmp_path, link_base="https://almacen.example/privado/")
     assert table.name == f"transcripcion_{s.session_id}.csv" and table.is_file()

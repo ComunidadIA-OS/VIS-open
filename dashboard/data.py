@@ -371,8 +371,13 @@ def voice_transcripts(session: Session) -> dict[str, list[dict]]:
 
 
 def transcript_csv(session: Session) -> str:
-    """Transcripción completa en CSV (UTF-8): inicio, persona, género y texto."""
+    """Transcripción completa en CSV (UTF-8): inicio, persona, género y texto.
+
+    La primera línea es el aviso de método como comentario (`#`), para que viaje con el fichero;
+    se lee con `pandas.read_csv(..., comment="#")`.
+    """
     buf = io.StringIO()
+    buf.write(f"# {METHOD_NOTICE}\n")
     writer = csv.writer(buf, lineterminator="\n")
     writer.writerow(["inicio_s", "inicio", "persona", "genero", "texto"])
     for t in transcript_turns(session):
