@@ -125,7 +125,7 @@ Evolución futura:
 - Seudonimización: códigos por persona y no por palabra del nombre (hoy dos personas con un apellido en común comparten código).
 - Análisis de vídeo en una máquina sin GPU o a la vez que la transcripción: bajaría el coste por pleno a la mitad (`docs/HERRAMIENTAS_Y_COSTES.md`).
 - Asistente de voz: probarlo con lector de pantalla y con personas usuarias, más idiomas (catalán, francés) y una voz de síntesis mejor.
-- Medir la transcripción (WER) y la separación de voces (DER) con un tramo de 5 min anotado a mano: el código está (`evaluation/asr_diar.py`), falta la anotación.
+- Medir la separación de voces (DER) y el WER exacto con un tramo de 5 min anotado a mano: el código está (`evaluation/asr_diar.py`), falta la anotación. El WER aproximado frente al Diario de Sesiones ya está medido (10,0 %, cota superior; `docs/EVALUACION.md`).
 - Evaluación ampliada de la separación de voces con la métrica de Albayzin y el corpus Àgora, si su licencia lo permite.
 
 ## Equipo

@@ -19,6 +19,7 @@ Regla: cada dependencia se registra aquí con la licencia verificada en el metad
 | tzdata | 2026.3 | runtime (dep. de pandas en Windows) | Apache-2.0 (metadato del paquete) |
 | streamlit | 1.66.0 | panel (extra `[dashboard]`, también en `[dev]` para probarlo) | Apache-2.0 (campo `License-Expression` del paquete instalado) |
 | altair | 6.3.0 | gráficos del panel (dep. de streamlit) | BSD-3-Clause (texto de licencia en el metadato; clasificador «OSI Approved :: BSD License») |
+| pypdf | 6.19.0 | leer el Diario de Sesiones en PDF para el WER aproximado (extra `[evaluacion]`; solo herramienta, no entra en el análisis) | BSD-3-Clause (texto del `LICENSE` del repositorio oficial github.com/py-pdf/pypdf, verificado el 26 oct 2026) |
 | openpyxl | 3.1.5 | hojas de anotación en Excel (extra `[anotacion]`; solo herramienta, no entra en el análisis) | MIT (campo `License` y clasificador OSI del paquete instalado, 22 oct 2026) |
 | pytest | 9.1.1 | desarrollo | MIT |
 | ruff | 0.17.1 | desarrollo | MIT |
