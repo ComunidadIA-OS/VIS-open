@@ -802,9 +802,10 @@ def _reading(share: dict[str, float]) -> str:
     diff = 2 * 100 * w / known - 100 if known else 0.0
     low, high = w - (m + rest), (w + rest) - m  # con todas esas voces de un lado o del otro
     text = (
-        f"Con el género asignado, las mujeres tienen el {w:.1f} % del tiempo de palabra y los "
-        f"hombres el {m:.1f} %; el {rest:.1f} % no tiene género. La diferencia de tiempo "
-        f"(mujeres − hombres, sobre el tiempo con género conocido) es de {diff:+.1f} puntos."
+        f"Del tiempo total de palabra, las mujeres tienen el {w:.1f} %, los hombres el {m:.1f} % "
+        f"y el {rest:.1f} % no tiene género. Sobre el tiempo con género conocido (M02), las "
+        f"mujeres tienen el {(diff + 100) / 2:.1f} % y la diferencia de tiempo (mujeres − hombres) "
+        f"es de {diff:+.1f} puntos."
     )
     if rest < 1:
         return text
