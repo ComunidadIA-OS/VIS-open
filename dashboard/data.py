@@ -810,10 +810,23 @@ def _reading(share: dict[str, float]) -> str:
     )
 
 
+def _share_without_chair(session: Session) -> dict[str, float]:
+    """% del tiempo de palabra por género sin la Presidencia (fuera de M02 y M04, metricas.md §2):
+    así la diferencia mujeres − hombres y su intervalo no cuentan el tiempo de quien preside."""
+    from decision.roles import find_chair
+    from metrics import speech_time_by_gender
+
+    frame = timeline_to_frame(session.timeline)
+    chair = find_chair(session.timeline)
+    if chair is not None:
+        frame = frame[frame["speaker_id"] != chair]
+    t = speech_time_by_gender(frame)
+    return {g: round(100 * s, 2) for g, s in zip(t["gender"], t["share"], strict=True)}
+
+
 def session_summary(session: Session) -> str:
     """Resumen en una frase: duración, voces con género y lectura prudente de la brecha."""
-    gt = gender_time_table(session)
-    share = dict(zip(gt["gender"], gt["porcentaje"], strict=True))
+    share = _share_without_chair(session)
     voices = voices_table(session)
     known = int((voices["genero"] != "desconocido").sum())
     confirmed = len(session.confirmed)
