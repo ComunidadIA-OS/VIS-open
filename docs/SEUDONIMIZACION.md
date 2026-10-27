@@ -16,6 +16,16 @@ Código: `decision/pseudonymize.py`; se aplica en `pipeline.analyze` antes de as
   apellido en común comparten código (en V005, «Persona 7» es un diputado del PP y otro de Vox).
   No afecta a las métricas, que van por voz. Hoja de ruta: códigos por persona.
 
+- **Nombres que la transcripción parte o deja (27 oct, revisión de Ivette):** Whisper corta a veces
+  la frase entre dos trozos («doña Ana» | «Ferro, del Grupo…»; «Mire, señor» | «Rojas, …»). Si un
+  trozo acaba en un tratamiento o en un código y el siguiente de la misma voz empieza menos de 2 s
+  después, su primera palabra se trata como mitad de frase. Una palabra con mayúscula justo detrás
+  de un código («Persona 94 Cortés») es el resto del mismo nombre y se quita. La lista de
+  excepciones distingue tildes («Cortés» apellido, «Cortes» institución) y, ante dos nombres que
+  empiezan en la misma palabra, gana el más largo. Tras «señor/señora/don/doña», una palabra en
+  minúscula seguida de signo de puntuación que no es un cargo («señor cuerpo,») también se tapa.
+  Reanalizar V005–V007 no cambia ninguna cifra (tiempo por género, muestra y voces iguales).
+
 ## Límites
 
 - Un nombre al inicio de frase y solo (una palabra) no se distingue de una palabra normal; un nombre que la transcripción escriba en minúscula no se detecta.

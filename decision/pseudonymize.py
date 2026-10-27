@@ -33,6 +33,14 @@ _NAME_RUN = rf"{_NOT_TITLE}{_CAP}(?:\s+(?:(?:de|del|de\s+la|de\s+los|y)\s+)?{_CA
 # Título(s) + nombre; el nombre es lo que se sustituye (grupo «name»).
 _AFTER_TITLE = re.compile(rf"(?i:\b(?:{_TITLES})\b\s+)+(?P<name>{_NAME_RUN})")
 _AFTER_INTRO = re.compile(rf"(?i:\b(?:me\s+llamo|mi\s+nombre\s+es)\s+)(?P<name>{_NAME_RUN})")
+# Apellido que la transcripción escribe en minúscula tras un tratamiento: «señor cuerpo, usted…».
+_LOWER_AFTER_TITLE = re.compile(
+    r"(?i:\b(?:señor|señora|don|doña)\s+)(?P<name>[a-záéíóúñü]+)(?=\s*[,.;:?!])"
+)
+_TRAIL_CODE = re.compile(r"Persona \d+\s*$")  # el nombre ya se sustituyó justo antes
+# El trozo acaba esperando un nombre: «…señor» | «Rojas, …»; «doña Persona 52» | «Ferro, …».
+_NAME_PENDING = re.compile(rf"(?:(?i:\b(?:{_TITLES}))(?:\s+{_CAP})*|Persona \d+),?\s*$")
+_JOIN_GAP_S = 2.0  # dos trozos seguidos de la misma voz a menos de esto pueden partir un nombre
 
 
 _CONNECTORS = {"de", "del", "la", "los", "y"}
@@ -57,8 +65,8 @@ def _keep_words(language: str = "es") -> frozenset[str]:
     with (CUES_DIR / f"{language}.toml").open("rb") as fh:
         words = tomllib.load(fh).get("pseudonymize", {}).get("keep", [])
     return (
-        frozenset(t for w in words for t in _plain(w).split())
-        | frozenset(t for w in _TITLES.split("|") for t in _plain(w).split())
+        frozenset(t for w in words for t in _low(w).split())
+        | frozenset(t for w in _TITLES.split("|") for t in _low(w).split())
         | {"persona"}
     )
 
@@ -70,25 +78,32 @@ def _common_words(language: str = "es") -> frozenset[str]:
     return frozenset(t for w in words for t in _plain(w).split())
 
 
+def _low(text: str) -> str:
+    """Minúsculas conservando tildes: «Cortés» (apellido) no es «Cortes» (institución)."""
+    return " ".join(re.findall(r"\w+", unicodedata.normalize("NFC", text).lower()))
+
+
 _CAP_TOKEN = re.compile(_CAP)
 _SENTENCE_START = re.compile(r"(?:^|[.?!¿¡:;«\"(–—-])\s*$")
 
 
-def _strict_spans(text: str) -> list[tuple[int, int, str]]:
+def _strict_spans(text: str, continues: bool = False) -> list[tuple[int, int, str]]:
     """Palabras con mayúscula a mitad de frase que no están en la lista de excepciones.
 
     A inicio de frase, una palabra cuenta si va seguida de otra candidata («Agustio Itamillasquer
     presenta») o si es la frase entera («Uriarte.») y no es una palabra común («Gracias.»).
+    Con `continues`, el texto sigue una frase del trozo anterior: su inicio no es inicio de frase.
     """
     keep = _keep_words()
     common = _common_words()
     spans: list[tuple[int, int, str]] = []
     held: re.Match | None = None  # candidata al inicio de frase, pendiente de la siguiente
     for m in _CAP_TOKEN.finditer(text):
-        if _plain(m.group()).strip() in keep or (m.group().isupper() and len(m.group()) >= 2):
+        if _low(m.group()) in keep or (m.group().isupper() and len(m.group()) >= 2):
             held = None  # lista de excepciones o siglas (IVA, PIB, UE): no son nombres
             continue
-        if _SENTENCE_START.search(text[: m.start()]):
+        before = text[: m.start()]
+        if _SENTENCE_START.search(before) and not (continues and not before.strip()):
             alone = text[m.end() : m.end() + 1] in ("", ".", "?", "!")
             if alone and _plain(m.group()).strip() not in common:
                 spans.append((m.start(), m.end(), m.group()))
@@ -106,18 +121,26 @@ def _strict_spans(text: str) -> list[tuple[int, int, str]]:
     return spans
 
 
-def find_names(text: str, strict: bool = False) -> list[tuple[int, int, str]]:
+def find_names(
+    text: str, strict: bool = False, continues: bool = False
+) -> list[tuple[int, int, str]]:
     """(inicio, fin, nombre) de cada nombre detectado, sin solapes.
 
     Con `strict`, añade cualquier palabra con mayúscula a mitad de frase que no sea una
-    institución o lugar conocido (redacta de más a propósito).
+    institución o lugar conocido (redacta de más a propósito), y el apellido en minúscula tras
+    un tratamiento. `continues`: el texto sigue una frase del trozo anterior.
     """
     spans = []
     for rx in (_AFTER_TITLE, _AFTER_INTRO):
         spans += [(m.start("name"), m.end("name"), m.group("name")) for m in rx.finditer(text)]
     if strict:
-        spans += _strict_spans(text)
-    spans.sort()
+        spans += [
+            (m.start("name"), m.end("name"), m.group("name"))
+            for m in _LOWER_AFTER_TITLE.finditer(text)
+            if _low(m.group("name")) not in _keep_words()
+        ]
+        spans += _strict_spans(text, continues)
+    spans.sort(key=lambda s: (s[0], -s[1]))  # a igual inicio, gana el nombre más largo
     out: list[tuple[int, int, str]] = []
     for s in spans:
         if not out or s[0] >= out[-1][1]:
@@ -132,10 +155,29 @@ def speaker_codes(timeline: AnalysisTimeline) -> dict[str, str]:
     )}  # fmt: skip
 
 
-def _replace(text: str, registry: dict[str, str]) -> str:
-    for start, end, name in reversed(find_names(text, strict=True)):
-        text = text[:start] + _code_for(name, registry, lambda: "Persona ?") + text[end:]
+def _replace(text: str, registry: dict[str, str], continues: bool = False, prefix: str = "") -> str:
+    """Sustituye cada nombre por su código. Si el nombre va justo detrás de otro código
+    («Persona 52 Ferro», o «doña Persona 52» | «Ferro» en el trozo anterior), es el resto del
+    mismo nombre y se quita."""
+    for start, end, name in reversed(find_names(text, strict=True, continues=continues)):
+        before = text[:start] if text[:start].strip() else prefix + text[:start]
+        if _TRAIL_CODE.search(before):
+            text = text[:start].rstrip() + text[end:]
+        else:
+            text = text[:start] + _code_for(name, registry, lambda: "Persona ?") + text[end:]
     return text
+
+
+def _continues(prev, ev) -> bool:
+    """`ev` sigue la frase de `prev`: misma voz, casi sin pausa y `prev` acaba en un tratamiento
+    o en un código, a la espera del nombre."""
+    return (
+        prev is not None
+        and bool(prev.speaker_id)
+        and prev.speaker_id == ev.speaker_id
+        and ev.start_s - prev.end_s <= _JOIN_GAP_S
+        and bool(_NAME_PENDING.search(prev.text or ""))
+    )
 
 
 def pseudonymize_timeline(
@@ -169,16 +211,28 @@ def pseudonymize_timeline(
             for _, _, name in find_names(text):
                 _code_for(name, registry, lambda c=codes[nxt.speaker_id]: c)
     # 2) el resto de nombres: código nuevo, estable en todo el vídeo
-    for ev in speech:
-        for _, _, name in find_names(ev.text or "", strict=True):
+    cont = {
+        id(ev) for prev, ev in zip([None, *speech], speech, strict=False) if _continues(prev, ev)
+    }
+    texts = [(ev.text or "", id(ev) in cont) for ev in speech]
+    texts += [(e.text, False) for e in timeline.events if e.text and e.type != EventType.SPEECH]
+    texts += [(g.phrase, False) for s in timeline.speakers for g in s.gender_evidence]
+    for text, continues in texts:
+        for _, _, name in find_names(text, strict=True, continues=continues):
             if not any(k in registry for k in _keys(name)):
                 _code_for(name, registry, lambda n=next_extra: f"Persona {n}")
                 next_extra += 1
             else:
                 _code_for(name, registry, lambda: "Persona ?")
 
+    new_text: dict[int, str] = {}
+    for prev, ev in zip([None, *speech], speech, strict=False):
+        c = id(ev) in cont
+        new_text[id(ev)] = _replace(ev.text, registry, c, new_text[id(prev)] if c else "")
     events = [
-        e.model_copy(update={"text": _replace(e.text, registry)}) if e.text else e
+        e.model_copy(update={"text": new_text.get(id(e)) or _replace(e.text, registry)})
+        if e.text
+        else e
         for e in timeline.events
     ]
     speakers = [
