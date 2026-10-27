@@ -52,7 +52,7 @@ Usamos modelos preentrenados de terceros tal cual, salvo el ajuste ligero de Qwe
 | `pyannote/segmentation-3.0` | Segmentación de voces | MIT (acceso restringido) | AISHELL, AliMeeting, AMI, AVA-AVD, DIHARD, Ego4D, MSDWild, REPERE y VoxConverse (conjuntos de entrenamiento). |
 | `pyannote/speaker-diarization-3.1` | Diarización | MIT (acceso restringido) | Mismo pipeline que la versión 3.0, en PyTorch puro; se evalúa (no se entrena aquí) en AISHELL-4, AliMeeting, AMI, AVA-AVD, DIHARD 3, MSDWild, REPERE y VoxConverse. |
 | `pyannote/wespeaker-voxceleb-resnet34-LM` | Embeddings de voz | CC-BY-4.0 | Pendiente de verificar. |
-| MediaPipe / OpenCV | Personas visibles y tiempo en pantalla (sin caras) | Apache-2.0 | Pendiente de verificar. |
+| MediaPipe / OpenCV | Personas visibles y tiempo en pantalla (sin caras) | Apache-2.0 | Verificada el 20 y el 21 oct 2026 (`THIRD_PARTY_LICENSES.md`). |
 | Qwen3.5 4B y 9B (motor LLM opcional) | Preguntas (M09) y resumen del asistente de voz | Apache-2.0 (21 oct 2026) | Pendiente de verificar. |
 
 Implicaciones: los modelos de voz se entrenaron con corpus mayoritariamente de reuniones y debates y pueden rendir peor con ciertos acentos, idiomas o perfiles de voz. Por eso medimos el error por grupo y mantenemos la revisión humana.

@@ -10,7 +10,7 @@ Medir de forma transparente la presencia, la participación y el protagonismo de
 
 - **Con permiso:** usa solo grabaciones que tengas derecho a analizar, con la información y el consentimiento o la base legal que exija la normativa (RGPD y AI Act).
 - **Sin identificar a personas:** presenta resultados agregados. No los uses para evaluar, puntuar, vigilar ni sancionar a individuos.
-- **Sin reconocimiento facial y sin inferir el género** de nadie a partir de la cara o de la voz. El género sale de pistas del lenguaje (cómo nombra la institución a cada persona), de un dato declarado o de la revisión humana, y el informe dice cómo se obtuvo cada etiqueta.
+- **Sin reconocimiento facial, y la IA nunca infiere el género** de nadie a partir de la cara o de la voz (en la revisión humana, las anotadoras marcan el género percibido). El género sale de pistas del lenguaje (cómo nombra la institución a cada persona), de un dato declarado o de la revisión humana, y el informe dice cómo se obtuvo cada etiqueta.
 - **Avisando:** pon un aviso informativo en la sala donde se graba (art. 13 RGPD) y no quites los avisos de método y límites de los informes.
 - **Con supervisión humana:** revisa las inferencias marcadas como poco fiables antes de dar un resultado por bueno.
 - **Con honestidad sobre los límites:** si la diferencia entre grupos cabe en el margen de error, di "no concluyente". Indica siempre el tamaño de la muestra.

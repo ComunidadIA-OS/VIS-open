@@ -257,7 +257,8 @@ def _footer(canvas, doc) -> None:  # noqa: ANN001 - firma de ReportLab
     canvas.drawString(
         2 * cm,
         1.2 * cm,
-        "VIS Open · cifras calculadas por código · sin nombres · la IA no lee caras ni voces",
+        "VIS Open · cifras calculadas por código · sin nombres · "
+        "la IA no deduce el género de la cara ni de la voz",
     )
     canvas.drawRightString(A4[0] - 2 * cm, 1.2 * cm, f"Página {doc.page}")
     canvas.restoreState()
