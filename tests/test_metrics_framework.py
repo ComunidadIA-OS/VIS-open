@@ -191,3 +191,14 @@ def test_gap_rule_requires_threshold_and_all_three_conditions():
     assert not gap_is_conclusive(10.0, threshold=15, **ok)[0]  # no supera el umbral
     assert not gap_is_conclusive(20.0, threshold=15, unattributed_share=25.0, margin=None)[0]
     assert not gap_is_conclusive(20.0, threshold=15, unattributed_share=0.0, margin=25.0)[0]
+
+
+def test_gap_rule_matches_metricas_md_edges():
+    """docs/metricas.md, apartado 3: 15,0 cuenta como brecha; 20,0 % sin atribuir todavía vale."""
+    assert gap_is_conclusive(15.0, threshold=15, unattributed_share=0.0, margin=None)[0]
+    assert not gap_is_conclusive(14.99, threshold=15, unattributed_share=0.0, margin=None)[0]
+    assert gap_is_conclusive(30.0, threshold=15, unattributed_share=20.0, margin=None)[0]
+    ok, why = gap_is_conclusive(30.0, threshold=15, unattributed_share=20.5, margin=None)
+    assert not ok and "20 %" in why
+    # puntos de %, no fracción: 2,5 % sin atribuir no tapa una brecha de 9 puntos
+    assert not gap_is_conclusive(9.05, threshold=15, unattributed_share=2.53, margin=None)[0]
