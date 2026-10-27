@@ -32,7 +32,7 @@ Para proponer una contribución nueva (una mejora, un modelo abierto, un caso de
 
 ## Reglas del proyecto
 
-- **Género:** nunca se infiere de la cara ni de la voz. Sale de pistas del lenguaje de la transcripción, de un dato declarado o de la revisión humana, y el informe dice cómo se obtuvo; `desconocido` siempre es visible.
+- **Género:** la IA nunca lo infiere de la cara ni de la voz. Sale de pistas del lenguaje de la transcripción, de un dato declarado o de la revisión humana, y el informe dice cómo se obtuvo; `desconocido` siempre es visible.
 - **Sin reconocimiento facial.**
 - **Datos:** no se suben al repo audio, vídeo, transcripciones reales ni datos personales. Los tests usan solo datos sintéticos. Tratar datos personales reales exige base jurídica y autorización expresa de la Organización.
 - **Secretos:** nunca en el repo, en issues ni en PRs (tokens de OVHcloud o de Hugging Face, claves, PDF de acceso). Van en `.env`, que está ignorado. Las credenciales no se comparten con personas ajenas al equipo.
