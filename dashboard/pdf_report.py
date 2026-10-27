@@ -26,6 +26,7 @@ from reportlab.platypus import (
 )
 
 from dashboard.data import (
+    CHAIR_LABEL,
     METHOD_NOTICE,
     PENDING_METRICS,
     SOURCE_NOTICE,
@@ -57,6 +58,20 @@ INK, MUTED, LINE = (
     colors.HexColor("#666666"),
     colors.HexColor("#e5e5ea"),
 )
+
+
+ORIGIN_LABELS = {
+    "pista_lenguaje": "pista del lenguaje",
+    "anotacion_percibida": "dos anotadoras",
+    "registro_publico": "registro público",
+    "declarado": "declarado",
+    "desconocido": "sin pista",
+}
+
+
+def _n(value: float, decimals: int = 1) -> str:
+    """Número con coma decimal, como el resto del informe: 2.8 → «2,8»."""
+    return f"{float(value):.{decimals}f}".replace(".", ",")
 
 
 def _t(text: object) -> str:
@@ -229,7 +244,7 @@ def _people_line(session: Session) -> Drawing:
     )
     d.add(
         String(
-            0, 82, f"máx. {ymax:.1f} personas", fontName="Helvetica", fontSize=7, fillColor=MUTED
+            0, 82, f"máx. {_n(ymax)} personas", fontName="Helvetica", fontSize=7, fillColor=MUTED
         )
     )
     return d
@@ -240,7 +255,9 @@ def _footer(canvas, doc) -> None:  # noqa: ANN001 - firma de ReportLab
     canvas.setFont("Helvetica", 8)
     canvas.setFillColor(MUTED)
     canvas.drawString(
-        2 * cm, 1.2 * cm, "VIS Open - cifras calculadas por código; sin nombres, sin caras"
+        2 * cm,
+        1.2 * cm,
+        "VIS Open · cifras calculadas por código · sin nombres · la IA no lee caras ni voces",
     )
     canvas.drawRightString(A4[0] - 2 * cm, 1.2 * cm, f"Página {doc.page}")
     canvas.restoreState()
@@ -336,7 +353,8 @@ def report_pdf(
         _grid(
             [["Género", "Tiempo de palabra", "%"]]
             + [
-                [r.gender, fmt_time(r.minutos * 60), fmt_pct(r.porcentaje)] for r in gt.itertuples()
+                [r.gender.replace("_", " "), fmt_time(r.minutos * 60), fmt_pct(r.porcentaje)]
+                for r in gt.itertuples()
             ],
             [WIDTH * 0.5, WIDTH * 0.25, WIDTH * 0.25],
         ),
@@ -349,7 +367,13 @@ def report_pdf(
         _grid(
             [["Persona", "Género", "Origen", "Tiempo de palabra", "Intervenciones"]]
             + [
-                [r.persona, r.genero, r.origen, fmt_time(r.minutos * 60), str(r.intervenciones)]
+                [
+                    r.persona,
+                    r.genero,
+                    "" if r.genero == CHAIR_LABEL else ORIGIN_LABELS.get(r.origen, r.origen),
+                    fmt_time(r.minutos * 60),
+                    str(r.intervenciones),
+                ]
                 for r in voices.itertuples()
             ]
         ),
@@ -381,8 +405,8 @@ def report_pdf(
             Paragraph(
                 _t(
                     f"Personas visibles a la vez: máximo {v['personas_visibles_max']}, mediana "
-                    f"{v['personas_visibles_mediana']}; fotogramas sin nadie: "
-                    f"{v['fotogramas_sin_personas_%']} %."
+                    f"{_n(v['personas_visibles_mediana'])}; fotogramas sin nadie: "
+                    f"{_n(v['fotogramas_sin_personas_%'])} %."
                 ),
                 st["p"],
             ),
@@ -409,8 +433,8 @@ def report_pdf(
                                 str(r.pista),
                                 fmt_time(r.minutos_en_pantalla * 60),
                                 fmt_pct(r.porcentaje),
-                                "" if pd.isna(r.tamano_medio) else f"{r.tamano_medio:.2f}",
-                                "" if pd.isna(r.centralidad) else f"{r.centralidad:.2f}",
+                                "" if pd.isna(r.tamano_medio) else _n(r.tamano_medio, 2),
+                                "" if pd.isna(r.centralidad) else _n(r.centralidad, 2),
                                 r.genero_por_audio,
                             ]
                             for r in tracks.itertuples()
