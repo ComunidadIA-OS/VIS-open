@@ -4,7 +4,7 @@ Estado: **validado por Ivette** el 25 oct 2026 frente a la lista oficial de inte
 
 ## Principio
 
-El género de una voz sale del **texto de la transcripción** y siempre con evidencia (frase, minuto, método, confianza). Nunca de la cara, la voz ni el tono. Si no hay pista o se contradicen: `desconocido` y fila en el CSV de revisión.
+El género de una voz sale del **texto de la transcripción** y siempre con evidencia (frase, minuto, método, confianza). La IA nunca lo deduce de la cara, la voz ni el tono; en la revisión humana, las anotadoras marcan el género percibido. Si no hay pista o se contradicen: `desconocido` y fila en el CSV de revisión.
 
 ## Pistas (español)
 

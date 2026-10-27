@@ -99,11 +99,12 @@ El vídeo debe tener su fila completa en el manifiesto (ver `docs/FUENTE_CONGRES
 
 ### Límite: el género que se mide no es la identidad de género
 
-- VIS Open mide el género **tal como se nombra en la Cámara** («señora ministra», «el diputado»), no la identidad de género de cada persona, que solo ella puede declarar. Por eso usa tres valores (mujer, hombre, `desconocido`) y no puede reflejar identidades no binarias.
-- Solo la propia persona puede decir «soy una mujer». Asignar el género a alguien sin su consentimiento, por cómo se le habla o por su aspecto, puede equivocarse con su identidad (*misgendering*). Por eso VIS Open no publica el género de nadie identificado: cada voz es un código anónimo, las cifras son agregadas y, cuando existe, manda el género que la persona ha declarado (en las grabaciones propias lo declara cada participante).
+- VIS Open mide el género **tal como se nombra en la Cámara** («señora ministra», «el diputado»), validado con la lista oficial: es **atribuido, no autodeclarado**, y no es la identidad de género de cada persona, que solo ella puede declarar. Por eso usa tres valores (mujer, hombre, `desconocido`) y no puede reflejar identidades no binarias.
+- Solo la propia persona puede decir «soy una mujer». Asignar el género a alguien sin su consentimiento, por cómo se le habla o por su aspecto, puede equivocarse con su identidad (*misgendering*). Por eso VIS Open no publica el género de nadie identificado: cada voz es un código anónimo, las conclusiones son agregadas (nunca sobre una persona identificada) y, cuando existe, manda el género que la persona ha declarado (en las grabaciones propias lo declara cada participante).
 - Cualquier modelo que asigne género, sea de reglas, de lenguaje o una persona, puede arrastrar sesgos y estereotipos de rol («el presidente», «la portavoz»). Aquí la IA no decide el género por su cuenta: lo leen reglas sobre el tratamiento explícito y, si no lo hay, queda `desconocido`.
-- En Human in the loop, el género que marcan las anotadoras es **percibido** y también puede tener sesgo. Para reducirlo, solo cuenta si coinciden dos anotadoras, `desconocido` siempre es una respuesta válida y visible, y cada dato lleva su procedencia.
+- Donde más se nota el riesgo de malgenerizar es en Human in the loop: el género que marcan las anotadoras es **percibido** y también puede tener sesgo. Para reducirlo, solo cuenta si coinciden dos anotadoras, `desconocido` siempre es una respuesta válida y visible, y cada dato lleva su procedencia.
 - Las cifras describen la presencia y la participación según cómo se nombra a las personas en el Pleno; no son un juicio sobre ninguna de ellas.
+- Límite: aunque no se guarden nombres, un cargo público («la ministra de Hacienda») puede reconocerse por la fecha de la sesión. Detalle en `docs/MODEL_CARD.md`.
 
 ## Componentes de terceros y licencias
 

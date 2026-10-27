@@ -99,11 +99,12 @@ A video must have its complete row in the manifest (see `docs/FUENTE_CONGRESO.md
 
 ### Limitation: the gender we measure is not gender identity
 
-- VIS Open measures gender **as it is named in the Chamber** («señora ministra», «el diputado»), not each person's gender identity, which only they can declare. That is why it uses three values (woman, man, `desconocido`) and cannot reflect non-binary identities.
-- Only the person themselves can say «I am a woman». Assigning someone's gender without their consent, from how they are addressed or how they look, can get their identity wrong (*misgendering*). That is why VIS Open never publishes the gender of an identified person: each voice is an anonymous code, figures are aggregated and, when available, the gender the person has declared prevails (in our own recordings each participant declares it).
+- VIS Open measures gender **as it is named in the Chamber** («señora ministra», «el diputado»), checked against the official list: it is **attributed, not self-declared**, and it is not each person's gender identity, which only they can declare. That is why it uses three values (woman, man, `desconocido`) and cannot reflect non-binary identities.
+- Only the person themselves can say «I am a woman». Assigning someone's gender without their consent, from how they are addressed or how they look, can get their identity wrong (*misgendering*). That is why VIS Open never publishes the gender of an identified person: each voice is an anonymous code, conclusions are aggregated (never about an identified person) and, when available, the gender the person has declared prevails (in our own recordings each participant declares it).
 - Any model that assigns gender, whether rules, a language model or a person, can carry role biases and stereotypes («el presidente», «la portavoz»). Here the AI does not decide gender on its own: rules read the explicit form of address and, if there is none, the value stays `desconocido`.
-- In Human in the loop, the gender the annotators mark is **perceived** and can also be biased. To reduce this, it only counts when two annotators agree, `desconocido` is always a valid and visible answer, and every value carries its provenance.
+- The risk of misgendering is highest in Human in the loop: the gender the annotators mark is **perceived** and can also be biased. To reduce this, it only counts when two annotators agree, `desconocido` is always a valid and visible answer, and every value carries its provenance.
 - The figures describe presence and participation according to how people are named in the plenary; they are not a judgement about any of them.
+- Limitation: even though no names are stored, a public office holder («la ministra de Hacienda») can be recognised from the session date. Details in `docs/MODEL_CARD.md`.
 
 ## Third-party components and licences
 
