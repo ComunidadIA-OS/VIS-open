@@ -77,7 +77,7 @@ el aviso «349 escaños ocupados: hay vacantes ese día».
 4. **Gráfico de barras** del tiempo de palabra por género.
 5. **Línea de tiempo** de la sesión: una franja horizontal coloreada según el género de quien habla en cada momento; en gris, la parte del vídeo que no se analiza.
 6. **Tabla de intervenciones**: código anónimo de la persona (Persona 1, Persona 2…), minuto de inicio, duración, género y la evidencia del género (la frase y el minuto, con el nombre sustituido por el código, por ejemplo «tiene la palabra la señora [Persona 3]»). Las voces sin pista aparecen como `desconocido`. Nunca se muestran nombres.
-7. **Aviso de método**, siempre visible: «El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la cara ni la voz. Los resultados son orientativos y requieren revisión humana.»
+7. **Aviso de método**, siempre visible: «La IA nunca deduce el género de la cara ni de la voz: lo asigna solo por pistas del lenguaje de la sesión. Si no las hay, en Human in the loop dos anotadoras marcan el género percibido; solo cuenta si coinciden. Los resultados son orientativos y requieren revisión humana.»
 
 ## Subtítulos para personas sordas
 

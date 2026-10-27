@@ -42,7 +42,11 @@ Medir, en debates grabados, la presencia, la participación y el protagonismo de
 
 ## Cómo se trata el género
 
-Ningún modelo lo infiere de la cara ni de la voz. Decisión del 16 oct, implementada con reglas (`decision/gender_cues.py`, ver `docs/GENERO_LENGUAJE.md`) y validada frente a la lista oficial del Congreso (83 de 87 personas correctas, 0 errores, 4 a revisión): el género se toma del lenguaje de la transcripción («la señora / el señor X» de la Presidencia, concordancias) con la frase y el minuto como evidencia; sin pista o con pistas contradictorias queda `desconocido` y pasa a revisión humana. No se usa el tono de voz: sería categorización biométrica (AI Act, Anexo III 1.b). En la evaluación se mide el acuerdo con dos anotadoras (kappa de Cohen). `desconocido` siempre es visible.
+Ningún modelo lo infiere de la cara ni de la voz. Decisión del 16 oct, implementada con reglas (`decision/gender_cues.py`, ver `docs/GENERO_LENGUAJE.md`) y validada frente a la lista oficial del Congreso (86 de 87 personas correctas, 0 errores, 1 a revisión; `docs/EVALUACION.md`): el género se toma del lenguaje de la transcripción («la señora / el señor X» de la Presidencia, concordancias) con la frase y el minuto como evidencia; sin pista o con pistas contradictorias queda `desconocido` y pasa a revisión humana. No se usa el tono de voz: sería categorización biométrica (AI Act, Anexo III 1.b). En la evaluación se mide el acuerdo con dos anotadoras (kappa de Cohen). `desconocido` siempre es visible.
+
+**Atribuido, no autodeclarado, y binario.** En el Congreso, el género sale del tratamiento que da la Cámara («la señora diputada»): es un género atribuido, no la identidad de género, que solo cada persona puede declarar. Tiene dos valores más `desconocido` y no refleja identidades no binarias. Cuando hay un género declarado (grabaciones propias), manda ese dato.
+
+**Riesgo de malgenerizar (*misgendering*).** Asignar el género sin el consentimiento de la persona puede equivocarse con su identidad. El riesgo es mayor en la revisión humana, donde el género es **percibido** (`anotacion_percibida`) y puede arrastrar estereotipos. Lo reducimos así: solo cuenta si coinciden dos anotadoras, `desconocido` siempre es válido y visible, cada dato lleva su procedencia, no se guardan nombres (cada voz es «Persona N») y las conclusiones son agregadas, nunca sobre una persona identificada. Límite: un cargo público («la ministra de Hacienda») puede reconocerse por la fecha de la sesión aunque no se guarde su nombre.
 
 ## Asistente de voz
 

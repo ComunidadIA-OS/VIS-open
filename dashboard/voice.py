@@ -520,11 +520,11 @@ def transcribe(
 METHOD = (
     "Así funciona el análisis. Se saca el audio del vídeo del Congreso. Un modelo de voz lo pasa a "
     "texto y separa las voces. Cuando quien preside da la palabra, por ejemplo «tiene la palabra "
-    "la señora tal», esa voz recibe su género por el texto. El género nunca se deduce de la cara "
-    "ni del timbre de la voz. Las voces que quedan sin género las valida una persona, y cuenta "
-    "cuando dos personas coinciden. Después el código calcula el tiempo de palabra de mujeres y "
-    "de hombres; ningún modelo calcula cifras. Si faltan datos o la diferencia no es clara, el "
-    "resultado es no concluyente."
+    "la señora tal», esa voz recibe su género por el texto. La IA nunca deduce el género de la "
+    "cara ni del timbre de la voz. Las voces que quedan sin género las valida una persona, que "
+    "marca el género percibido, y cuenta cuando dos personas coinciden. Después el código calcula "
+    "el tiempo de palabra de mujeres y de hombres; ningún modelo calcula cifras. Si faltan datos "
+    "o la diferencia no es clara, el resultado es no concluyente."
 )
 
 

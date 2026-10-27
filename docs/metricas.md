@@ -15,7 +15,7 @@ Definiciones formales de las métricas de esta entrega. Borrador de Ivette para 
 |---|---|
 | Roles | Cada persona tiene un rol: `PRESIDENCIA` (quien preside), `PREGUNTA` (diputada o diputado que formula) o `GOBIERNO` (quien responde). |
 | Presidencia | Se excluye de todas las métricas salvo M13. Se informa aparte. |
-| Género | `mujer`, `hombre` o `desconocido`, atribuido por pistas del lenguaje («la señora», «el señor», «la ministra»). Nunca se infiere de la voz ni de la cara. Se informa como género atribuido, no verificado. |
+| Género | `mujer`, `hombre` o `desconocido`, atribuido por pistas del lenguaje («la señora», «el señor», «la ministra»). La IA nunca lo infiere de la voz ni de la cara. Se informa como género atribuido, no autodeclarado, y binario (más `desconocido`). |
 | Desconocido y sin atribuir | Igual que en el código (`metrics/frame.py`): `desconocido` es una voz identificada sin pista de género; `sin_atribuir` es tiempo de voz que no se ha asignado a ninguna voz. Los dos se muestran siempre aparte y nunca se reparten entre mujeres y hombres. |
 | Muestra mínima | Cada métrica fija dos mínimos, que usa el marco de código: voces con género conocido y segundos con género conocido (apartado 4 ter). Además, para comparar dos grupos hacen falta al menos 2 voces en cada uno. Si no se cumple, el resultado es «no concluyente: muestra insuficiente». |
 | Margen de error | En las métricas de tiempo, el margen es la parte del tiempo que no sabemos atribuir (desconocido + sin atribuir, en puntos de %): es lo máximo que podría moverse el resultado si todo ese tiempo fuera de un solo grupo. |
