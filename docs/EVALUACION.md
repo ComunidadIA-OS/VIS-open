@@ -2,22 +2,22 @@
 
 Principio (charla de visión del reto): **evaluar sobre nuestro propio contenido, con anotación hecha a mano, y contar los errores con honestidad**. Una cifra sin su error no se publica. Cada capa de VIS Open se evalúa con tres preguntas: ¿se encuentra lo que hay?, ¿el atributo es correcto?, ¿la medida final se acerca a la de una persona?
 
-## Resultados (validación de Ivette, 25–26 oct 2026)
+## Resultados (validación de Ivette, 25–27 oct 2026)
 
-Referencia: la **lista oficial de intervenciones** del archivo audiovisual del Congreso, sobre las tres sesiones de evaluación (V005, V006 y V007). Sustituye a la anotación manual de 150 turnos prevista (#52): es más completa e independiente del sistema. Cada voz se empareja con la persona oficial por el orden y la estructura de las preguntas, sin usar el género; el género solo se compara al final. Detalle en las issues #55 y #144.
+Referencia: la **lista oficial de intervenciones** del archivo audiovisual del Congreso, sobre las tres sesiones de evaluación (V005, V006 y V007). Sustituye a la anotación manual de 150 turnos prevista (#52): es más completa e independiente del sistema. Cada voz se empareja con la persona oficial por el orden y la estructura de las preguntas, sin usar el género; el género solo se compara al final. Detalle en las issues #55 y #144. Repetida el 27/10 con las transcripciones CSV descargadas del panel (después de regenerar los ficheros): mismo resultado.
 
 | Qué | Resultado |
 |---|---|
 | Personas que intervienen | 87 de 87 (25 / 31 / 31) |
 | Género | 86 correctas (98,9 %), **0 errores**, 1 desconocida (un diputado), que es la que el panel manda a Human in the loop. Antes de mejorar la regla del lenguaje (PR #145) eran 83 correctas y 4 desconocidas, 3 de ellas ministras |
 | Error por grupo | 0 errores en mujeres y en hombres. Sin género: 0 de 47 mujeres y 1 de 40 hombres (antes de la PR #145: 3 de 47 y 1 de 40) |
-| Intervenciones | Oficial 66 / 73 / 76; sistema 64 / 74 / 75. 4 casos de voces mezcladas, siempre entre personas del mismo género |
+| Intervenciones | Oficial 66 / 73 / 76; sistema 64 / 74 / 75. 1 voz que junta a dos personas, las dos mujeres (V007); con los ficheros anteriores al 26/10 eran 4, siempre del mismo género |
 | Bloques de pregunta | 17 / 18 / 20 frente a 17 / 19 / 20. En V006 falta la pregunta 13 (sin anuncio en la transcripción, #124) |
 | M03a / M03b | La pausa de 1 s partía las intervenciones con los aplausos (6,7 / 8,9 / 7,1). Con la nueva definición M03a (5 s): 3,82 / 3,89 / 3,65 frente a 3,88 / 3,84 / 3,80 oficiales (PR #142, con los ficheros regenerados el 26/10). M03b avisa de los bloques con 3 o más voces |
 | Transcripción (WER aproximado) | **10,0 %** frente al Diario de Sesiones en 9 tramos de 5 min (6 341 palabras): V005 10,4 / 10,7 / 11,7 %; V006 10,0 / 6,2 / 10,5 %; V007 15,6 / 7,3 / 7,3 %. Es una **cota superior**: el Diario no es literal (quita titubeos, corrige la sintaxis, escribe los números con letra) y todo eso cuenta como error. Sin nombres propios en los dos lados, por la seudonimización. `python -m evaluation.wer_diario` |
 | M06 | 40 % de 5 / 67 % de 3 / 0 % de 3: **igual que la referencia** en las tres |
 | M09 | 0,75 / 0,86 / 0,81 frente a 0,75 / 0,73 / 0,81: igual en V005 y V007; en V006 falta la pregunta 13 |
-| Modelo (Qwen) | Se evalúa aparte con `modelo_por_pregunta` (si detecta la pregunta y si acierta el cargo). Los m09.json de OVH del 26/10 se generaron sin llamadas al modelo (clave equivocada en el terminal); relanzado el 26/10 con Qwen3.5-9B: marca como pregunta 52 de 55 (16 / 17, 17 / 18 y 19 / 20) y da cargo en todas ellas. Acierto del cargo frente a la lista oficial: pendiente de Ivette |
+| Modelo (Qwen) | Se evalúa aparte con `modelo_por_pregunta` (si detecta la pregunta y si acierta el cargo). Los m09.json de OVH del 26/10 se generaron sin llamadas al modelo (clave equivocada en el terminal); relanzado el 26/10 con Qwen3.5-9B: marca como pregunta 52 de 55 (16 / 17, 17 / 18 y 19 / 20) Frente a la lista oficial (Ivette, 27/10): acierta si la pregunta va a una ministra o a un ministro en 46 de 47 que dan pista (5 sin pista), pero nombra a quien encabeza el Gobierno solo en 5 de 11, sin falsos positivos. No devuelve el cargo sino cómo se llama a la persona en la sala («señora ministra», «señoría», «señor presidente», que vale para la Presidencia del Gobierno y la de la Cámara). Por eso el recuento de M06 y M09 en la sesión de control lo decide el anuncio de la Presidencia (opción 3, #153) |
 
 ### Prueba de inyección de instrucciones (Qwen real, 26 oct 2026)
 
