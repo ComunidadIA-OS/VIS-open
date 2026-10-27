@@ -30,6 +30,8 @@ The dashboard (Streamlit, run locally) is a single page with cards: session vide
 
 The audio of a spoken command is transcribed with `whisper-large-v3-turbo` through an OpenAI-compatible API (OVHcloud AI Endpoints in the challenge). Without that API the dashboard works the same: commands are typed. Which data leave the team, and to whom: [`docs/PROVEEDORES.md`](docs/PROVEEDORES.md).
 
+> **Voice assistant and hands-free mode: beta.** Given the time of the challenge, they have only been tested with a few voices and in a few settings. Making them reliable would take weeks of testing and tuning with more voices, accents, noise and commands. No model is trained: the voice detector, the filters and the command list are tuned. Meanwhile, everything can also be done with mouse and keyboard.
+
 ## Metrics in this release
 
 | ID | What it measures | How it is computed |
