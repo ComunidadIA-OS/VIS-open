@@ -120,7 +120,7 @@ keep = [
   "Vox", "Esquerra", "Republicana", "Junts", "Bildu", "Partido", "PP", "PSOE", "PNV", "ERC",
   "Seguridad", "Social", "Hacienda", "Economía", "Sanidad", "Educación", "Justicia", "Interior",
   "Real", "Decreto", "Decreto-ley", "Ley", "Orgánica", "Boletín", "Oficial", "Diario", "Sesiones",
-  "DANA", "Oriente", "Medio", "Valenciana", "Mazón", "Plan", "Integral", "Respuesta", "Crisis",
+  "DANA", "Oriente", "Medio", "Valenciana", "Plan", "Integral", "Respuesta", "Crisis",
   "Señorías", "Señoría", "Dios", "Navidad", "Europeo", "Banco", "Central", "Mundial", "Ibex",
   # Comunidades y ciudades autónomas y grandes ciudades (no se añaden provincias que también son
   # apellidos frecuentes, como León, Soria o Toledo: mejor redactar de más).

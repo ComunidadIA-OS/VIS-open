@@ -33,12 +33,12 @@ _NAME_RUN = rf"{_NOT_TITLE}{_CAP}(?:\s+(?:(?:de|del|de\s+la|de\s+los|y)\s+)?{_CA
 # Título(s) + nombre; el nombre es lo que se sustituye (grupo «name»).
 _AFTER_TITLE = re.compile(rf"(?i:\b(?:{_TITLES})\b\s+)+(?P<name>{_NAME_RUN})")
 _AFTER_INTRO = re.compile(rf"(?i:\b(?:me\s+llamo|mi\s+nombre\s+es)\s+)(?P<name>{_NAME_RUN})")
-# Apellido que la transcripción escribe en minúscula tras un tratamiento: «señor cuerpo, usted…».
+# Apellido que la transcripción escribe en minúscula tras un tratamiento: «señor sala, usted…».
 _LOWER_AFTER_TITLE = re.compile(
     r"(?i:\b(?:señor|señora|don|doña)\s+)(?P<name>[a-záéíóúñü]+)(?=\s*[,.;:?!])"
 )
 _TRAIL_CODE = re.compile(r"Persona \d+\s*$")  # el nombre ya se sustituyó justo antes
-# El trozo acaba esperando un nombre: «…señor» | «Rojas, …»; «doña Persona 52» | «Ferro, …».
+# El trozo acaba esperando un nombre: «…señor» | «Sala, …»; «doña Persona 52» | «Ortega, …».
 _NAME_PENDING = re.compile(rf"(?:(?i:\b(?:{_TITLES}))(?:\s+{_CAP})*|Persona \d+),?\s*$")
 _JOIN_GAP_S = 2.0  # dos trozos seguidos de la misma voz a menos de esto pueden partir un nombre
 
@@ -157,7 +157,7 @@ def speaker_codes(timeline: AnalysisTimeline) -> dict[str, str]:
 
 def _replace(text: str, registry: dict[str, str], continues: bool = False, prefix: str = "") -> str:
     """Sustituye cada nombre por su código. Si el nombre va justo detrás de otro código
-    («Persona 52 Ferro», o «doña Persona 52» | «Ferro» en el trozo anterior), es el resto del
+    («Persona 52 Ortega», o «doña Persona 52» | «Ortega» en el trozo anterior), es el resto del
     mismo nombre y se quita."""
     for start, end, name in reversed(find_names(text, strict=True, continues=continues)):
         before = text[:start] if text[:start].strip() else prefix + text[:start]

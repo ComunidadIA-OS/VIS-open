@@ -166,27 +166,27 @@ def test_strict_mode_keeps_acronyms_but_still_hides_surnames():
     [
         # Whisper parte el nombre entre dos trozos de la misma voz
         (
-            [("SPEAKER_00", "Pregunta de la diputada doña Ana"), ("SPEAKER_00", "Ferro, del PP.")],
-            ["Pregunta de la diputada doña Persona 2", ", del PP."],
+            [("SPEAKER_00", "Pregunta de la diputada doña Luna"), ("SPEAKER_00", "Ortega, del PP")],
+            ["Pregunta de la diputada doña Persona 2", ", del PP"],
         ),
         (
-            [("SPEAKER_01", "Mire, señor"), ("SPEAKER_01", "Rojas, yo creo que no.")],
+            [("SPEAKER_01", "Mire, señor"), ("SPEAKER_01", "Sala, yo creo que no.")],
             ["Mire, señor", "Persona 2, yo creo que no."],
         ),
         # ya seudonimizado (reanalizar): el resto del nombre tras el código se quita
         (
-            [("SPEAKER_00", "doña Persona 52"), ("SPEAKER_00", "Ferro, del Grupo")],
+            [("SPEAKER_00", "doña Persona 52"), ("SPEAKER_00", "Ortega, del Grupo")],
             ["doña Persona 52", ", del Grupo"],
         ),
         ([("SPEAKER_00", "Persona 94 Cortés, del Grupo Mixto.")], ["Persona 94, del Grupo Mixto."]),
         # «Cortés» es apellido; «Cortes», institución
         (
-            [("SPEAKER_00", "Doña Ana Ferro Cortés y las Cortes Generales.")],
+            [("SPEAKER_00", "Doña Luna Ortega Cortés y las Cortes Generales.")],
             ["Doña Persona 2 y las Cortes Generales."],
         ),
         # apellido en minúscula tras un tratamiento; el cargo sí se queda
         (
-            [("SPEAKER_01", "Señor cuerpo, yo no le diré que no, señor presidente.")],
+            [("SPEAKER_01", "Señor sala, yo no le diré que no, señor presidente.")],
             ["Señor Persona 2, yo no le diré que no, señor presidente."],
         ),
     ],
