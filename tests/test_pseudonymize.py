@@ -159,3 +159,38 @@ def test_strict_mode_keeps_acronyms_but_still_hides_surnames():
 
     text = "Habló con Alcaraz sobre el IVA, el PIB y la OPEP."
     assert [n for _, _, n in find_names(text, True)] == ["Alcaraz"]
+
+
+@pytest.mark.parametrize(
+    ("turns", "texts"),
+    [
+        # Whisper parte el nombre entre dos trozos de la misma voz
+        (
+            [("SPEAKER_00", "Pregunta de la diputada doña Luna"), ("SPEAKER_00", "Ortega, del PP")],
+            ["Pregunta de la diputada doña Persona 2", ", del PP"],
+        ),
+        (
+            [("SPEAKER_01", "Mire, señor"), ("SPEAKER_01", "Sala, yo creo que no.")],
+            ["Mire, señor", "Persona 2, yo creo que no."],
+        ),
+        # ya seudonimizado (reanalizar): el resto del nombre tras el código se quita
+        (
+            [("SPEAKER_00", "doña Persona 52"), ("SPEAKER_00", "Ortega, del Grupo")],
+            ["doña Persona 52", ", del Grupo"],
+        ),
+        ([("SPEAKER_00", "Persona 94 Cortés, del Grupo Mixto.")], ["Persona 94, del Grupo Mixto."]),
+        # «Cortés» es apellido; «Cortes», institución
+        (
+            [("SPEAKER_00", "Doña Luna Ortega Cortés y las Cortes Generales.")],
+            ["Doña Persona 2 y las Cortes Generales."],
+        ),
+        # apellido en minúscula tras un tratamiento; el cargo sí se queda
+        (
+            [("SPEAKER_01", "Señor sala, yo no le diré que no, señor presidente.")],
+            ["Señor Persona 2, yo no le diré que no, señor presidente."],
+        ),
+    ],
+)
+def test_names_split_or_left_by_transcription_are_hidden(turns, texts):
+    out, _ = pseudonymize_timeline(make(turns))
+    assert [e.text for e in out.events] == texts
