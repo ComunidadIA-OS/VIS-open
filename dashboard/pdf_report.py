@@ -41,6 +41,7 @@ from dashboard.data import (
     video_tables,
     video_tracks_with_totals,
     voices_table,
+    with_unit,
 )
 
 WIDTH = A4[0] - 4 * cm  # ancho útil
@@ -267,7 +268,13 @@ def report_pdf(
         _box(summary, st["p"], "#f4f1f8", "#7b3fa0"),
         Paragraph("Métricas", st["h2"]),
     ]
-    cards = [metric_card(r) for r in session.metrics.values()]
+    cards = []
+    for key, r in session.metrics.items():
+        c = metric_card(r)
+        valor = " ".join(filter(None, [with_unit(key, c["valor"]), c.get("base")]))
+        if c.get("aviso"):  # M04 con cifra pero sin conclusión (regla 5)
+            valor += "<br/><font size='8'>no concluyente</font>"
+        cards.append({**c, "valor": valor})
     per_row = 4  # con 6-8 métricas, una sola fila quedaría ilegible
     chunks = [cards[i : i + per_row] for i in range(0, len(cards), per_row)]
     empty = {"titulo": "", "valor": ""}
@@ -275,7 +282,18 @@ def report_pdf(
     body = []
     for chunk in chunks:
         body.append([Paragraph(_t(c["titulo"].split(" (")[0]), st["card"]) for c in chunk])
-        body.append([Paragraph(_t(c["valor"]), st["val"]) for c in chunk])
+        body.append(
+            [
+                Paragraph(
+                    _t(c["valor"])
+                    .replace("&lt;br/&gt;", "<br/>")
+                    .replace("&lt;font size='8'&gt;", "<font size='8'>")
+                    .replace("&lt;/font&gt;", "</font>"),
+                    st["val"],
+                )
+                for c in chunk
+            ]
+        )
     metrics = Table(body, colWidths=[WIDTH / per_row] * per_row)
     metrics.setStyle(
         TableStyle(
@@ -291,6 +309,13 @@ def report_pdf(
     story.append(metrics)
     if why := inconclusive_reason(session):
         story += [Spacer(1, 6), _box(why, st["p"], "#fff8e1", "#e0a100")]
+    for c in cards:
+        if c.get("aviso"):
+            text = c["aviso"].removeprefix("no concluyente: ")
+            story += [
+                Spacer(1, 6),
+                _box(f"{c['titulo']}: no concluyente, {text}.", st["p"], "#fff8e1", "#e0a100"),
+            ]
     if PENDING_METRICS:
         story.append(
             Paragraph(
@@ -397,10 +422,9 @@ def report_pdf(
         Paragraph(_t(METHOD_NOTICE), st["p"]),
         Paragraph(
             _t(
-                "El género sale solo del texto o de la confirmación de dos anotadoras (Human in "
-                "the loop); nunca de la cara ni del sonido. Las voces sin pista clara figuran "
-                "como «desconocido» y pasan a revisión humana. Métricas en borrador pendientes "
-                "de validación."
+                "Las voces sin pista clara figuran como «desconocido» hasta que las confirman dos "
+                "anotadoras. La Presidencia queda fuera de M02 y M04. Métricas validadas con "
+                "anotación humana (género: 86 de 87 personas correctas; docs/EVALUACION.md)."
             ),
             st["p"],
         ),

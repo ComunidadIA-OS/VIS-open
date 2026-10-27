@@ -436,7 +436,7 @@ def test_screen_tables_use_minutes_and_percent_format():
     )  # fmt: skip
     shown = show_tracks(tracks)
     assert (
-        shown.loc[0, "tiempo en pantalla"] == "10:03" and shown.loc[0, "% del tiempo"] == "11.9 %"
+        shown.loc[0, "tiempo en pantalla"] == "10:03" and shown.loc[0, "% del tiempo"] == "11,9 %"
     )
     assert shown.loc[0, "tamaño medio (% de la imagen)"] == ""
 
@@ -539,7 +539,7 @@ def test_summary_includes_the_camera_reading_only_when_there_is_video():
         {"tiempo_en_pantalla_por_genero_%": {"mujer": 23.1, "hombre": 33.6, "desconocido": 43.3},
          "personas_visibles_max": 4}
     )  # fmt: skip
-    assert "mujeres el 23.1 %" in text and "hasta 4 personas" in text and "no quién hay" in text
+    assert "mujeres el 23,1 %" in text and "hasta 4 personas" in text and "no quién hay" in text
 
 
 def test_evolution_reading_compares_only_control_sessions_with_code_numbers():
