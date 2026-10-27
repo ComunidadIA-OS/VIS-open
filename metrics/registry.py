@@ -155,17 +155,24 @@ def run_metric(metric_id: str, frame: pd.DataFrame) -> MetricResult:
     )
 
 
+MAX_UNATTRIBUTED_PCT = 20.0  # M13: más del 20 % sin atribuir no permite concluir (20,0 vale)
+
+
 def gap_is_conclusive(
     gap: float, *, threshold: float, unattributed_share: float, margin: float | None
 ) -> tuple[bool, str | None]:
-    """Regla 5 de CLAUDE.md para una brecha entre grupos, en las mismas unidades que `threshold`.
+    """Regla de conclusiones de docs/metricas.md (apartado 3) para una brecha entre grupos.
 
-    Concluye solo si |brecha| > umbral, la parte sin atribuir es menor que la brecha y la brecha
-    resiste el margen de error. `threshold` es obligatorio y sin valor por defecto: lo fija Ivette.
+    `gap`, `threshold`, `unattributed_share` y `margin` van en puntos de % (2,5 % = 2.5, no
+    0.025). Concluye solo si |brecha| >= umbral (15,0 cuenta), el tiempo sin atribuir es como
+    mucho del 20 % y menor que la brecha, y la brecha resiste el margen de error. `threshold` es
+    obligatorio y sin valor por defecto: lo fija Ivette.
     """
     g = abs(gap)
-    if g <= threshold:
-        return False, "no concluyente: la brecha no supera el umbral"
+    if g < threshold:
+        return False, "no concluyente: la brecha no llega al umbral"
+    if unattributed_share > MAX_UNATTRIBUTED_PCT:
+        return False, "no concluyente: más del 20 % del tiempo está sin atribuir"
     if unattributed_share >= g:
         return False, "no concluyente: el tiempo sin atribuir es mayor o igual que la brecha"
     if margin is not None and g <= margin:

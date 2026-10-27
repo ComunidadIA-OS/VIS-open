@@ -607,7 +607,7 @@ def metric_card(result: MetricResult) -> dict:
         )
         if not ok:
             card["aviso"] = why.replace(
-                "el umbral", f"el umbral de {GAP_THRESHOLD_POINTS:g} puntos"
+                "al umbral", f"al umbral de {GAP_THRESHOLD_POINTS:g} puntos"
             )
     return card
 
