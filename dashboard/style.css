@@ -80,7 +80,8 @@ html { scroll-behavior: smooth; }
 [data-testid="stSidebar"] { top: var(--brand-h) !important; height: calc(100vh - var(--brand-h)) !important; }
 [data-testid="stMain"] .block-container { padding-top: calc(var(--brand-h) + 2.4rem); }
 @media (max-width: 640px) {
-  .brand { position: relative; height: auto; padding: 1.4rem 1.2rem; margin: -1rem -1rem 1.6rem; }
+  /* en el móvil la cabecera no es fija: sin z-index alto, para no tapar la barra lateral abierta */
+  .brand { position: relative; z-index: 0; height: auto; padding: 1.4rem 1.2rem; margin: -1rem -1rem 1.6rem; }
   [data-testid="stHeader"], [data-testid="stSidebar"] { top: 0 !important; }
   [data-testid="stSidebar"] { height: 100vh !important; }
   [data-testid="stMain"] .block-container { padding-top: 3.5rem; }
@@ -131,6 +132,9 @@ html { scroll-behavior: smooth; }
 [data-testid="stLayoutWrapper"]:has(> .st-key-nav), .st-key-nav {
   position: sticky; top: var(--brand-h); z-index: 999990;
   background: var(--paper); padding: 0.5rem 0; box-shadow: 0 6px 10px -8px rgba(29, 35, 48, 0.25);
+}
+@media (max-width: 640px) {
+  [data-testid="stLayoutWrapper"]:has(> .st-key-nav), .st-key-nav { top: 0; z-index: 60; }
 }
 /* el título de cada sección no queda tapado por la cabecera ni por la barra */
 .anchor { display: block; position: relative; top: calc(-1 * var(--brand-h) - 4.5rem); visibility: hidden; }

@@ -19,6 +19,7 @@ from dashboard.auth import auth_enabled, check_login
 from dashboard.data import (
     EVOLUTION_NOTE,
     METHOD_NOTICE,
+    METRIC_UNITS,
     PENDING_METRICS,
     SOURCE_NOTICE,
     annotator_answers,
@@ -42,6 +43,7 @@ from dashboard.data import (
     timeline_strip,
     transcript_csv,
     transcript_turns,
+    turn_use_text,
     video_path,
     video_people_series,
     video_tables,
@@ -49,6 +51,7 @@ from dashboard.data import (
     voice_transcripts,
     voices_table,
     voices_to_review,
+    with_unit,
 )
 from dashboard.pdf_report import report_pdf
 from decision.pseudonymize import speaker_codes
@@ -115,16 +118,6 @@ SHORT_TITLES = {
     "M09": "M09 Preguntas recibidas",
     "M13": "M13 Sin atribuir",
 }
-METRIC_UNITS = {
-    "M01": "personas",
-    "M02": "%",
-    "M02b": "%",
-    "M03a": "interv./preg.",
-    "M03b": "voces/preg.",
-    "M04": "puntos",
-    "M06": "%",
-    "M13": "%",
-}  # M09 es un cociente (1 = igual): sin unidad
 
 
 MONTHS = [
@@ -149,14 +142,6 @@ def spanish_number(v):
     if not isinstance(v, (int, float)):
         return v
     return f"{v:.2f}".rstrip("0").rstrip(".").replace(".", ",").replace("-", "−")
-
-
-def with_unit(key: str, valor: str) -> str:
-    """«41.65» → «41,65 %»; «no concluyente» y «no aplica» quedan igual."""
-    if not valor[:1].isdigit() and not valor.startswith("-"):
-        return valor
-    number = valor.replace(".", ",").replace("-", "−")
-    return f"{number} {METRIC_UNITS[key]}" if key in METRIC_UNITS else number
 
 
 # Métricas del marco aún sin calcular, con su estado (docs/metricas.md §6, PR #103). Las
@@ -796,11 +781,17 @@ if screen == "Sesión":
             ):
                 col.metric(
                     SHORT_TITLES.get(key, card["titulo"].split(" (")[0]),
-                    with_unit(key, card["valor"]),
+                    " ".join(filter(None, [with_unit(key, card["valor"]), card.get("base")])),
                     help=card["titulo"],  # el nombre completo, al pasar el ratón
                 )
                 if key in METRIC_EXPLAINED:
                     col.caption(METRIC_EXPLAINED[key])
+                if key == "M02b" and (use := turn_use_text(s.metrics[key])):
+                    col.caption(use)
+                if card.get("aviso"):
+                    col.caption(
+                        f"⚠ No concluyente: {card['aviso'].removeprefix('no concluyente: ')}."
+                    )
                 if card["valor"] in ("no concluyente", "no aplica") and card["detalle"]:
                     # el motivo, en pequeño y bajo su métrica (no un aviso general)
                     why = (

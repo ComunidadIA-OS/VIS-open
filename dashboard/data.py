@@ -44,10 +44,22 @@ LLM_METRIC_NAMES = {
 }
 MIN_CUT_WORDS = 4  # un corte de Human in the loop tiene que tener palabras, no aplausos
 METHOD_NOTICE = (
-    "El género asignado por IA solo se hace por pistas del lenguaje de la sesión, nunca por la "
-    "cara ni la voz. "
+    "La IA nunca deduce el género de la cara ni de la voz: lo asigna solo por pistas del "
+    "lenguaje de la sesión. Si no las hay, en Human in the loop dos anotadoras marcan el género "
+    "percibido; solo cuenta si coinciden. "
     "Los resultados son orientativos y requieren revisión humana."
 )
+METRIC_UNITS = {
+    "M01": "personas",
+    "M02": "%",
+    "M02b": "%",
+    "M03a": "interv./preg.",
+    "M03b": "voces/preg.",
+    "M04": "puntos",
+    "M06": "%",
+    "M13": "%",
+}  # M09 es un cociente (1 = igual): sin unidad
+CHAIR_LABEL = "Presidencia (excluida)"  # fuera de M02 y M04 (docs/metricas.md, §2)
 SOURCE_NOTICE = "Fuente: Congreso de los Diputados, vídeo sin alterar."
 SYNTHETIC_DIR = Path(__file__).parent.parent / "evaluation" / "synthetic" / "muestras"
 
@@ -258,7 +270,15 @@ def fmt_time(seconds: float) -> str:
 
 
 def fmt_pct(value: float) -> str:
-    return f"{value:.1f} %"
+    return f"{value:.1f} %".replace(".", ",")
+
+
+def with_unit(key: str, valor: str) -> str:
+    """«41.65» → «41,65 %»; «no concluyente» y «no aplica» quedan igual."""
+    if not valor[:1].isdigit() and not valor.startswith("-"):
+        return valor
+    number = valor.replace(".", ",").replace("-", "−")
+    return f"{number} {METRIC_UNITS[key]}" if key in METRIC_UNITS else number
 
 
 def show_interventions(rows: pd.DataFrame) -> pd.DataFrame:
@@ -560,15 +580,52 @@ def inconclusive_reason(session: Session) -> str:
 
 
 def metric_card(result: MetricResult) -> dict:
-    """Texto de una tarjeta: cifra, «no aplica» o «no concluyente»; la muestra siempre se ve."""
+    """Texto de una tarjeta: cifra, «no aplica» o «no concluyente»; la muestra siempre se ve.
+
+    `base`: de cuántos casos sale el % (M06). `aviso`: M04 con cifra pero sin conclusión
+    (regla 5: la brecha debe superar el umbral y el tiempo sin atribuir)."""
     if not result.conclusive:
         valor = "no aplica" if (result.reason or "").startswith("no aplica:") else "no concluyente"
         return {"titulo": result.name, "valor": valor, "detalle": result.reason or ""}
-    return {
+    card = {
         "titulo": result.name,
         "valor": f"{result.value:g}",
         "detalle": json.dumps(result.details, ensure_ascii=False),
     }
+    by_gender = result.details.get("por_genero") or {}
+    if result.metric_id == "M06" and by_gender:
+        card["base"] = f"({by_gender.get('mujer', 0)} de {sum(by_gender.values())})"
+    if result.metric_id == "M04":
+        from metrics.congreso import GAP_THRESHOLD_POINTS
+        from metrics.registry import gap_is_conclusive
+
+        ok, why = gap_is_conclusive(
+            result.value,
+            threshold=GAP_THRESHOLD_POINTS,
+            unattributed_share=result.details.get("sin_atribuir_o_desconocido_%", 0.0),
+            margin=None,
+        )
+        if not ok:
+            card["aviso"] = why.replace(
+                "el umbral", f"el umbral de {GAP_THRESHOLD_POINTS:g} puntos"
+            )
+    return card
+
+
+def turn_use_text(result: MetricResult) -> str:
+    """M02b: % medio del tiempo asignado que usa cada turno, por rol y género; vacío si no hay."""
+    use = (result.details or {}).get("uso_medio_%") or {}
+    roles = {"PREGUNTA": "preguntando", "GOBIERNO": "respondiendo"}
+
+    def pct(v) -> str:
+        return "sin dato" if v is None or pd.isna(v) else f"{_es1(float(v))} %"
+
+    parts = [
+        f"{label}, mujeres {pct(use[r].get('mujer'))} y hombres {pct(use[r].get('hombre'))}"
+        for r, label in roles.items()
+        if r in use
+    ]
+    return f"Uso medio del tiempo por turno: {'; '.join(parts)}." if parts else ""
 
 
 def gender_time_table(session: Session) -> pd.DataFrame:
@@ -618,8 +675,11 @@ def interventions_table(session: Session) -> pd.DataFrame:
 
 def voices_table(session: Session) -> pd.DataFrame:
     """Una fila por voz: género, de dónde sale, minutos de palabra, intervenciones y evidencia."""
+    from decision.roles import find_chair
+
     tl = session.timeline
     codes = speaker_codes(tl)
+    chair = find_chair(tl)
     speech = sorted(
         (e for e in tl.events if e.type == EventType.SPEECH and e.speaker_id),
         key=lambda e: (e.start_s, e.end_s),
@@ -638,7 +698,7 @@ def voices_table(session: Session) -> pd.DataFrame:
         rows.append(
             {
                 "persona": codes.get(sp.speaker_id, sp.speaker_id),
-                "genero": sp.gender.value,
+                "genero": CHAIR_LABEL if sp.speaker_id == chair else sp.gender.value,
                 "origen": sp.gender_source.value,
                 "minutos": round(sum(e.end_s - e.start_s for e in mine) / 60, 2),
                 "intervenciones": turns.get(sp.speaker_id, 0),
@@ -802,10 +862,10 @@ def _reading(share: dict[str, float]) -> str:
     diff = 2 * 100 * w / known - 100 if known else 0.0
     low, high = w - (m + rest), (w + rest) - m  # con todas esas voces de un lado o del otro
     text = (
-        f"Del tiempo total de palabra, las mujeres tienen el {w:.1f} %, los hombres el {m:.1f} % "
-        f"y el {rest:.1f} % no tiene género. Sobre el tiempo con género conocido (M02), las "
-        f"mujeres tienen el {(diff + 100) / 2:.1f} % y la diferencia de tiempo (mujeres − hombres) "
-        f"es de {diff:+.1f} puntos."
+        f"Del tiempo total de palabra, las mujeres tienen el {_es1(w)} %, los hombres el "
+        f"{_es1(m)} % y el {_es1(rest)} % no tiene género. Sobre el tiempo con género conocido "
+        f"(M02), las mujeres tienen el {_es1((diff + 100) / 2)} % y la diferencia de tiempo "
+        f"(mujeres − hombres) es de {_es1(diff, True)} puntos."
     )
     if rest < 1:
         return text
@@ -816,8 +876,8 @@ def _reading(share: dict[str, float]) -> str:
         else "El sentido de la diferencia no cambiaría, pero su tamaño sí."
     )
     return (
-        text + f" Según quiénes sean las voces sin género, estaría entre {low:+.1f} y "
-        f"{high:+.1f} puntos. {verdict}"
+        text + f" Según quiénes sean las voces sin género, estaría entre {_es1(low, True)} y "
+        f"{_es1(high, True)} puntos. {verdict}"
     )
 
 
@@ -839,11 +899,12 @@ def session_summary(session: Session) -> str:
     """Resumen en una frase: duración, voces con género y lectura prudente de la brecha."""
     share = _share_without_chair(session)
     voices = voices_table(session)
-    known = int((voices["genero"] != "desconocido").sum())
+    voices = voices[voices["genero"] != CHAIR_LABEL]
+    known = int(voices["genero"].isin(["mujer", "hombre"]).sum())
     confirmed = len(session.confirmed)
     return (
-        f"Sesión de {session.timeline.duration_s / 60:.0f} minutos con {len(voices)} voces, de "
-        f"las que {known} tienen género asignado"
+        f"Sesión de {session.timeline.duration_s / 60:.0f} minutos con {len(voices)} voces sin "
+        f"contar la Presidencia, de las que {known} tienen género asignado"
         + (f" ({confirmed} confirmadas por dos anotadoras)" if confirmed else "")
         + f". {_reading(share)}"
         + _video_reading(session.video)
@@ -856,9 +917,9 @@ def _video_reading(video: dict | None) -> str:
         return ""
     pct = video["tiempo_en_pantalla_por_genero_%"]
     return (
-        f" En la imagen, el tiempo en pantalla es de mujeres el {pct.get('mujer', 0):.1f} %, "
-        f"de hombres el {pct.get('hombre', 0):.1f} % y sin género el "
-        f"{pct.get('desconocido', 0):.1f} % (el género sale del audio, nunca de la imagen); se "
+        f" En la imagen, el tiempo en pantalla es de mujeres el {_es1(pct.get('mujer', 0))} %, "
+        f"de hombres el {_es1(pct.get('hombre', 0))} % y sin género el "
+        f"{_es1(pct.get('desconocido', 0))} % (el género sale del audio, nunca de la imagen); se "
         f"ven hasta {video.get('personas_visibles_max', 0)} personas a la vez. Es lo que ve la "
         "cámara, no quién hay en la sala."
     )
@@ -870,6 +931,11 @@ EVOLUTION_NOTE = (
     "esas sesiones concretas y no permiten hablar de tendencia. Al incorporar más sesiones de "
     "cada legislatura, el análisis ganará solidez y precisión."
 )
+
+
+def _es1(value: float, signed: bool = False) -> str:
+    """Un decimal con coma: 44.7 → «44,7»; con signo, «−8,3»."""
+    return (f"{value:+.1f}" if signed else f"{value:.1f}").replace(".", ",").replace("-", "−")
 
 
 def _es(value: float, signed: bool = False) -> str:
