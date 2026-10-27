@@ -655,3 +655,20 @@ def test_summary_leaves_the_chair_out_of_the_gender_shares():
     tl = AnalysisTimeline(video_id="P", duration_s=t, speakers=speakers, events=events)
     share = _share_without_chair(Session("P", tl))
     assert share.get("desconocido", 0) == 0 and share["mujer"] == share["hombre"] == 50.0
+
+
+def test_turn_use_text_reads_m02b_by_role_and_gender():
+    from dashboard.data import turn_use_text
+    from metrics import MetricResult
+
+    r = MetricResult(
+        metric_id="M02b", name="M02b", is_example=False, value=0.0, conclusive=True,
+        sample={"n": 1},
+        details={"uso_medio_%": {"PREGUNTA": {"mujer": 89.84, "hombre": 91.46},
+                                 "GOBIERNO": {"mujer": 90.64, "hombre": 90.74}}},
+    )  # fmt: skip
+    assert turn_use_text(r) == (
+        "Uso medio del tiempo por turno: preguntando, mujeres 89,8 % y hombres 91,5 %; "
+        "respondiendo, mujeres 90,6 % y hombres 90,7 %."
+    )
+    assert turn_use_text(r.model_copy(update={"details": {}})) == ""

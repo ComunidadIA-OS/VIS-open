@@ -612,6 +612,22 @@ def metric_card(result: MetricResult) -> dict:
     return card
 
 
+def turn_use_text(result: MetricResult) -> str:
+    """M02b: % medio del tiempo asignado que usa cada turno, por rol y género; vacío si no hay."""
+    use = (result.details or {}).get("uso_medio_%") or {}
+    roles = {"PREGUNTA": "preguntando", "GOBIERNO": "respondiendo"}
+
+    def pct(v) -> str:
+        return "sin dato" if v is None or pd.isna(v) else f"{_es1(float(v))} %"
+
+    parts = [
+        f"{label}, mujeres {pct(use[r].get('mujer'))} y hombres {pct(use[r].get('hombre'))}"
+        for r, label in roles.items()
+        if r in use
+    ]
+    return f"Uso medio del tiempo por turno: {'; '.join(parts)}." if parts else ""
+
+
 def gender_time_table(session: Session) -> pd.DataFrame:
     """Minutos y porcentaje por mujer / hombre / desconocido / sin_atribuir (M02)."""
     d = session.metrics["M02"].details

@@ -43,6 +43,7 @@ from dashboard.data import (
     timeline_strip,
     transcript_csv,
     transcript_turns,
+    turn_use_text,
     video_path,
     video_people_series,
     video_tables,
@@ -785,6 +786,8 @@ if screen == "Sesión":
                 )
                 if key in METRIC_EXPLAINED:
                     col.caption(METRIC_EXPLAINED[key])
+                if key == "M02b" and (use := turn_use_text(s.metrics[key])):
+                    col.caption(use)
                 if card.get("aviso"):
                     col.caption(
                         f"⚠ No concluyente: {card['aviso'].removeprefix('no concluyente: ')}."

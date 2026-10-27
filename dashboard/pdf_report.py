@@ -37,6 +37,7 @@ from dashboard.data import (
     metric_card,
     session_summary,
     timeline_strip,
+    turn_use_text,
     video_people_series,
     video_tables,
     video_tracks_with_totals,
@@ -307,6 +308,8 @@ def report_pdf(
         )
     )
     story.append(metrics)
+    if "M02b" in session.metrics and (use := turn_use_text(session.metrics["M02b"])):
+        story += [Spacer(1, 4), Paragraph(_t(use), st["mut"])]
     if why := inconclusive_reason(session):
         story += [Spacer(1, 6), _box(why, st["p"], "#fff8e1", "#e0a100")]
     for c in cards:
