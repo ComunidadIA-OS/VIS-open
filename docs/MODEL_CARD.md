@@ -53,7 +53,7 @@ Ningún modelo lo infiere de la cara ni de la voz. Decisión del 16 oct, impleme
 **Uso previsto:** manejar el panel sin ver la pantalla ni usar el ratón: cambiar de sesión, escuchar un corte, explicar resultados, validar voces con confirmación y descargar informes.
 **Uso no previsto:** decidir el género de nadie, dar cifras que no calcule el código, usarlo conduciendo o como único control de acceso.
 **Transparencia (AI Act, art. 50):** el asistente se presenta como IA; lo que genera un modelo va marcado.
-**Limitaciones medidas en pruebas:** con ruido, vídeo o teclado, Whisper puede inventar frases («Gracias por ver el vídeo», «¿Qué es lo que se hace?»); se filtran con la probabilidad de «no es voz» de cada segmento, la confianza, las repeticiones y una lista de muletillas, y con un detector de voz previo. Con un vídeo sonando, solo se atienden órdenes cortas de pararlo. No está probado con muchas voces distintas ni con acentos variados.
+**Limitaciones medidas en pruebas:** con ruido, vídeo o teclado, Whisper puede inventar frases («Gracias por ver el vídeo», «¿Qué es lo que se hace?»); se filtran con la probabilidad de «no es voz» de cada segmento, la confianza, las repeticiones y una lista de muletillas, y con un detector de voz previo. Con un vídeo sonando, solo se atienden órdenes cortas de pararlo. No está probado con muchas voces distintas ni con acentos variados. **Estado: beta** (asistente y manos libres): con el tiempo del reto, para que sea fiable harían falta semanas de pruebas y ajustes (detector de voz, filtros y lista de órdenes; no se entrena ningún modelo).
 
 ## Limitaciones conocidas
 

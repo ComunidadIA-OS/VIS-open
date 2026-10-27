@@ -30,6 +30,8 @@ El panel (Streamlit, en local) es una sola página con tarjetas: vídeo de la se
 
 El audio de una orden hablada se transcribe con `whisper-large-v3-turbo` a través de una API compatible con OpenAI (OVHcloud AI Endpoints en el reto). Sin esa API el panel funciona igual: las órdenes se escriben. Qué datos salen del equipo y a quién: [`docs/PROVEEDORES.md`](docs/PROVEEDORES.md).
 
+> **Asistente de voz y modo manos libres: versión beta.** Con el tiempo del reto solo se han probado con pocas voces y en pocos entornos. Para que sean fiables harían falta semanas de pruebas y ajustes con más voces, acentos, ruido y órdenes. No se entrena ningún modelo: se ajustan el detector de voz, los filtros y la lista de órdenes. Mientras tanto, todo se puede hacer también con ratón y teclado.
+
 ## Métricas de esta entrega
 
 | ID | Qué mide | Cómo se calcula |
