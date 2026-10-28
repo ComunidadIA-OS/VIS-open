@@ -10,6 +10,8 @@ Project by Team 6 in the «Mujeres por la IA Abierta» (Women for Open AI) chall
 
 **Full presentation (20 slides, with notes, in Spanish):** [download the PowerPoint](https://github.com/ComunidadIA-OS/VIS-open/releases/download/presentacion-2026-10-30/260128.VIS.Open.Presentacion.del.reto.pptx) · [Release page](https://github.com/ComunidadIA-OS/VIS-open/releases/tag/presentacion-2026-10-30)
 
+**Short presentation with video (final, 04/11/2026, 9 slides, in Spanish):** [download `Video_Presentacion_04112026.pptx`](https://github.com/ComunidadIA-OS/VIS-open/releases/download/presentacion-corta-2026-11-04/Video_Presentacion_04112026.pptx) · [Release page](https://github.com/ComunidadIA-OS/VIS-open/releases/tag/presentacion-corta-2026-11-04)
+
 **Dashboard with the real sessions:** [https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net](https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net) (OVHcloud; access with the challenge token). The repository only shows synthetic sessions: real videos and results are not uploaded (GDPR and the Congress legal notice). The real sessions, with video, are in that dashboard. **To see the full dashboard on OVHcloud you need the challenge token** («Login with token» when you open the link).
 
 ## What it does
