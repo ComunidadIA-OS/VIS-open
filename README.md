@@ -135,6 +135,8 @@ La lista completa, con versiones, fuentes y fecha de verificación (última revi
 
 El plan detallado de esta entrega, con tareas, responsables, fechas y dependencias, está en [`docs/PLAN_DE_TRABAJO.md`](docs/PLAN_DE_TRABAJO.md).
 
+Plan de puesta en producción: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (acceso, datos compartidos, automatización y coste por pleno) y [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (RGPD y Reglamento de IA).
+
 Evolución futura:
 
 - **Automatización:** comprobar la detección automática con el primer pleno que se publique, de principio a fin: vídeo nuevo → manifiesto → validación humana → análisis. Ya está probada con el pleno 203 (ver [`docs/FLUJO.md`](docs/FLUJO.md)). Los plenos se detectan solos; los actos y las comisiones se añaden por enlace.

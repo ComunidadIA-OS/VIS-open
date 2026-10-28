@@ -135,6 +135,8 @@ The full list, with versions, sources and verification date (last review: 21 Oct
 
 The detailed plan for this release, with tasks, owners, dates and dependencies, is in [`docs/PLAN_DE_TRABAJO.md`](docs/PLAN_DE_TRABAJO.md).
 
+Production deployment plan: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (access, shared data, automation and cost per plenary session) and [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (GDPR and AI Act).
+
 Future work:
 
 - **Automation:** check the automatic detection end to end with the first plenary session published: new video → manifest → human validation → analysis. It has already been tested with plenary session 203 (see [`docs/FLUJO.md`](docs/FLUJO.md)). Plenary sessions are detected automatically; events and committees are added by link.
