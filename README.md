@@ -10,6 +10,8 @@ Proyecto del Equipo 6 en el reto «Mujeres por la IA Abierta» (SEDIA, Comunidad
 
 **Presentación completa (20 diapositivas, con notas):** [descargar el PowerPoint](https://github.com/ComunidadIA-OS/VIS-open/releases/tag/presentacion-2026-10-30)
 
+**Presentación corta con vídeo (final del 04/11/2026, 9 diapositivas):** [descargar `Video_Presentacion_04112026.pptx`](https://github.com/ComunidadIA-OS/VIS-open/releases/download/presentacion-corta-2026-11-04/Video_Presentacion_04112026.pptx) · [página de la Release](https://github.com/ComunidadIA-OS/VIS-open/releases/tag/presentacion-corta-2026-11-04)
+
 **Panel con las sesiones reales:** [https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net](https://efa4ebc2-44b3-48b1-92d5-ee25fd02e6f1-8501.notebook.gra.ai.cloud.ovh.net) (OVHcloud; acceso con el token del reto). Con el repositorio solo se ven sesiones sintéticas: los vídeos y los resultados reales no se suben (RGPD y aviso legal del Congreso). Las sesiones reales, con vídeo, están en ese panel. **Para ver el panel completo en OVHcloud es necesario el token del reto** («Login with token» al abrir el enlace).
 
 ## Qué hace
