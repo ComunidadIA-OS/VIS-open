@@ -265,6 +265,9 @@ def test_junk_phrases_and_subtitles_section():
 
 def test_stricter_noise_filter():
     assert voice.looks_hallucinated("Seguimos.")
+    assert voice.looks_hallucinated("Gracias.")
+    assert voice.looks_hallucinated("¡Muchas gracias!")
+    assert not voice.looks_hallucinated("gracias, dame el resumen")
     seg = {"no_speech_prob": 0.55, "avg_logprob": -0.3, "compression_ratio": 1.0}
     assert not voice._plausible_segment(seg)
     assert voice._plausible_segment({**seg, "no_speech_prob": 0.1})
@@ -350,7 +353,8 @@ def test_play_does_not_steal_other_commands():
     ],
 )
 def test_courtesy(text, topic):
-    assert not voice.looks_hallucinated(text)
+    # «gracias» suelto por voz se descarta como ruido de Whisper; escrito sí contesta
+    assert voice.looks_hallucinated(text) == (topic == "thanks")
     cmd = voice.parse_command(text, IDS)
     assert (cmd.action, cmd.topic) == ("courtesy", topic)
 

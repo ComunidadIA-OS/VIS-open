@@ -147,7 +147,9 @@ JUNK_EXACT = (
     "no he dicho nada",
     "musica",
     "aplausos",
-)  # lo que más inventa con ruido
+    "gracias",  # con silencio Whisper oye «Gracias» y el asistente contestaba «De nada»
+    "muchas gracias",
+)  # lo que más inventa con ruido; escrito en el cuadro de texto, «gracias» sí contesta
 JUNK_PHRASES = (
     "gracias por ver",
     "suscribete",
