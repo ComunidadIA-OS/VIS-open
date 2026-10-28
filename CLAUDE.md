@@ -11,7 +11,7 @@ Entregas: antes del 30 oct 2026 a las 08:00, repositorio público, README y .ppt
 - M2 (hecho, rama `m2-pipeline`) = audio, transcripción, diarización, línea de tiempo y CSV de revisión.
 - Prompt M3 (hecho): Docker CPU/GPU, fuente Congreso y manifiesto, género por lenguaje, marco de métricas, motores de decisión, datos sintéticos y detector de mano levantada. `pipeline.run` ya encadena transcripción → diarización → género por lenguaje → `resumen.json`.
 - Alcance de la entrega (19 oct): 3 sesiones; métricas M01, M02, M03, M04, M13, M14 y M09; ajuste ligero de Qwen. El resto es evolución futura.
-- Pendiente: prueba real en OVH (GPU), definiciones de Ivette, panel (Veru), M09 y ajuste del modelo (Sabrina), plan de puesta en producción (Veru).
+- Pendiente: prueba real en OVH (GPU), definiciones de Ivette, panel, M09 y ajuste del modelo (Sabrina), plan de puesta en producción (Veru).
 - Licencia Apache-2.0 aprobada por Sabrina (16 oct 2026); falta comunicarla a Ivette y Veru.
 - El vídeo (gestos de levantar la mano) está en el MVP y no se propone como opcional; sin reconocimiento facial.
 - Fuente del MVP (16 oct): solo sesiones del Congreso, sin modificar ni alterar el vídeo; los vídeos nunca van al repo. Para el ajuste ligero de Qwen (19 oct) solo se usa el texto transcrito de una sesión, comprobado con el Diario de Sesiones; nunca audio, vídeo ni voz. El modelo ajustado no se publica.
@@ -20,9 +20,9 @@ Entregas: antes del 30 oct 2026 a las 08:00, repositorio público, README y .ppt
 - Las métricas (sección 5 del PRD) son un borrador hasta el visto bueno de Ivette.
 
 ## Equipo y propiedad
-- Sabrina: dirección, arquitectura, pipeline de IA, infraestructura, RGPD y AI Act.
+- Sabrina: dirección, arquitectura e integración, pipeline de IA, panel en Streamlit, infraestructura, RGPD y AI Act.
 - Ivette: define y valida las métricas (no programa), anotación de referencia y presentación .pptx.
-- Veru: datos, programa las métricas, panel en Streamlit, plan de puesta en producción y revisión del repositorio.
+- Veru: datos, programa las métricas, plan de puesta en producción y revisión del repositorio.
 - Cada persona dispone de unas 2 h por día laborable.
 Cada carpeta tiene una persona responsable; los cambios en carpetas ajenas se proponen por PR.
 
@@ -65,7 +65,7 @@ El plan completo está en `docs/PLAN_DE_TRABAJO.md` y la especificación del pan
 4. Métricas M01, M02, M03, M04 y M13 con pandas y pytest (Veru).
 5. Manos levantadas con OpenCV y MediaPipe (26 oct, Sabrina) y M14 (Veru).
 6. M09 con Qwen a través de una API compatible con OpenAI, sin depender de un modelo concreto (27 oct, Sabrina).
-7. Panel en Streamlit según `docs/PANEL.md` (Veru).
+7. Panel en Streamlit según `docs/PANEL.md` (Sabrina).
 8. Ajuste ligero de Qwen (28 oct, Sabrina): solo con texto seudonimizado; el modelo ajustado no se publica.
 9. Cierre del código el 28 oct.
 10. Repositorio público antes del 30 oct a las 08:00.
