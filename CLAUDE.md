@@ -37,7 +37,7 @@ vídeo → audio (FFmpeg) + gestos (OpenCV/MediaPipe) → faster-whisper + Whisp
 2. No se guardan nombres (19 oct): cada voz es «Persona 1», «Persona 2»…; en la evidencia y en las transcripciones el nombre se sustituye por el código. El género nunca se infiere de la cara ni de la voz (tampoco del tono). Fuentes permitidas (16 oct): pistas del lenguaje de la transcripción con evidencia («la señora / el señor X»), declarado, registro público o revisión humana; si no, `desconocido` (siempre visible).
 3. Las cifras las calcula el código (pandas). El LLM nunca calcula ni resume números.
 4. El LLM no tiene herramientas, devuelve JSON cerrado por gramática, validado con Pydantic. Confianza <0,7 → revisión humana. Los datos van delimitados de las instrucciones.
-5. Conclusiones solo si la brecha supera el umbral (15 puntos, a fijar por Ivette), el tiempo sin atribuir es menor que la brecha y el resultado resiste los márgenes de error. Si no: "no concluyente".
+5. Conclusiones solo si la brecha supera el umbral (15 puntos o más, fijado en `docs/metricas.md`), el tiempo sin atribuir es menor que la brecha y el resultado resiste los márgenes de error. Si no: "no concluyente".
 6. Cada dato lleva procedencia: `observed`, `computed`, `ai_inferred` o `human_validated`.
 7. Nunca se sube al repo audio, vídeo, transcripciones reales ni secretos. Los datos viven fuera (`data/` ignorado).
 8. Modelos: usar `nimble` (Apache 2.0), NUNCA `nimble-v3` (CC BY-NC). Jev queda descartado. Kev es experimental (solo inglés). Sin LangChain: motor propio `DecisionEngine` contra una API compatible con OpenAI, agnóstico al modelo.

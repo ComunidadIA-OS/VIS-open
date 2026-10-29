@@ -9,11 +9,11 @@ Todas las hojas las prepara el programa a partir de la transcripción automátic
 | Qué | Para qué | Cuánto | Quién | Cómo |
 |---|---|---|---|---|
 | **Preguntas (M09)** | Medir si Qwen detecta bien las preguntas y a quién van dirigidas; y, si hace falta, ajustar Qwen | Piloto: **una pregunta** (~5 min, ~16 turnos). Después, 20 min de una sesión | Ivette | Hoja de turnos: `es_pregunta` (si/no), `frase` y `cargo_destinatario` |
-| **Género de 150 turnos** | Medir si el género por lenguaje acierta | 150 turnos (ya preparados) | Ivette y Veru, cada una por su cuenta | Hoja `turnos_para_anotar.csv`: `label` = mujer / hombre / desconocido |
+| **Género de 150 turnos** | Medir si el género por lenguaje acierta | **No se hizo:** la sustituyó la lista oficial de intervenciones del Congreso (`docs/EVALUACION.md`, #52) | — | Hoja `turnos_para_anotar.csv`, por si se retoma |
 | **Transcripción (WER)** | Medir cuántas palabras falla la transcripción | Un tramo de **2 o 3 minutos** | Ivette | Se parte del texto automático y **se corrigen los errores** (mucho más rápido que escribir). Se puede usar de referencia el Diario de Sesiones |
 | **Quién habla cuándo (DER)** | Medir los errores al separar voces | El mismo tramo de 2 o 3 minutos | Ivette | Apuntar los instantes en que cambia quien habla |
 
-Las anotaciones de vídeo de manos levantadas (M14) **ya no hacen falta**: se descartó esa métrica. Las de personas visibles solo si se mantiene el módulo de vídeo.
+Las anotaciones de vídeo de manos levantadas (M14) **ya no hacen falta**: se descartó esa métrica. Las de personas visibles no se hicieron en esta entrega.
 
 ## Cuánto es suficiente
 

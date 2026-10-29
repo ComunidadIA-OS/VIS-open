@@ -1,6 +1,6 @@
 # Género por pistas del lenguaje
 
-Estado: **validado por Ivette** el 25 oct 2026 frente a la lista oficial de intervenciones del Congreso (V005–V007): 87 de 87 personas, **83 con género correcto, 0 errores y 4 desconocidas** (las 3 ministras de V006, ya resueltas en la PR #145, y un diputado; detalle en la issue #55). Código en `decision/gender_cues.py`; palabras en `decision/cues/es.toml`.
+Estado: **validado por Ivette** el 25 oct 2026 frente a la lista oficial de intervenciones del Congreso (V005–V007): 87 de 87 personas, **86 con género correcto, 0 errores y 1 desconocida** (un diputado, que va a Human in the loop). Antes de la PR #145 eran 83 correctas y 4 desconocidas, 3 de ellas ministras de V006 (`docs/EVALUACION.md`, issue #55). Código en `decision/gender_cues.py`; palabras en `decision/cues/es.toml`.
 
 ## Principio
 
@@ -21,7 +21,7 @@ En los anuncios, lo que va desde «Grupo» («…del Grupo Parlamentario Popular
 
 ## Dar la palabra vale para todos los vídeos
 
-Sesión de control (23 oct 2026, visto bueno de Sabrina, pendiente de Ivette): en las intervenciones de la Presidencia se leen unidos los segmentos seguidos (Whisper parte «Pregunta del | diputado don…»), cuentan también los anuncios («…la formula la diputada doña X», «…del diputado don X») como `floor_grant`, y el tratamiento a solas al final da el género de quien responde (`chair_address`). La Presidencia es la voz que más veces da la palabra o anuncia una pregunta.
+Sesión de control (23 oct 2026, visto bueno de Sabrina; validada por Ivette el 25–27 oct): en las intervenciones de la Presidencia se leen unidos los segmentos seguidos (Whisper parte «Pregunta del | diputado don…»), cuentan también los anuncios («…la formula la diputada doña X», «…del diputado don X») como `floor_grant`, y el tratamiento a solas al final da el género de quien responde (`chair_address`). La Presidencia es la voz que más veces da la palabra o anuncia una pregunta.
 
 Regla de Sabrina: «doy la palabra a la señora / al señor = mujer / hombre»: lo que sigue a «tiene la palabra la señora X» (o «el señor X») es de esa persona. Si la diarización ya separó las voces, se usa la voz siguiente (`floor_grant`, 0,85). Si la dejó fusionada con quien da la palabra, `split_on_floor_grant` (`decision/gender_cues.py`) pasa los eventos siguientes, hasta la próxima vez que se da la palabra, a una voz nueva, siempre que sumen al menos 15 s; después se aplica la misma pista. Límites: unos segundos de la Presidencia justo después de la frase (p. ej. leer el título) pueden quedar en la voz nueva, y un clip que empieza a mitad de una intervención no tiene esa frase y sigue en `desconocido`. Pendiente del visto bueno de Ivette. Efecto medido (20 oct 2026): V001 pasa de 0 % a 98,7 % del tiempo con género (mujer); V002–V004 no cambian.
 
@@ -45,7 +45,7 @@ python -m decision.gender_cues data/processed/V001/timeline.json
 
 - Depende de que la diarización asigne bien las voces y de que la transcripción sea buena; una voz mezclada puede recibir una pista ajena (por eso las contradicciones van a revisión).
 - No lee todavía «señora presidenta» como pista sobre quien preside, ni liga nombres propios a voces.
-- Las confianzas y las listas de palabras son una primera propuesta; Ivette debe validarlas con ejemplos reales anotados.
+- Las confianzas y las listas de palabras se validaron en el Congreso frente a la lista oficial (V005–V007); con otros formatos o idiomas hay que volver a validarlas.
 - Para añadir otro idioma, copia `es.toml` a `<idioma>.toml` y usa `--lang`.
 
 ## Cambios en `contracts/` (solo opcionales)
