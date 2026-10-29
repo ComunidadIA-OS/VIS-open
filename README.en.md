@@ -2,6 +2,12 @@
 
 *[Versión en español: README.md](README.md). The detailed documentation in `docs/` is in Spanish.*
 
+**How much space do women take up in parliamentary debate?**
+
+***Holding a seat is not the same as having the floor.***
+
+VIS Open measures whether the presence of women in Parliament also translates into participation and prominence: who speaks, for how long, in what proportion, and who holds the most visible turns.
+
 VIS Open is an open-source tool that measures the presence and participation of women in recorded sessions, from their audio and video, without facial recognition. The first use case is the sessions of the Spanish Congress of Deputies (Congreso de los Diputados).
 
 Project by Team 6 in the «Mujeres por la IA Abierta» (Women for Open AI) challenge (SEDIA, Comunidad IA de Código Abierto).
