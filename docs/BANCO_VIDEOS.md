@@ -4,7 +4,7 @@
 
 Fecha: 16 oct 2026 (corregido: la Organización no ofrece vídeos) · Estado: **propuesta, pendiente de aprobación del equipo**
 
-> **ACTUALIZACIÓN (Sabrina, 21 oct 2026): no se usa Google Drive para los vídeos de las sesiones.** Se descargan a mano y se guardan en local y en el espacio del equipo en OVHcloud (`/workspace/equipo6/…/raw`). Drive solo se usa, de momento, para vídeos de trabajo (por ejemplo, un recap) compartidos entre las tres. Las secciones de abajo que hablan del Drive son la propuesta original y **ya no aplican**.
+> **ACTUALIZACIÓN (Sabrina, 21 y 26 oct 2026): no se usa ninguna unidad compartida en la nube.** Los vídeos se descargan y se guardan en local y en el espacio del equipo en OVHcloud (`/workspace/equipo6/…/raw`); todo el trabajo del equipo está en OVHcloud. Las secciones de abajo que hablan de una unidad compartida son la propuesta original y **ya no se aplican**.
 
 > **DECISIÓN (Sabrina, 16 oct 2026):** el banco se forma solo con **sesiones del Congreso**, y los vídeos **no se modifican ni se alteran**. El fichero original se guarda tal cual (con su `sha256`); el tramo analizado se marca con `tramo_inicio` y `tramo_fin` en el manifiesto, sin cortar ni recodificar el vídeo. El dashboard muestra los resultados aparte, junto al vídeo, sin superponer nada sobre la imagen. Las demás fuentes de la tabla quedan como referencia y no se usan.
 
@@ -111,7 +111,7 @@ Plantilla: [manifiesto-plantilla.csv](manifiesto-plantilla.csv). Un vídeo **no 
 | `uso` | sí | evaluacion / demo / test (puede ser "evaluacion;demo") |
 | `uso_entrenamiento` | sí | siempre `no` |
 | `sha256` | sí | Huella del fichero, para reproducibilidad |
-| `ruta_drive` | sí | Ruta dentro de la unidad compartida |
+| `ruta_drive` | sí | Ruta del vídeo (hoy, en el espacio del equipo en OVHcloud; el nombre de la columna es histórico) |
 | `fecha_borrado` | sí | Fecha prevista de borrado |
 | `anotadoras` | cuando se anote | Iniciales de las dos anotadoras |
 | `notas` | no | Lo que no cabe arriba |

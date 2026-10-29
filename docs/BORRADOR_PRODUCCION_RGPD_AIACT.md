@@ -2,16 +2,18 @@
 
 > **BORRADOR para Veru** (responsable del plan de producción, 28 oct). Lo ha preparado Sabrina con ayuda de IA a partir de lo que hace el sistema hoy. **No está validado jurídicamente y no sustituye asesoramiento legal.** Las citas de artículos son las habituales y hay que **contrastarlas con el texto oficial** antes de usarlas en la presentación. Lo que está marcado como **DECIDIR** o **VERIFICAR** necesita una persona.
 
+> **Actualización del 26 oct:** se añaden propuestas para cada punto abierto (marcadas como «Propuesta») y lo ya decidido o medido. Las propuestas no son decisiones hasta que las aprueben Sabrina y Veru.
+
 Este plan parte de `docs/RESPONSIBLE_USE.md`, `docs/MODEL_CARD.md`, `docs/DATASET_CARD.md` y `docs/PROVEEDORES.md`. Ayuda con la parte que pide el reto en «ética y normativa».
 
 ## 1. Qué hace el sistema y con qué datos (hechos)
 
 | Dato | Qué es | Dónde está | ¿Sale del equipo? | Cuánto tiempo |
 |---|---|---|---|---|
-| Vídeo y audio de sesiones del Congreso | Actos públicos de cargos públicos, sin alterar, con fuente y fecha | Fuera del repo; unidad compartida del equipo; VM de OVHcloud | Solo a la VM de OVHcloud del equipo | **DECIDIR** |
-| Transcripción seudonimizada | Texto con «Persona N» en lugar de nombres | `data/processed/` (no se sube) | Fragmentos a OVH AI Endpoints (M09 y resumen) | **DECIDIR** |
-| Etiquetas de género con su evidencia | Frase del lenguaje + minuto; o confirmadas por 2 anotadoras | `data/processed/` | No | **DECIDIR** |
-| Respuestas de las anotadoras | Un CSV por anotadora con ID de conexión | `data/processed/` | No | **DECIDIR** |
+| Vídeo y audio de sesiones del Congreso | Actos públicos de cargos públicos, sin alterar, con fuente y fecha | Fuera del repo; PC de trabajo y espacio del equipo en OVHcloud | Solo al espacio de OVHcloud del equipo | Propuesta: en el reto, borrar del PC y de OVHcloud al terminar (después del 4 nov); en producción, al terminar el análisis (el original sigue en la web del Congreso) |
+| Transcripción seudonimizada | Texto con «Persona N» en lugar de nombres | `data/processed/` (no se sube) | Fragmentos a OVH AI Endpoints (M09 y resumen) | Propuesta: mientras dure el proyecto y como mucho 12 meses; después, solo las cifras agregadas |
+| Etiquetas de género con su evidencia | Frase del lenguaje + minuto; o confirmadas por 2 anotadoras | `data/processed/` | No | Propuesta: igual que la transcripción |
+| Respuestas de las anotadoras | Un CSV por anotadora con ID de conexión | `data/processed/` | No | Propuesta: hasta cerrar la validación; después, solo el género acordado (sin el detalle por anotadora) |
 | Audio de las órdenes de voz | Segundos de la voz de quien usa el panel | No se guarda | Sí: a OVH AI Endpoints para transcribirlo | No se guarda (**VERIFICAR** en OVH) |
 | Huellas de voz (embeddings) | Se calculan para separar hablantes dentro de una sesión | Solo durante el análisis | No | No se guardan fuera del proceso (ver `RESPONSIBLE_USE.md`) |
 
@@ -20,10 +22,19 @@ Principios ya aplicados: **sin nombres** (códigos anónimos), **sin reconocimie
 ## 2. Roles y responsabilidades
 
 - **Responsable del tratamiento:** **DECIDIR.** En el reto, el equipo; en un despliegue real, la entidad que use la herramienta (una sala de debates, una institución, la propia Comunidad).
-- **Encargados / subencargados:** OVHcloud, GitHub, Hugging Face, Google Workspace (ver `docs/PROVEEDORES.md`). **VERIFICAR** que hay contrato de encargado (art. 28 RGPD) con cada uno que reciba datos personales.
+  **Propuesta (26 oct, a aprobar por Sabrina y Veru):** en el reto, el Equipo 6; en producción, la entidad que despliegue VIS Open, que decide qué sesiones se analizan y para qué.
+- **Encargados / subencargados:** OVHcloud, GitHub y Hugging Face (ver `docs/PROVEEDORES.md`; ElevenLabs no forma parte de VIS Open). **VERIFICAR** que hay contrato de encargado (art. 28 RGPD) con cada uno que reciba datos personales.
+  Comprobado en las fuentes oficiales el 26 oct 2026 (las condiciones concretas de la cuenta del reto siguen **por verificar**):
+  - **OVHcloud**: sí trata datos (vídeos, transcripciones, Qwen). Publica su acuerdo de encargado según el art. 28 RGPD como parte de sus condiciones (versión UE de 23/01/2023, con cláusulas contractuales tipo). En el reto la cuenta es de la Organización.
+  - **GitHub**: no recibe datos personales de las sesiones (solo código y datos sintéticos), así que no hace falta. Su acuerdo de protección de datos existe para los planes de pago.
+  - **Hugging Face**: solo se descargan modelos y se ejecutan en nuestra máquina; no trata datos, así que no hace falta.
+  - **ElevenLabs**: no es proveedor del sistema; solo se usó para la voz del vídeo explicativo, sin datos de las sesiones (`docs/PROVEEDORES.md`).
 - **Delegado de protección de datos:** **DECIDIR** si hace falta según quién despliegue.
+  **Propuesta (26 oct, a aprobar por Sabrina y Veru):** el equipo no lo necesita (no es un organismo público ni hace observación a gran escala). Una autoridad u organismo público que despliegue VIS Open sí lo necesita (art. 37.1.a RGPD).
 
 ## 3. Base jurídica (RGPD): puntos a resolver
+
+**Decidido (Sabrina, 23 oct):** interés legítimo (art. 6.1.f) para las sesiones públicas del Congreso; está así en el manifiesto (`base_legal = interes_legitimo`). Ponderación en breve: el interés es medir la presencia de las mujeres en el debate público; las personas son cargos públicos en sesiones públicas y retransmitidas; se tratan con seudónimos, sin reconocimiento facial y solo en resultados agregados, así que el impacto en sus derechos es bajo. Ojo: una autoridad pública no puede usar el interés legítimo para sus funciones; si la despliega una institución pública, la base sería el interés público (art. 6.1.e).
 
 La voz y la imagen son datos personales, y los seudonimizados lo siguen siendo. Opciones habituales, a validar:
 
@@ -35,16 +46,19 @@ La voz y la imagen son datos personales, y los seudonimizados lo siguen siendo. 
 
 ## 4. Evaluación de impacto (EIPD, art. 35): esqueleto
 
-**¿Hace falta?** Probable en producción (tratamiento a escala de voz/imagen con IA). **DECIDIR.** Riesgos a recoger:
+**¿Hace falta?** Probable en producción (tratamiento a escala de voz/imagen con IA). **DECIDIR.**
+**Propuesta (26 oct, a aprobar por Sabrina y Veru):** hacer la EIPD antes de cualquier puesta en producción, por prudencia: es una tecnología nueva (IA) sobre voz e imagen. En el reto basta con este esqueleto.
+
+Riesgos a recoger:
 
 | Riesgo | Medidas que ya existen | Pendiente |
 |---|---|---|
 | Reidentificar a una persona por su voz o su imagen | Sin nombres; códigos «Persona N»; sin reconocimiento facial; tratamiento local | Política de retención y borrado |
-| Atribuir mal el género | Solo pistas del lenguaje; `desconocido` visible; dos anotadoras; kappa; «no concluyente» | Medir el error por grupo |
+| Atribuir mal el género | Solo pistas del lenguaje; `desconocido` visible; dos anotadoras; kappa; «no concluyente» | **Medido** frente a la lista oficial (`docs/EVALUACION.md`): 0 errores en mujeres y en hombres; sin género, 0 de 47 mujeres y 1 de 40 hombres |
 | Sesgos de los modelos de voz y de lenguaje | Revisión humana; margen de error | Medirlos con las sesiones reales (Ivette) |
 | Uso para evaluar o vigilar a individuos | Resultados agregados; uso no previsto documentado | Cláusula de uso en el despliegue |
 | Filtración de datos reales | Datos fuera del repo; `.env` y claves fuera; acceso con 2FA opcional | Cifrado en reposo, copias, accesos |
-| El modelo de lenguaje se equivoca o lo manipula un texto | Salida cerrada con esquema; evidencia literal; texto como dato; sin herramientas | Prueba de inyección sobre texto real |
+| El modelo de lenguaje se equivoca o lo manipula un texto | Salida cerrada con esquema; evidencia literal; texto como dato; sin herramientas | Prueba de inyección con el modelo real: `python -m evaluation.inyeccion` (resultado en `docs/EVALUACION.md`) |
 | Mala interpretación de resultados | Aviso de método siempre visible; cifras por código | Formación de quien lea el informe |
 
 ## 5. Reglamento de IA (AI Act): clasificación y obligaciones
@@ -53,6 +67,7 @@ La voz y la imagen son datos personales, y los seudonimizados lo siguen siendo. 
 
 - **Prácticas prohibidas (art. 5):** el sistema **no** reconoce emociones, **no** puntúa socialmente a personas y **no** categoriza biométricamente por atributos sensibles: el género sale del lenguaje, no de la cara ni de la voz. **VERIFICAR** que ninguna función nueva (asistente de voz, validación) se acerque a eso.
 - **Alto riesgo (art. 6 y Anexo III):** hoy no se usa para empleo, educación, acceso a servicios ni vigilancia. La categoría a mirar es la de sistemas biométricos (Anexo III, punto 1). **DECIDIR** con asesoramiento si encaja; mientras tanto, tratarlo como posible alto riesgo y cumplir lo razonable: gestión de riesgos, calidad de datos, registro, transparencia, supervisión humana, exactitud y ciberseguridad.
+  **Propuesta (26 oct, a aprobar por Sabrina y Veru):** no encaja en los usos del Anexo III: no identifica a nadie (las huellas de voz solo separan hablantes dentro de una sesión) ni categoriza por la voz o la cara. Por el uso sería **riesgo limitado** (obligaciones de transparencia del art. 50). Hasta que lo confirme una persona experta, se mantienen las medidas de alto riesgo que ya aplicamos.
 - **Transparencia (art. 50):** quien habla con el asistente debe saber que es una IA, y lo que genera un modelo debe ir marcado. Ya aplicado: el asistente se presenta como IA en su ventana; el resumen del contenido lleva «hecho por IA y con posibles errores».
 - **Supervisión humana:** «Human in the loop»: las voces sin género las confirman dos anotadoras; el asistente nunca sugiere el género y no guarda sin «confirmo».
 - **Alfabetización en IA (art. 4):** el equipo documenta qué hace cada modelo (`MODEL_CARD.md`); falta una nota breve de formación para quien use el panel.
@@ -61,7 +76,10 @@ La voz y la imagen son datos personales, y los seudonimizados lo siguen siendo. 
 ## 6. Derechos y transparencia
 
 - **Información previa (art. 13):** aviso en la sala donde se grabe; texto tipo en `RESPONSIBLE_USE.md`. **DECIDIR** el texto final.
+  - Sesiones del Congreso: los datos no se recogen de las personas (art. 14). Informar a cada diputado sería un esfuerzo desproporcionado (art. 14.5.b), así que la información se publica: README del repositorio y aviso de método en el panel y en los informes.
+  - **Propuesta (26 oct, a aprobar por Sabrina y Veru):** texto del aviso en una sala propia: «Esta sesión se graba y se analiza con VIS Open para medir, de forma agregada, la participación por género. No se reconocen caras ni se deduce el género de la voz: se usan las pistas del lenguaje o lo que cada persona declare. Responsable: [entidad]. Puede ejercer sus derechos en [correo]. Más información: [enlace]».
 - **Derechos** (acceso, supresión, oposición): canal y plazo. **DECIDIR.**
+  **Propuesta (26 oct, a aprobar por Sabrina y Veru):** un correo del responsable publicado en el README y en el aviso; respuesta en un mes (art. 12.3 RGPD). En el reto, el correo del equipo.
 - **Decisiones automatizadas (art. 22):** no hay decisiones sobre personas; los resultados son indicadores agregados.
 
 ## 7. Seguridad
@@ -80,13 +98,13 @@ Ver `SECURITY.md`. En producción: acceso con usuario, contraseña y segundo fac
 ## 9. Lista de comprobación para producción
 
 - [ ] Responsable y encargados identificados; contratos de encargado firmados.
-- [ ] Base jurídica decidida y documentada.
+- [x] Base jurídica decidida y documentada (interés legítimo, 23 oct; ver §3).
 - [ ] EIPD hecha y revisada.
 - [ ] Clasificación del Reglamento de IA decidida y documentada.
 - [ ] Aviso informativo en la sala y texto de información (art. 13).
 - [ ] Política de retención, borrado y copias.
 - [ ] Canal para ejercer derechos.
-- [ ] Prueba de inyección con texto real y medida del error por grupo.
+- [ ] Prueba de inyección con el modelo real (`evaluation/inyeccion.py`) · [x] medida del error por grupo (`docs/EVALUACION.md`).
 - [ ] Acceso con usuario y segundo factor activado.
 - [ ] Declaración de accesibilidad revisada con personas usuarias (`docs/DECLARACION_ACCESIBILIDAD.md`).
 - [ ] Nota de formación para quien lea los informes.
