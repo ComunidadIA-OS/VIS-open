@@ -159,7 +159,7 @@ Future work:
 
 ## Team
 
-Sabrina (architecture and integration, AI pipeline, dashboard, infrastructure, GDPR and AI Act, production deployment plan, video and publication), Ivette (definition and validation of metrics, presentation) and Veru (data and programming of the metrics).
+Sabrina (architecture and integration, AI pipeline, dashboard, infrastructure, GDPR and AI Act, production deployment plan, videos, presentation of 04.11 and publication), Ivette (definition and validation of metrics, .pptx presentation) and Veru (programming of the metrics).
 
 ## Licence
 

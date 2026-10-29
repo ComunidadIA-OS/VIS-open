@@ -159,7 +159,7 @@ Evolución futura:
 
 ## Equipo
 
-Sabrina (arquitectura e integración, pipeline de IA, panel, infraestructura, RGPD y AI Act, plan de puesta en producción, vídeo y publicación), Ivette (definición y validación de métricas, presentación) y Veru (datos y programación de las métricas).
+Sabrina (arquitectura e integración, pipeline de IA, panel, infraestructura, RGPD y AI Act, plan de puesta en producción, vídeos, presentación del 04.11 y publicación), Ivette (definición y validación de métricas, presentación .pptx) y Veru (programación de las métricas).
 
 ## Licencia
 

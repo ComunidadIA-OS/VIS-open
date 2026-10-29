@@ -23,9 +23,9 @@ Entregas: antes del 30 oct 2026 a las 08:00, repositorio público, README y .ppt
 - En la documentación no se usa la palabra «borrador» (29 oct).
 
 ## Equipo y propiedad
-- Sabrina: arquitectura e integración, pipeline de IA, panel en Streamlit, infraestructura, RGPD y AI Act, plan de puesta en producción, vídeo y publicación.
+- Sabrina: arquitectura e integración, pipeline de IA, panel en Streamlit, infraestructura, RGPD y AI Act, plan de puesta en producción, vídeos, presentación del 04.11 y publicación.
 - Ivette: definición y validación de las métricas (no programa) y presentación .pptx.
-- Veru: datos y programación de las métricas.
+- Veru: programación de las métricas.
 - Cada persona dispone de unas 2 h por día laborable.
 Cada carpeta tiene una persona responsable; los cambios en carpetas ajenas se proponen por PR.
 
