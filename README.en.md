@@ -143,7 +143,7 @@ The full list, with versions, sources and verification date (last review: 21 Oct
 
 The detailed plan for this release, with tasks, owners, dates and dependencies, is in [`docs/PLAN_DE_TRABAJO.md`](docs/PLAN_DE_TRABAJO.md).
 
-Production deployment plan: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (access, shared data, automation and cost per plenary session) and [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (GDPR and AI Act).
+Production deployment plan: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (documentation requirements, legal checks, technical capabilities, local deployment and a European cloud variant, workflow and data flows, human oversight, maintenance, risks and sprints; in Spanish) and [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (GDPR and AI Act).
 
 Future work:
 

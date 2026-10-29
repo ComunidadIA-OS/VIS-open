@@ -143,7 +143,7 @@ La lista completa, con versiones, fuentes y fecha de verificación (última revi
 
 El plan detallado de esta entrega, con tareas, responsables, fechas y dependencias, está en [`docs/PLAN_DE_TRABAJO.md`](docs/PLAN_DE_TRABAJO.md).
 
-Plan de puesta en producción: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (acceso, datos compartidos, automatización y coste por pleno) y [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (RGPD y Reglamento de IA).
+Plan de puesta en producción: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (requisitos documentales, validaciones jurídicas, capacidades técnicas, despliegue en local y variante en la nube europea, workflow y flujos de datos, supervisión humana, mantenimiento, riesgos y sprints) y [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (RGPD y Reglamento de IA).
 
 Evolución futura:
 
