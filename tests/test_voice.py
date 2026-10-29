@@ -411,3 +411,16 @@ def test_summary_ends_in_a_whole_sentence():
     assert voice.whole_sentences("Una frase. Otra.") == "Una frase. Otra."
     long = "Primera frase corta. " + "palabra " * 300
     assert voice.whole_sentences(long, 200) == "Primera frase corta."
+
+
+def test_long_replies_go_in_parts_and_stop():
+    text = "Primera frase del resumen. " * 6 + "Última frase."
+    parts = voice.in_parts(text, 80)
+    assert len(parts) > 1 and all(len(p) <= 80 for p in parts)
+    assert " ".join(parts) == " ".join(text.split())
+    assert voice.in_parts("Corta.") == ["Corta."]
+    for text in ("para", "stop", "no", "basta", "no sigas", "ya está"):
+        assert voice.parse_command(text, IDS, "more").action == "more_no", text
+    for text in ("sí", "sigue", "continúa", "vale", "adelante"):
+        assert voice.parse_command(text, IDS, "more").action == "more_yes", text
+    assert voice.parse_command("explícame los resultados", IDS, "more").action == "explain"

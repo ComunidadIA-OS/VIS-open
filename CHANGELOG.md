@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 29 oct 2026: asistente de voz: las respuestas largas (como el resumen) se leen por partes de unos 20 s; al final de cada una pregunta «¿Sigo?» y calla, y «sí» sigue y «para», «stop» o «no» terminan. Con altavoces el micrófono no oye a la persona mientras el asistente habla (probado en OVH). El eco de su propia voz ya no se apunta en la conversación.
 - 29 oct 2026: modo manos libres: «para», «stop» o «basta» cortan la voz del asistente mientras habla (por ejemplo, un resumen largo). Mientras habla se escucha con umbral estricto y solo vale esa intención; su propia voz recogida por el micrófono no cuenta (`voice.speech_stop_intent`).
 - 29 oct 2026: plan de puesta en producción completo en `docs/PRODUCCION.md` (sustituye a la versión del 20 oct): despliegue en local como opción principal y variante en la nube europea, PostgreSQL, retención de datos (arts. 5.1.c y 5.2 RGPD), riesgos, piloto y sprints con gates.
 - 26 oct 2026: M03a (intervenciones por pregunta) y M03b (voces por pregunta) como dos métricas de control de calidad, con la definición de la issue #143: una intervención solo termina cuando otra voz habla 5 s o más; una voz cuenta para M03b si suma 5 s o más en el bloque. Se listan los bloques con 3 o más voces y las dos métricas salen en el panel y en la evolución entre sesiones.
