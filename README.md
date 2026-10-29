@@ -159,7 +159,7 @@ Evolución futura:
 
 ## Equipo
 
-Sabrina (dirección, arquitectura y modelo de IA), Ivette (definición y validación de métricas) y Veru (datos, métricas, panel y ética).
+Sabrina (arquitectura e integración, pipeline de IA, panel, infraestructura, RGPD y AI Act, plan de puesta en producción, vídeo y publicación), Ivette (definición y validación de métricas, presentación) y Veru (datos y programación de las métricas).
 
 ## Licencia
 

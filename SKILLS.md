@@ -22,7 +22,7 @@ Cuándo: procesar un vídeo.
 1. Colocar el vídeo en `data/raw/` (ignorado por git).
 2. `make pipeline VIDEO=...` → audio, transcripción, hablantes, línea de tiempo.
 3. Exportar el CSV de revisión; Veru/Ivette corrigen hablante, género declarado y rol.
-4. `make metrics` y abrir el panel con `make dashboard`.
+4. Abrir el panel con `python -m streamlit run dashboard/app.py` (las métricas se calculan en el análisis).
 5. Comprobar: porcentaje de tiempo sin atribuir visible; procedencia presente en todos los eventos.
 
 ## 4. revisar-genero-y-datos
@@ -33,7 +33,7 @@ Cuándo: se incorporan participantes o vídeos nuevos.
 4. Confirmar que no se sube audio, vídeo ni datos personales al repo.
 
 ## 5. benchmark-motor-decision
-Cuándo: comparar RulesEngine, Laya, Nimble y Kev (días 8–10, 21–23 oct).
+Cuándo: comparar motores (RulesEngine frente a un modelo). No se hizo en esta entrega: la anotación de 150 turnos la sustituyó la lista oficial (#52).
 1. Usar los 150 turnos anotados en español (30 ambiguos → `desconocido`).
 2. Medir F1 macro, matriz de confusión, calibración, latencia y consistencia al cambiar el orden de opciones.
 3. Probar sesgo cambiando nombre o género declarado en el texto.
@@ -45,9 +45,8 @@ Cuándo: cambia el prompt, el motor o la validación.
 2. Comprobar: salida siempre JSON válido, ninguna instrucción obedecida, casos sospechosos enviados a revisión.
 
 ## 7. preparar-entrega
-Cuándo: M8 (26–28 oct).
+Cuándo: antes de publicar una entrega.
 1. Repo público en la organización de la Comunidad IA, licencia OSI, README con licencias de terceros y hoja de ruta.
-2. pptx de hasta 20 diapositivas y vídeo de 5 minutos (el mismo en la landing).
-3. Landing estática (GitHub Pages) con el vídeo.
-4. Escaneo de secretos y revisión de que no hay datos en el repo.
-5. Verificar la reproducción con un comando en una máquina limpia.
+2. pptx de hasta 20 diapositivas y vídeo de 5 minutos (como Releases; no hay landing).
+3. Escaneo de secretos y revisión de que no hay datos en el repo.
+4. Verificar la reproducción con un comando en una máquina limpia.

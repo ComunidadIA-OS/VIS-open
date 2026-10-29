@@ -10,7 +10,7 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 - Repositorio en la organización de la Comunidad: https://github.com/ComunidadIA-OS/VIS-open (acceso ya resuelto; privado hasta el 29 oct, que se hace público entre las 23:00 y las 24:00).
 
 ## Equipo
-- Sabrina (dirección, arquitectura, pipeline de IA, modelo de lenguaje, infraestructura, publicación y vídeo), Ivette (define y valida las métricas, sin programar; presentación .pptx), Veru (datos, programa las métricas, panel, plan de puesta en producción, revisión del repositorio).
+- Sabrina (arquitectura e integración, pipeline de IA, panel, infraestructura, RGPD y AI Act, plan de puesta en producción, vídeo y publicación), Ivette (definición y validación de métricas, presentación) y Veru (datos y programación de las métricas).
 - Cada persona dispone de unas 2 h por día laborable; los fines de semana no se cuentan.
 
 ## La entrega (29 oct)

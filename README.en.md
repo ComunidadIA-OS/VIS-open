@@ -159,7 +159,7 @@ Future work:
 
 ## Team
 
-Sabrina (direction, architecture and AI model), Ivette (definition and validation of metrics) and Veru (data, metrics, dashboard and ethics).
+Sabrina (architecture and integration, AI pipeline, dashboard, infrastructure, GDPR and AI Act, production deployment plan, video and publication), Ivette (definition and validation of metrics, presentation) and Veru (data and programming of the metrics).
 
 ## Licence
 

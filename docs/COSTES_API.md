@@ -79,7 +79,7 @@ Con el coste por turno medido, `project(...)` estima el total: 3 sesiones × tur
 
 ## Otros costes a declarar
 
-- **Cómputo en OVH:** horas de GPU de la transcripción y la separación de voces (de `data/smoke.json` y de los tiempos de ejecución) y del ajuste ligero de Qwen del 28 oct.
+- **Cómputo en OVH:** horas de GPU de la transcripción y la separación de voces (de `data/smoke.json` y de los tiempos de ejecución) (el ajuste ligero de Qwen no se hizo, #51).
 - **Almacenamiento:** vídeos originales y salidas; los vídeos no se suben al repositorio.
 - **Coste cero a propósito:** el género por pistas del lenguaje, las métricas, la seudonimización y el panel corren en local sin facturación por uso.
 
@@ -89,9 +89,9 @@ Con el coste por turno medido, `project(...)` estima el total: 3 sesiones × tur
 > - Lo único que factura por uso es el modelo de lenguaje (Qwen vía API compatible con OpenAI). Medimos tokens por turno y coste por sesión, con precios del tarifario del día anotado.
 > - Comparamos coste frente a calidad: el motor de reglas (coste 0) frente al modelo; el modelo solo entra si mejora de forma que compensa.
 > - El sistema es agnóstico al modelo: se puede cambiar a uno abierto en nuestro hardware, y el coste pasa a ser de cómputo.
-> - Resultado: *se rellena con el benchmark real (27–28 oct)*.
+> - Resultado: el benchmark con 150 turnos reales no se hizo (#52). El coste medido por sesión está en `docs/HERRAMIENTAS_Y_COSTES.md`.
 
 ## Límites
 
-- Con datos sintéticos solo se prueba la mecánica; el coste real sale de los 150 turnos reales.
+- Con datos sintéticos solo se prueba la mecánica; el coste medido de las sesiones reales está en `docs/HERRAMIENTAS_Y_COSTES.md`.
 - Si la API no devuelve el campo `usage`, los tokens quedan sin medir (`None`) y el informe lo muestra como «sin_api»; en ese caso hay que estimarlos a mano.

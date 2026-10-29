@@ -38,11 +38,11 @@ El único texto que lee un LLM opcional es la transcripción seudonimizada de un
 - **Pruebas de código:** datos sintéticos en `tests/`, separados de todo dato real.
 - **Evaluación de calidad:** 3 sesiones de control del Congreso (V005, V006 y V007; 6 a 10 como evolución futura), solo para medir. Referencia: la lista oficial de intervenciones del archivo audiovisual (quién habla y en qué orden). Resultados en `docs/EVALUACION.md`.
 - **Pruebas de la automatización:** el pleno 203 (02/10/2026) y la Diputación Permanente (V004) se analizan pero no entran en los resultados ni en la evolución por defecto.
-- **Anotación de evaluación:** dos personas etiquetan de forma independiente 2 o 3 vídeos y una tercera resuelve desacuerdos.
+- **Referencia de evaluación:** la lista oficial de intervenciones del Congreso, que sustituyó a la anotación manual prevista (#52).
 
 ## Modelos usados y datos con los que se entrenaron
 
-Usamos modelos preentrenados de terceros tal cual, salvo el ajuste ligero de Qwen para M09. Esta tabla recoge, para cada uno, con qué datos lo entrenó su autor, según su ficha oficial (consultada el 2026-10-16). Los datos de entrenamiento son de terceros y no se redistribuyen en este repositorio.
+Usamos modelos preentrenados de terceros tal cual (el ajuste ligero de Qwen no se hace en esta entrega (#51) y queda en la hoja de ruta). Esta tabla recoge, para cada uno, con qué datos lo entrenó su autor, según su ficha oficial (consultada el 2026-10-16). Los datos de entrenamiento son de terceros y no se redistribuyen en este repositorio.
 
 | Modelo | Uso | Licencia | Datos con los que se entrenó (según su ficha) |
 |---|---|---|---|
@@ -59,13 +59,13 @@ Implicaciones: los modelos de voz se entrenaron con corpus mayoritariamente de r
 
 ## Anotación
 
-Decisión del 16 oct: la IA asigna el género por pistas del lenguaje y una persona revisa solo los casos dudosos (sin pista, pistas contradictorias, gestos sin turno). Para la evaluación, dos personas etiquetan de forma independiente todas las voces de 2 o 3 vídeos (mujer / hombre / desconocido, rol, confianza) y los gestos de levantar la mano; una tercera decide los desacuerdos. Se publica el protocolo y el acuerdo entre anotadoras, nunca las etiquetas asociadas a personas identificables.
+Decisión del 16 oct: la IA asigna el género por pistas del lenguaje y una persona revisa solo los casos dudosos (sin pista, pistas contradictorias, gestos sin turno). En la revisión humana, una voz `desconocido` solo cuenta si la confirman dos anotadoras distintas. Para la evaluación se usó la lista oficial de intervenciones del Congreso (`docs/EVALUACION.md`), que sustituyó a la anotación manual prevista (#52). Nunca se publican etiquetas asociadas a personas identificables.
 
 ## Consideraciones éticas y legales
 
 - Las voces y las imágenes son datos personales. No se tratan datos personales reales sin base jurídica y autorización expresa de la Organización.
 - No se publican grabaciones, fragmentos ni transcripciones reales.
-- El plan de puesta en producción exige consentimiento o base legal, información a las personas grabadas y evaluación RGPD y AI Act (informe pendiente, hito M7).
+- El plan de puesta en producción exige consentimiento o base legal, información a las personas grabadas y evaluación RGPD y AI Act (`docs/PRODUCCION.md` y `docs/PRODUCCION_RGPD_AIACT.md`, sin validación jurídica).
 - Los resultados se presentan agregados y con sus márgenes de error.
 
 ## Limitaciones

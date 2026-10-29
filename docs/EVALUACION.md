@@ -76,6 +76,8 @@ Benchmark sintético (`SINTETICO_turnos.csv`) con Qwen3.5-9B por OVH AI Endpoint
 
 ## Anotar los 150 turnos de género (Ivette y Veru)
 
+> **No se hizo en esta entrega:** la sustituyó la lista oficial de intervenciones (ver «Resultados», #52). El procedimiento se conserva por si se retoma.
+
 ```
 python -m evaluation.prepare_annotation      # lee data/processed/*/, escribe data/anotacion/
 ```

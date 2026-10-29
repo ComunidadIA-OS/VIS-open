@@ -1,6 +1,6 @@
 # Ficha de modelos y uso responsable
 
-VIS Open usa modelos abiertos ya entrenados y reglas deterministas. La única excepción prevista es un **ajuste ligero del modelo de lenguaje** (Qwen) para la métrica M09, que se mide antes y después; si no mejora, se usa el modelo sin ajustar. Esta ficha describe qué modelos intervienen, para qué sirven y dónde fallan. Las licencias exactas están en `THIRD_PARTY_LICENSES.md`.
+VIS Open usa modelos abiertos ya entrenados y reglas deterministas. No entrenamos ni ajustamos modelos: el ajuste ligero de Qwen no se hace en esta entrega (#51) y queda en la hoja de ruta. Esta ficha describe qué modelos intervienen, para qué sirven y dónde fallan. Las licencias exactas están en `THIRD_PARTY_LICENSES.md`.
 
 ## Información del sistema
 
@@ -27,7 +27,7 @@ Los textos de las licencias están en `LICENSES/` y la atribución que exige CC-
 
 ## Datos de los modelos
 
-Con qué datos se entrenó cada modelo de terceros está en `docs/DATASET_CARD.md` (sección "Modelos usados y datos con los que se entrenaron"). Salvo el ajuste ligero de Qwen descrito arriba, no entrenamos ni ajustamos modelos. Los datos de ese ajuste se describen en `docs/DATASET_CARD.md`.
+Con qué datos se entrenó cada modelo de terceros está en `docs/DATASET_CARD.md` (sección "Modelos usados y datos con los que se entrenaron"). No entrenamos ni ajustamos modelos; los datos previstos para el ajuste de Qwen (hoja de ruta) se describen en `docs/DATASET_CARD.md`.
 
 ## Uso previsto
 
@@ -73,7 +73,7 @@ El código se publica en GitHub (Comunidad IA de Código Abierto) con licencia A
 
 ## Evaluación
 
-Pendiente: las métricas de calidad (error de transcripción y de diarización en nuestros vídeos, acuerdo entre anotadoras) las define y valida Ivette. Hasta entonces no afirmamos ninguna cifra propia; las que publican los autores de los modelos están en sus fichas.
+Resultados en `docs/EVALUACION.md` (validación de Ivette, 25–27 oct 2026, frente a la lista oficial de intervenciones del Congreso): género 86 de 87 personas correctas, 0 errores y 1 a revisión humana; WER aproximado 10,0 % frente al Diario de Sesiones (cota superior). Falta medir la separación de voces (DER) y el WER exacto con un tramo anotado a mano (hoja de ruta). Las cifras que publican los autores de los modelos están en sus fichas.
 
 ## Reproducibilidad
 

@@ -1,6 +1,6 @@
 # Motores de decisión y benchmark
 
-Código en `decision/engine.py`, `decision/llm_engine.py` y `evaluation/benchmark.py`. Esta rama parte de `genero-lenguaje` (el `RulesEngine` usa sus pistas).
+Código en `decision/engine.py`, `decision/llm_engine.py` y `evaluation/benchmark.py`. El `RulesEngine` usa las pistas de `docs/GENERO_LENGUAJE.md`.
 
 ## Motores
 
@@ -20,7 +20,7 @@ Todos devuelven `Decision`: `gender` (`mujer`/`hombre`/`desconocido`), `confiden
 - Salida cerrada: `response_format` con el esquema JSON (`additionalProperties: false`) y segunda validación con Pydantic. Fuera de esquema → `desconocido` + error.
 - Una respuesta con género solo vale si su `evidence` es una **cita literal** del turno o del contexto; si no, se descarta (cubre un modelo que "obedece" una orden escondida).
 - Test con una transcripción hostil: `tests/test_decision_engines.py`.
-- **Límite:** una pista lingüística escrita dentro del texto («soy la diputada») cuenta como pista, también para el `RulesEngine`; la revisión humana y la procedencia (`ai_inferred`) existen por eso. Pendiente: probar los 10 turnos maliciosos de SKILLS.md §6 contra un modelo real.
+- **Límite:** una pista lingüística escrita dentro del texto («soy la diputada») cuenta como pista, también para el `RulesEngine`; la revisión humana y la procedencia (`ai_inferred`) existen por eso. Los 10 turnos maliciosos de SKILLS.md §6 contra Qwen: resiste 10 de 10 (`docs/EVALUACION.md`).
 
 ## Benchmark
 
@@ -39,4 +39,4 @@ CSV UTF-8, una fila por turno:
 
 Salida por motor: F1, precisión y recall por clase, F1 macro, exactitud, matriz de confusión, porcentaje que va a revisión, errores y latencia media. Valida las etiquetas y los `turn_id` repetidos.
 
-Los datos sintéticos solo prueban la mecánica. Los 150 turnos reales (30 ambiguos → `desconocido`) los anotan Ivette y Veru; **no se suben al repo**. Pendiente: matriz por orden de opciones, sesgo por nombre/género declarado y calibración (SKILLS.md §5).
+Los datos sintéticos solo prueban la mecánica. La anotación de 150 turnos reales no se hizo: la sustituyó la lista oficial de intervenciones del Congreso (`docs/EVALUACION.md`, #52); ningún dato real se sube al repo. Pendiente: matriz por orden de opciones, sesgo por nombre/género declarado y calibración (SKILLS.md §5).
