@@ -92,6 +92,7 @@ export default function (component) {
   else if (data.sstop !== s.sstop) {
     s.sstop = data.sstop
     if (window.speechSynthesis) speechSynthesis.cancel()
+    window.__vozTalk = { until: 0 } // cortada: ya no habla, vuelve a escuchar todo
   }
   s.setStateValue = setStateValue
   s.setTriggerValue = setTriggerValue
@@ -108,8 +109,12 @@ export default function (component) {
   // vuelve a sonar al terminar.
   const hold = () => { s.held = pageVideos(); s.held.forEach((v) => v.pause()) }
   const release = () => { (s.held || []).forEach((v) => v.play().catch(() => {})); s.held = [] }
-  const speaking = () =>
-    window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending)
+  // Chrome puede dejar speaking en true tras cortar la voz: manda el aviso del avatar
+  const speaking = () => {
+    const v = window.__vozTalk
+    if (v && Date.now() >= v.until) return false
+    return !!(window.speechSynthesis && (speechSynthesis.speaking || speechSynthesis.pending))
+  }
 
   function resume() {
     if (s.vad) s.vad.reset()

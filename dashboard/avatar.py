@@ -172,8 +172,10 @@ if(speak&&t){
   if(a){setTimeout(()=>{const e=pd.getElementById(a);
     if(e)e.scrollIntoView({behavior:'smooth'})},400)}
   const s=window.parent.speechSynthesis,u=new SpeechSynthesisUtterance(t);u.lang='es-ES';
+  // aviso a la página (manos libres): habla hasta onend, como mucho lo que dura el texto
+  const W=window.parent;W.__vozTalk={until:Date.now()+(t.length/9+4)*1000};
   u.onstart=()=>{state='speaking'};u.onboundary=()=>{spike=.45};
-  u.onend=u.onerror=()=>{state='idle';playClip()};
+  u.onend=u.onerror=()=>{state='idle';W.__vozTalk={until:0};playClip()};
   s.cancel();s.speak(u);
 }
 </script></html>"""
