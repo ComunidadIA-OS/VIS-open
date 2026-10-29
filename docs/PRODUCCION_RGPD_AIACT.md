@@ -1,6 +1,6 @@
-# Borrador: plan de puesta en producción (RGPD, Reglamento de IA y ética)
+# Plan de puesta en producción: RGPD, Reglamento de IA y ética
 
-> **BORRADOR para Veru** (responsable del plan de producción, 28 oct). Lo ha preparado Sabrina con ayuda de IA a partir de lo que hace el sistema hoy. **No está validado jurídicamente y no sustituye asesoramiento legal.** Las citas de artículos son las habituales y hay que **contrastarlas con el texto oficial** antes de usarlas en la presentación. Lo que está marcado como **DECIDIR** o **VERIFICAR** necesita una persona.
+> Lo ha preparado Sabrina con ayuda de IA a partir de lo que hace el sistema. **No está validado jurídicamente y no sustituye asesoramiento legal.** Las citas de artículos son las habituales y hay que **contrastarlas con el texto oficial** antes de usarlas en la presentación. Lo que está marcado como **DECIDIR** o **VERIFICAR** necesita una persona.
 
 > **Actualización del 26 oct:** se añaden propuestas para cada punto abierto (marcadas como «Propuesta») y lo ya decidido o medido. Las propuestas no son decisiones hasta que las aprueben Sabrina y Veru.
 

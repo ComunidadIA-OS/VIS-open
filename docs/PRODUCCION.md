@@ -4,7 +4,7 @@ Cómo pasar VIS Open de la entrega del reto a una herramienta que una instituci�
 
 **Estado:** plan para los siguientes sprints, fuera de la entrega del 30 de octubre. Marcas: **DECIDIR** (lo elige la entidad que despliega), **VERIFICAR** (necesita una consulta legal o al proveedor), **COMPROBAR** (se mide en el piloto) y **Propuesta** (valor propuesto por el equipo, que la entidad confirma). Las fases se cierran con cuatro gates (sección 14). Este plan no está validado jurídicamente y no sustituye asesoramiento legal. Las estimaciones de tiempos, costes y disco usan solo datos medidos y comprobados en el reto (pleno 203 y sesiones V004–V007); lo que no está medido va marcado **COMPROBAR**.
 
-Documentos de partida en el repositorio: `docs/PRODUCCION.md`, `docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`, `docs/FLUJO.md`, `docs/HERRAMIENTAS_Y_COSTES.md`, `docs/PROVEEDORES.md`, `docs/SEUDONIMIZACION.md`, `docs/RESPONSIBLE_USE.md`, `SECURITY.md` y `THIRD_PARTY_LICENSES.md`.
+Documentos de partida en el repositorio: `docs/PRODUCCION.md`, `docs/PRODUCCION_RGPD_AIACT.md`, `docs/FLUJO.md`, `docs/HERRAMIENTAS_Y_COSTES.md`, `docs/PROVEEDORES.md`, `docs/SEUDONIMIZACION.md`, `docs/RESPONSIBLE_USE.md`, `SECURITY.md` y `THIRD_PARTY_LICENSES.md`.
 
 ## Resumen ejecutivo
 
@@ -214,7 +214,7 @@ El workflow y el flujo de datos de producción no son los del reto (`docs/FLUJO.
 | Ficha del modelo y ficha del conjunto de datos | Transparencia y AI Act | Existen (`docs/MODEL_CARD.md`, `docs/DATASET_CARD.md`) | Arquitectura |
 | Licencias de terceros | Cumplir las licencias | Existe (`THIRD_PARTY_LICENSES.md`, `NOTICE`) | Arquitectura |
 | Registro de actividades de tratamiento (art. 30 RGPD) | Obligación del responsable | **Pendiente** | Responsable del tratamiento |
-| Evaluación de impacto (EIPD, art. 35 RGPD) | Riesgos para las personas | Esqueleto en el borrador RGPD; **Propuesta:** hacerla antes de producción (gate G1) | Responsable del tratamiento |
+| Evaluación de impacto (EIPD, art. 35 RGPD) | Riesgos para las personas | Esqueleto en `docs/PRODUCCION_RGPD_AIACT.md`; **Propuesta:** hacerla antes de producción (gate G1) | Responsable del tratamiento |
 | Clasificación según el Reglamento de IA | Saber qué obligaciones aplican | **Propuesta:** riesgo limitado (art. 50), a VERIFICAR; mientras tanto, medidas de alto riesgo | Responsable del tratamiento |
 | Contratos de encargado (art. 28 RGPD) | Con cada proveedor que reciba datos | En local, no hacen falta. En la nube, OVHcloud publica su acuerdo de encargado (sección 6.1); aceptarlo al contratar | Responsable del tratamiento |
 | Texto informativo (arts. 13 y 14 RGPD) y aviso en sala | Informar a las personas grabadas | **Propuesta** de aviso en la sección 6.1; texto tipo en `docs/RESPONSIBLE_USE.md`; **DECIDIR** el final | Responsable del tratamiento |
@@ -236,7 +236,7 @@ El workflow y el flujo de datos de producción no son los del reto (`docs/FLUJO.
 | Reutilización de los vídeos | Aviso legal de la fuente | Reutilizar sin alterar y citando la fuente (`docs/FUENTE_CONGRESO.md`). **VERIFICAR** para cada fuente nueva |
 | Voz como dato biométrico (art. 9) | Si los embeddings cuentan como tratamiento biométrico | Se usan solo para separar hablantes dentro de una sesión, sin identificar a nadie, y no se guardan. **VERIFICAR** con una persona experta |
 | Seudonimización | Los datos seudonimizados siguen siendo personales | Mantener «Persona N», no guardar la tabla de nombres, revisar salidas antes de publicarlas |
-| EIPD | Si es obligatoria | Probable en producción (voz e imagen a escala con IA). **Propuesta:** hacerla antes de cualquier puesta en producción, por prudencia (tecnología nueva sobre voz e imagen); entra en el gate G1. El esqueleto de riesgos está en el borrador RGPD |
+| EIPD | Si es obligatoria | Probable en producción (voz e imagen a escala con IA). **Propuesta:** hacerla antes de cualquier puesta en producción, por prudencia (tecnología nueva sobre voz e imagen); entra en el gate G1. El esqueleto de riesgos está en `docs/PRODUCCION_RGPD_AIACT.md` |
 | Delegado de protección de datos | Si hace falta | **Obligatorio** si el tratamiento lo lleva a cabo «una autoridad u organismo público» (art. 37.1.a, comprobado en EUR-Lex el 29 oct 2026). En el reto, el Equipo 6 no lo necesita: no es un organismo público ni hace observación a gran escala. Para una entidad privada, **DECIDIR** según el volumen y el tipo de tratamiento |
 | Encargados | Contrato con cada proveedor que reciba datos | En local, ninguno recibe datos de las sesiones. En la variante en la nube, el proveedor elegido; OVHcloud publica su acuerdo de encargado «según el artículo 28 del RGPD» (versión de 23/01/2023, comprobado el 29 oct 2026), que se acepta al contratar. GitHub y Hugging Face no reciben datos de las sesiones (solo código y datos sintéticos; descarga de modelos), así que no hace falta contrato. **VERIFICAR** la ubicación y la retención de la API de modelos, si se usa |
 | Información a las personas (arts. 13 y 14) | Cómo se informa | Sesiones públicas (p. ej. del Congreso): los datos no se recogen de las personas (art. 14) e informar a cada una supondría «un esfuerzo desproporcionado» (art. 14.5.b, comprobado en EUR-Lex); en ese caso el propio artículo pide medidas adecuadas, «inclusive haciendo pública la información»: README, aviso de método en el panel y en los informes. **Propuesta** para salas propias (art. 13), aviso visible: «Esta sesión se graba y se analiza con VIS Open para medir, de forma agregada, la participación por género. No se reconocen caras ni se deduce el género de la voz: se usan las pistas del lenguaje o lo que cada persona declare. Responsable: [entidad]. Puede ejercer sus derechos en [correo]. Más información: [enlace]» |
@@ -261,7 +261,7 @@ El workflow y el flujo de datos de producción no son los del reto (`docs/FLUJO.
 - **Derechos de imagen y voz:** confirmar que el uso de los debates públicos está cubierto por el aviso legal de la fuente; en salas privadas, autorización previa.
 - **Licencias:** Apache-2.0 para el proyecto; cada dependencia nueva se anota en `THIRD_PARTY_LICENSES.md` con la licencia verificada en la fuente. Usar `nimble` (Apache-2.0), nunca `nimble-v3` (CC BY-NC).
 - **Accesibilidad:** si lo despliega una administración pública, revisar los requisitos de accesibilidad de sitios y aplicaciones del sector público. **VERIFICAR**.
-- **Consulta legal (opcional, recomendada):** las seis preguntas abiertas de la sección 8 de `docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`.
+- **Consulta legal (opcional, recomendada):** las seis preguntas abiertas de la sección 8 de `docs/PRODUCCION_RGPD_AIACT.md`.
 
 ## 7. Capacidades técnicas
 

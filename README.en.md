@@ -100,7 +100,7 @@ A video must have its complete row in the manifest (see `docs/FUENTE_CONGRESO.md
 - `evaluation/`: synthetic data and evaluation of the engines.
 - `dashboard/`: Streamlit dashboard with the report of each session and the evolution across sessions (see `docs/PANEL.md`); `voice.py` (voice commands), `handsfree.py` and `vad.js` (hands-free mode and voice detector), `avatar.py` (assistant avatar).
 - `docker/`: images for CPU and GPU.
-- `docs/`: documentation in Spanish (work plan, model and dataset cards, responsible use, providers, accessibility, draft GDPR and AI Act plan, FAQ).
+- `docs/`: documentation in Spanish (work plan, model and dataset cards, responsible use, providers, accessibility, GDPR and AI Act plan, FAQ).
 
 ## Principles
 
@@ -143,7 +143,7 @@ The full list, with versions, sources and verification date (last review: 21 Oct
 
 The detailed plan for this release, with tasks, owners, dates and dependencies, is in [`docs/PLAN_DE_TRABAJO.md`](docs/PLAN_DE_TRABAJO.md).
 
-Production deployment plan: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (documentation requirements, legal checks, technical capabilities, local deployment and a European cloud variant, workflow and data flows, human oversight, maintenance, risks and sprints; in Spanish) and [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (GDPR and AI Act).
+Production deployment plan: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (documentation requirements, legal checks, technical capabilities, local deployment and a European cloud variant, workflow and data flows, human oversight, maintenance, risks and sprints; in Spanish) and [`docs/PRODUCCION_RGPD_AIACT.md`](docs/PRODUCCION_RGPD_AIACT.md) (GDPR and AI Act).
 
 Future work:
 

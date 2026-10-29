@@ -49,4 +49,4 @@ Medir de forma transparente la presencia, la participación y el protagonismo de
 
 ## Marco
 
-El proyecto se ha diseñado teniendo en cuenta el código ético europeo de la IA y la normativa de protección de datos. El plan de puesta en producción (permisos, RGPD y Reglamento de IA) se completa el 28 de octubre de 2026 y parte de esta guía; hay un **borrador sin validar jurídicamente** en `docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`.
+El proyecto se ha diseñado teniendo en cuenta el código ético europeo de la IA y la normativa de protección de datos. El plan de puesta en producción (permisos, RGPD y Reglamento de IA) parte de esta guía y está en `docs/PRODUCCION.md` y `docs/PRODUCCION_RGPD_AIACT.md`, **sin validación jurídica**.
