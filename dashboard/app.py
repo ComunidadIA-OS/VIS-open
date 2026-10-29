@@ -258,19 +258,6 @@ def run_voice(cmd, ids: list[str]) -> str:
     from dashboard import voice
 
     ss = st.session_state
-    if cmd.action == "more_no":
-        ss.update(voz_estado=None, voz_resto=None)
-        return "De acuerdo, paro."
-    if cmd.action == "more_yes":
-        rest = ss.get("voz_resto") or []
-        if not rest:
-            ss.update(voz_estado=None, voz_resto=None)
-            return "Ya no queda más."
-        ss["voz_resto"] = rest[1:]
-        if rest[1:]:
-            return rest[0] + voice.MORE_ASK
-        ss["voz_estado"] = None
-        return rest[0]
     current = cmd.session or ss.get("sesion", ids[0])
     sess = next(x for x in sessions if x.session_id == current)
     folder = DATA_DIR / "processed" / current
@@ -434,8 +421,6 @@ def _process_voice(
     if during_speech:  # mientras el asistente habla solo vale «para»: corta su voz
         if voice.speech_stop_intent(text, ss.get("voz_respuesta", "")):
             ss["voz_sstop"] = ss.get("voz_sstop", 0) + 1
-            if ss.get("voz_estado") == "more":
-                ss.update(voz_estado=None, voz_resto=None)  # tampoco sigue con lo que quedaba
             ss["voz_historial"] = [*ss.get("voz_historial", []), [text, "(dejo de hablar)"]][-30:]
         return  # lo demás es casi seguro su propia voz por los altavoces: no se apunta
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
@@ -454,14 +439,7 @@ def _process_voice(
     if cmd is None:  # en manos libres puede ser ruido o una charla ajena: sin regañar
         reply = "Si necesitas algo, indícamelo." if handsfree else "No te he entendido. Di «ayuda»."
     else:
-        if ss.get("voz_estado") == "more" and not cmd.action.startswith("more_"):
-            ss.update(voz_estado=None, voz_resto=None)  # otra orden: se deja lo que quedaba
         reply = run_voice(cmd, ids)
-        parts = voice.in_parts(reply)
-        # por partes: «¿Sigo?»; no si la orden ya espera otra respuesta (validación de género)
-        if not cmd.action.startswith("more_") and len(parts) > 1 and not ss.get("voz_estado"):
-            ss.update(voz_estado="more", voz_resto=parts[1:])
-            reply = parts[0] + voice.MORE_ASK
     ss["voz_respuesta"] = reply
     ss["voz_nueva"] = True  # el avatar habla en el próximo dibujo
     ss["voz_refrescar"] = True  # la página de fondo se vuelve a dibujar con la orden cumplida
