@@ -8,6 +8,8 @@
 
 VIS Open mide si la presencia de las mujeres en el Parlamento se traduce también en participación y protagonismo: quién interviene, cuánto habla, en qué proporción y quién ocupa los turnos de mayor visibilidad.
 
+**Validado en 3 sesiones reales del Congreso (2018, 2022 y 2026):** 87/87 personas encontradas, 86 clasificadas correctamente, 0 clasificaciones de género incorrectas y 1 caso enviado a revisión humana. Referencia: la lista oficial de intervenciones del Congreso ([`docs/EVALUACION.md`](docs/EVALUACION.md)).
+
 VIS Open es una herramienta de código abierto que mide la presencia y la participación de las mujeres en sesiones grabadas, a partir del audio y del vídeo, sin reconocimiento facial. El primer caso de uso son las sesiones del Congreso de los Diputados.
 
 Proyecto del Equipo 6 en el reto «Mujeres por la IA Abierta» (SEDIA, Comunidad IA de Código Abierto).

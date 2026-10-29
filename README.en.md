@@ -8,6 +8,8 @@
 
 VIS Open measures whether the presence of women in Parliament also translates into participation and prominence: who speaks, for how long, in what proportion, and who holds the most visible turns.
 
+**Validated on 3 real sessions of the Congress (2018, 2022 and 2026):** 87/87 people found, 86 correctly classified, 0 incorrect gender classifications and 1 case sent to human review. Reference: the official list of speeches of the Congress ([`docs/EVALUACION.md`](docs/EVALUACION.md), in Spanish).
+
 VIS Open is an open-source tool that measures the presence and participation of women in recorded sessions, from their audio and video, without facial recognition. The first use case is the sessions of the Spanish Congress of Deputies (Congreso de los Diputados).
 
 Project by Team 6 in the «Mujeres por la IA Abierta» (Women for Open AI) challenge (SEDIA, Comunidad IA de Código Abierto).
