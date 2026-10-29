@@ -23,28 +23,10 @@ from dataclasses import dataclass
 
 DEFAULT_ASR_MODEL = "whisper-large-v3-turbo"
 ASR_HINT = (
-    "Orden para el panel: hazme un resumen, resumen, explícame los resultados, léeme la "
-    "transcripción, sesión cuatro, persona uno, persona dos, anotadora dos, mujer, hombre, "
-    "desconocido, confirmo, cancela, confianza media, vídeo, minuto, para, stop, sigue, ayuda, "
-    "descarga el informe, lanza el vídeo, Human in the loop, para el vídeo."
+    "Orden para el panel: sesión cuatro, persona uno, persona dos, anotadora dos, mujer, hombre, "
+    "desconocido, confirmo, cancela, confianza media, vídeo, minuto, transcripción, resumen, "
+    "Human in the loop, para el vídeo."
 )
-# Lo que Whisper oye mal en órdenes cortas (probado en el panel): se corrige antes de entenderlo.
-MISHEARD = {"régimen": "resumen", "regimen": "resumen", "resumem": "resumen", "asme": "hazme",
-            "azme": "hazme", "hasme": "hazme"}  # fmt: skip
-
-
-def fix_misheard(text: str) -> str:
-    """Corrige palabra a palabra los errores conocidos de Whisper («Para el régimen» → «Para el
-    resumen»), respetando la mayúscula inicial."""
-
-    def fix(m: re.Match) -> str:
-        word = m.group(0)
-        good = MISHEARD.get(word.lower())
-        if good is None:
-            return word
-        return good.capitalize() if word[0].isupper() else good
-
-    return re.sub(r"\w+", fix, text)
 STOP_WORDS = ("para", "parar", "paralo", "pausa", "stop", "deten", "detenlo", "basta", "video")
 PLAY_WORDS = ("lanza", "lanzalo", "reproduce", "pon", "dale", "play")
 
@@ -76,16 +58,16 @@ def speech_stop_intent(heard: str, last_reply: str) -> bool:
 
 
 PART_CHARS = 330  # unos 20 s de voz: con altavoces el micrófono no oye «para» mientras habla
-PART_MIN = 150  # una parte nunca es solo el aviso «hecho por IA…»
+MORE_ASK = " ¿Sigo? Di «sí» o «para»."
 
 
 def in_parts(text: str, size: int = PART_CHARS) -> list[str]:
     """Parte una respuesta larga en trozos de frases completas, de `size` caracteres como mucho
-    (una frase más larga va sola). Entre trozo y trozo calla un momento: ahí se le oye «para»."""
+    (una frase más larga va sola). Entre trozo y trozo el asistente pregunta «¿Sigo?» y calla."""
     sentences = re.split(r"(?<=[.!?…])\s+", " ".join(text.split()))
     parts: list[str] = []
     for sentence in filter(None, sentences):
-        if parts and (len(parts[-1]) < PART_MIN or len(parts[-1]) + 1 + len(sentence) <= size):
+        if parts and len(parts[-1]) + 1 + len(sentence) <= size:
             parts[-1] += " " + sentence
         else:
             parts.append(sentence)
@@ -295,7 +277,7 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     """Encaja lo dicho en una orden de la lista cerrada, o None si no la entiende.
 
     `state` es el paso de la validación por voz: None, "gender" (espera mujer/hombre/desconocido)
-    o "confirm" (espera confirmo/cancela); o "more", entre parte y parte (para o sigue).
+    o "confirm" (espera confirmo/cancela); o "more", tras «¿Sigo?» (espera sí o para).
     Mujer, hombre y confirmo solo valen en su paso.
     """
     norm = normalize(clean_text(text))
@@ -306,7 +288,7 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
         re.search(rf"\b{re.escape(w)}", norm) for w in words
     )
 
-    if state == "more":  # entre parte y parte: para, stop o no terminan; sigue continúa
+    if state == "more":  # «¿Sigo?»: sí sigue; no, para o stop terminan
         words = norm.split()
         if norm in ("no", "no gracias") or any(w in SPEECH_STOP_WORDS for w in words) or has(
             "no sigas", "termina", "ya esta", "suficiente", "vale ya"
@@ -550,7 +532,6 @@ def transcribe(
         "language": env.get("VOICE_LANG") or "es",
         "prompt": ASR_HINT,  # fijo: ayuda a oír el vocabulario del panel; nunca sale de los datos
         "response_format": "verbose_json",  # trae la probabilidad de que no sea voz
-        "temperature": "0",  # la transcripción más probable, sin improvisar
     }
     body = b""
     for name, value in fields.items():

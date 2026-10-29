@@ -414,10 +414,9 @@ def test_summary_ends_in_a_whole_sentence():
 
 
 def test_long_replies_go_in_parts_and_stop():
-    text = "Primera frase del resumen. " * 16 + "Última frase."
-    parts = voice.in_parts(text, 200)
-    assert len(parts) > 1 and all(len(p) <= 200 for p in parts)
-    assert all(len(p) >= voice.PART_MIN for p in parts[:-1])  # ninguna parte es solo el aviso
+    text = "Primera frase del resumen. " * 6 + "Última frase."
+    parts = voice.in_parts(text, 80)
+    assert len(parts) > 1 and all(len(p) <= 80 for p in parts)
     assert " ".join(parts) == " ".join(text.split())
     assert voice.in_parts("Corta.") == ["Corta."]
     for text in ("para", "stop", "no", "basta", "no sigas", "ya está"):
@@ -425,10 +424,3 @@ def test_long_replies_go_in_parts_and_stop():
     for text in ("sí", "sigue", "continúa", "vale", "adelante"):
         assert voice.parse_command(text, IDS, "more").action == "more_yes", text
     assert voice.parse_command("explícame los resultados", IDS, "more").action == "explain"
-
-
-def test_known_mishearings_are_fixed():
-    assert voice.fix_misheard("Para el régimen.") == "Para el resumen."
-    assert voice.fix_misheard("Asme un resumen") == "Hazme un resumen"
-    assert voice.fix_misheard("explícame los resultados") == "explícame los resultados"
-    assert voice.parse_command(voice.fix_misheard("asme un régimen"), IDS).action == "summary"
