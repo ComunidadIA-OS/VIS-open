@@ -499,7 +499,7 @@ def _hear(
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
         return
     if text.strip():  # una transcripción vacía (ruido, teclas) no es una orden: se ignora
-        _process_voice(text, during_video, handsfree, during_speech)
+        _process_voice(voice.fix_misheard(text), during_video, handsfree, during_speech)
 
 
 def on_voice_text() -> None:

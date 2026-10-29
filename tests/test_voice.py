@@ -411,3 +411,10 @@ def test_summary_ends_in_a_whole_sentence():
     assert voice.whole_sentences("Una frase. Otra.") == "Una frase. Otra."
     long = "Primera frase corta. " + "palabra " * 300
     assert voice.whole_sentences(long, 200) == "Primera frase corta."
+
+
+def test_known_mishearings_are_fixed():
+    assert voice.fix_misheard("Para el régimen.") == "Para el resumen."
+    assert voice.fix_misheard("Asme un resumen") == "Hazme un resumen"
+    assert voice.fix_misheard("explícame los resultados") == "explícame los resultados"
+    assert voice.parse_command(voice.fix_misheard("asme un régimen"), IDS).action == "summary"

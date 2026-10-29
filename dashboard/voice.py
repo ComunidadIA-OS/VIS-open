@@ -23,10 +23,28 @@ from dataclasses import dataclass
 
 DEFAULT_ASR_MODEL = "whisper-large-v3-turbo"
 ASR_HINT = (
-    "Orden para el panel: sesión cuatro, persona uno, persona dos, anotadora dos, mujer, hombre, "
-    "desconocido, confirmo, cancela, confianza media, vídeo, minuto, transcripción, resumen, "
-    "Human in the loop, para el vídeo."
+    "Orden para el panel: hazme un resumen, resumen, explícame los resultados, léeme la "
+    "transcripción, sesión cuatro, persona uno, persona dos, anotadora dos, mujer, hombre, "
+    "desconocido, confirmo, cancela, confianza media, vídeo, minuto, para, stop, sigue, ayuda, "
+    "descarga el informe, lanza el vídeo, Human in the loop, para el vídeo."
 )
+# Lo que Whisper oye mal en órdenes cortas (probado en el panel): se corrige antes de entenderlo.
+MISHEARD = {"régimen": "resumen", "regimen": "resumen", "resumem": "resumen", "asme": "hazme",
+            "azme": "hazme", "hasme": "hazme"}  # fmt: skip
+
+
+def fix_misheard(text: str) -> str:
+    """Corrige palabra a palabra los errores conocidos de Whisper («Para el régimen» → «Para el
+    resumen»), respetando la mayúscula inicial."""
+
+    def fix(m: re.Match) -> str:
+        word = m.group(0)
+        good = MISHEARD.get(word.lower())
+        if good is None:
+            return word
+        return good.capitalize() if word[0].isupper() else good
+
+    return re.sub(r"\w+", fix, text)
 STOP_WORDS = ("para", "parar", "paralo", "pausa", "stop", "deten", "detenlo", "basta", "video")
 PLAY_WORDS = ("lanza", "lanzalo", "reproduce", "pon", "dale", "play")
 
@@ -504,6 +522,7 @@ def transcribe(
         "language": env.get("VOICE_LANG") or "es",
         "prompt": ASR_HINT,  # fijo: ayuda a oír el vocabulario del panel; nunca sale de los datos
         "response_format": "verbose_json",  # trae la probabilidad de que no sea voz
+        "temperature": "0",  # la transcripción más probable, sin improvisar
     }
     body = b""
     for name, value in fields.items():
