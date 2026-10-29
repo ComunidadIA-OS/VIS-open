@@ -6,18 +6,21 @@ Instrucciones para cualquier sesión de Claude Code que trabaje en este reposito
 Herramienta abierta y local que mide, a partir del audio y el vídeo de debates (sin reconocimiento facial), la presencia, participación, protagonismo y representación de las mujeres. Reto "Mujeres por la IA Abierta" (SEDIA / Comunidad IA de Código Abierto).
 Entregas: antes del 30 oct 2026 a las 08:00, repositorio público, README y .pptx; antes del 4 nov a las 08:00, vídeo de 5 minutos y presentación corta. Cierre del código: 28 oct. Plan detallado: `docs/PLAN_DE_TRABAJO.md`.
 
-## Estado: M1, M2 y prompt M3 hechos y en `main` (19 oct 2026)
-- M1 (hecho) = estructura del repo, esquemas Pydantic (`contracts/`), CI, `make test` y `THIRD_PARTY_LICENSES.md`.
-- M2 (hecho, rama `m2-pipeline`) = audio, transcripción, diarización, línea de tiempo y CSV de revisión.
-- Prompt M3 (hecho): Docker CPU/GPU, fuente Congreso y manifiesto, género por lenguaje, marco de métricas, motores de decisión, datos sintéticos y detector de mano levantada. `pipeline.run` ya encadena transcripción → diarización → género por lenguaje → `resumen.json`.
-- Alcance de la entrega (19 oct): 3 sesiones; métricas M01, M02, M03, M04, M13, M14 y M09; ajuste ligero de Qwen. El resto es evolución futura.
-- Pendiente: prueba real en OVH (GPU), definiciones de Ivette (incluida M09), panel, código e integración de M09 y ajuste del modelo (Sabrina), plan de puesta en producción (Veru).
-- Licencia Apache-2.0 aprobada por Sabrina (16 oct 2026); falta comunicarla a Ivette y Veru.
-- El vídeo (gestos de levantar la mano) está en el MVP y no se propone como opcional; sin reconocimiento facial.
-- Fuente del MVP (16 oct): solo sesiones del Congreso, sin modificar ni alterar el vídeo; los vídeos nunca van al repo. Para el ajuste ligero de Qwen (19 oct) solo se usa el texto transcrito de una sesión, comprobado con el Diario de Sesiones; nunca audio, vídeo ni voz. El modelo ajustado no se publica.
+## Estado (29 oct 2026)
+- Código cerrado y en `main`: pipeline completo (audio, transcripción, separación de voces, seudonimización «Persona N», género por pistas del lenguaje, vídeo sin cara, métricas, panel) probado en OVHcloud con 2×V100S. 490 pruebas en verde y lint limpio.
+- Sesiones de evaluación: V005 (30/09/2026), V006 (05/10/2022) y V007 (19/09/2018).
+- Métricas de la entrega: M01, M02 (con M02b), M03a, M03b, M04, M06, M09 y M13. Definiciones de Ivette en `docs/metricas.md`. Descartadas para el Congreso: M05, M08, M10 y M14–M16.
+- Validación de Ivette (25–27 oct) frente a la lista oficial de intervenciones del Congreso: 87/87 personas, 86 con el género correcto, 0 errores y 1 a revisión humana; M06 coincide en las 3 sesiones y M09 en 2 de 3 (`docs/EVALUACION.md`).
+- Panel en Streamlit con Human in the loop, asistente de voz y modo manos libres (estos dos, en beta).
+- Plan de puesta en producción: `docs/PRODUCCION.md` y `docs/PRODUCCION_RGPD_AIACT.md` (29 oct), sin validación jurídica.
+- Vídeo explicativo y presentaciones (completa y corta) publicados como Releases.
+- Hoja de ruta (no hecho en la entrega): ajuste ligero de Qwen con V008, DER y WER exacto con un tramo anotado a mano, más sesiones y más métricas (ver README).
+- Licencia Apache-2.0 aprobada por Sabrina (16 oct 2026).
+- Vídeo: personas visibles y tiempo en pantalla a partir de la postura del cuerpo, sin reconocimiento facial; el género en pantalla se hereda de la voz.
+- Fuente (16 oct): solo sesiones del Congreso, sin modificar ni alterar el vídeo; los vídeos nunca van al repo. Para el ajuste ligero de Qwen (19 oct) solo se usa el texto transcrito de una sesión, comprobado con el Diario de Sesiones; nunca audio, vídeo ni voz. El modelo ajustado no se publica.
 - Infra: desarrollo y pruebas pequeñas en local (CPU); transcripción, diarización y LLM en las VM de OVHcloud (2 espacios, 2×V100S cada uno; Volta: float16/int8, sin bf16). OVH se usa de forma prioritaria. Credenciales nunca en el repo.
 - Documentos de referencia: propuesta de arquitectura y PRD (enlaces en `MEMORY.md`).
-- Las métricas (sección 5 del PRD) son una versión inicial hasta el visto bueno de Ivette.
+- En la documentación no se usa la palabra «borrador» (29 oct).
 
 ## Equipo y propiedad
 - Sabrina: dirección, arquitectura e integración, pipeline de IA, panel en Streamlit, infraestructura, RGPD y AI Act.
@@ -44,7 +47,7 @@ vídeo → audio (FFmpeg) + gestos (OpenCV/MediaPipe) → faster-whisper + Whisp
 ## Hardware
 Portátiles (CPU, clips cortos) y VM OVHcloud con 2×V100S (Volta: sin bf16; usar float16 o int8, versiones fijadas en el Dockerfile).
 
-## Estructura prevista del repo (M1)
+## Estructura del repo
 `contracts/`, `pipeline/`, `decision/`, `metrics/`, `evaluation/`, `dashboard/`, `tests/`, `docker/`, `docs/`, `THIRD_PARTY_LICENSES.md`, `Makefile`, `.env.example`.
 
 ## Cómo trabajar
@@ -57,20 +60,11 @@ Portátiles (CPU, clips cortos) y VM OVHcloud con 2×V100S (Volta: sin bf16; usa
 ## Requisitos del reto a no olvidar
 Repo público dentro de la organización GitHub de la Comunidad IA de Código Abierto; licencia OSI/FSF; README con licencias de terceros y hoja de ruta; pptx de hasta 20 diapositivas; vídeo de 5 minutos; uso de LLM agnóstico al modelo. Puntuación: calidad técnica 30, impacto 15, innovación 15, género 10, open source 10, comunicación 10, ética y normativa 5, despliegue 5.
 
-## Siguientes tareas (plan del 19 oct)
-El plan completo está en `docs/PLAN_DE_TRABAJO.md` y la especificación del panel en `docs/PANEL.md`. Siguientes tareas de código, en orden:
-1. Prueba del código en la GPU de OVH (20 oct, Sabrina; `docs/PRUEBA_GPU.md`).
-2. Transcripción y separación de voces de las 3 sesiones (21–22 oct, Sabrina).
-3. Código anónimo y género de cada voz (23 oct, Sabrina; `decision/gender_cues.py`).
-4. Métricas M01, M02, M03, M04 y M13 con pandas y pytest (Veru).
-5. Manos levantadas con OpenCV y MediaPipe (26 oct, Sabrina) y M14 (Veru).
-6. M09 con Qwen a través de una API compatible con OpenAI, sin depender de un modelo concreto (27 oct): métrica de Ivette, código e integración de Sabrina.
-7. Panel en Streamlit según `docs/PANEL.md` (Sabrina).
-8. Ajuste ligero de Qwen (28 oct, Sabrina): solo con texto seudonimizado; el modelo ajustado no se publica.
-9. Cierre del código el 28 oct.
-10. Repositorio público antes del 30 oct a las 08:00.
+## Pendiente (29 oct)
+El plan completo está en `docs/PLAN_DE_TRABAJO.md` y la especificación del panel en `docs/PANEL.md`.
+1. Hacer público el repositorio el 29 oct entre las 23:00 y las 24:00, antes del 30 oct a las 08:00.
+2. Cerrar las issues de entrega (#58, #60 y #61).
 
 Fechas límite:
 - 30 oct a las 08:00: repositorio público, README y .pptx de 20 diapositivas como máximo.
-- 3 nov: vídeo montado enviado al equipo para revisarlo.
 - Antes del 4 nov a las 08:00: vídeo de 5 minutos y presentación corta.
