@@ -51,3 +51,4 @@ def test_handsfree_passes_the_speech_stop_counter(monkeypatch):
     )
     assert seen["data"]["sstop"] == 3
     assert "sendStop" in hf._JS and "speechSynthesis.cancel()" in hf._JS
+    assert "setMaxUtterance(barge ? 2500" in hf._JS  # trozos cortos mientras habla

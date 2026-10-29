@@ -275,6 +275,10 @@ export function createVad(options) {
     setSilence(value) {
       cfg.silenceMs = value
     },
+    // Tope de una frase: mientras habla el asistente se corta en trozos cortos para oír «para».
+    setMaxUtterance(value) {
+      cfg.maxUtteranceMs = value
+    },
     // Con un vídeo sonando: la voz tiene que destacar mucho más sobre el ruido.
     setStrict(on) {
       cfg.noiseFactor = on ? 7 : base.noiseFactor
