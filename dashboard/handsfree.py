@@ -185,7 +185,8 @@ export default function (component) {
       const withVideo = pageVideos().length > 0
       s.vad.setStrict(withVideo || barge)
       // con el asistente hablando no hay 2 s de silencio: trozos de 2,5 s o pausas de 0,7 s
-      s.vad.setSilence(barge ? 700 : (s.data.silence_s || 2) * 1000)
+      // entre partes, «para» se entiende antes: la frase se cierra tras 1 s de silencio
+      s.vad.setSilence(barge ? 700 : s.data.more ? 1000 : (s.data.silence_s || 2) * 1000)
       s.vad.setMaxUtterance(barge ? 2500 : 30000)
       if (barge) {
         for (const ev of s.vad.push(input)) if (ev.type === 'end') sendStop(ev.samples)
@@ -209,7 +210,7 @@ export default function (component) {
       const now = Date.now()
       // quedan partes: si en la pausa no empiezas a hablar, sigue con la siguiente
       if (s.phase === 'listen' && s.data.more && s.vad && s.vad.state === 'wait' &&
-          !speaking() && now - (s.listenAt || now) > 1500) {
+          !speaking() && now - (s.listenAt || now) > 2500) {
         s.sentSeq = s.data.seq
         s.vstopAtSend = s.data.vstop
         s.t0 = now
