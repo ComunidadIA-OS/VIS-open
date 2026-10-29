@@ -1,6 +1,6 @@
 # Roles, bloques de pregunta, M09 y M06
 
-Código que necesitan las métricas de la sesión de control (`docs/metricas.md`, PR de Ivette). Lo escribe Sabrina; Veru lo usa para M02b y para ajustar `metrics/borrador.py`.
+Código que necesitan las métricas de la sesión de control (`docs/metricas.md`, PR de Ivette). Lo escribe Sabrina; Veru lo usa para M02b y para ajustar `metrics/congreso.py`.
 
 ## Qué hay
 

@@ -1,6 +1,6 @@
 # Métricas · Equipo 6, VIS Open
 
-Definiciones formales de las métricas de esta entrega. Borrador de Ivette para revisar con el equipo.
+Definiciones formales de las métricas de esta entrega. Definiciones de Ivette, validadas con la lista oficial de intervenciones del Congreso (25–27 oct 2026, `docs/EVALUACION.md`).
 
 ## 1. Contexto: qué analizamos
 
@@ -309,6 +309,6 @@ Limitación del marco que afecta a estas métricas: el código suma la duración
 - [x] Acordado con el equipo (22/10/2026): descartar M14, sustituir M06 y añadir M02b.
 - [x] M06: regla de sustitución por la Vicepresidencia Primera cuando no comparece la Presidencia del Gobierno (decisión de Ivette, 22/10/2026).
 - [x] Comprobar el reparto de unos 150 s por persona con el tiempo real de la primera pregunta de cada sesión (#55).
-- [x] Ajustar `metrics/congreso.py` (antes `borrador.py`) a estas definiciones y a los parámetros del apartado 4 ter (Veru), siguiendo los pasos de `docs/METRICAS_MARCO.md`: M03a y M03b en el panel (#143, PR #160).
+- [x] Ajustar `metrics/congreso.py` a estas definiciones y a los parámetros del apartado 4 ter (Veru), siguiendo los pasos de `docs/METRICAS_MARCO.md`: M03a y M03b en el panel (#143, PR #160).
 - [x] Programar M09 con Qwen según esta definición (Sabrina, PR #104 y #153).
 - [x] Medir el modelo (detección de preguntas y cargo) con `modelo_por_pregunta` (#55, 27/10/2026; ver M09, «Validación»).

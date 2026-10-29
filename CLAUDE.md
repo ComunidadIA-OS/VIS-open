@@ -17,7 +17,7 @@ Entregas: antes del 30 oct 2026 a las 08:00, repositorio público, README y .ppt
 - Fuente del MVP (16 oct): solo sesiones del Congreso, sin modificar ni alterar el vídeo; los vídeos nunca van al repo. Para el ajuste ligero de Qwen (19 oct) solo se usa el texto transcrito de una sesión, comprobado con el Diario de Sesiones; nunca audio, vídeo ni voz. El modelo ajustado no se publica.
 - Infra: desarrollo y pruebas pequeñas en local (CPU); transcripción, diarización y LLM en las VM de OVHcloud (2 espacios, 2×V100S cada uno; Volta: float16/int8, sin bf16). OVH se usa de forma prioritaria. Credenciales nunca en el repo.
 - Documentos de referencia: propuesta de arquitectura y PRD (enlaces en `MEMORY.md`).
-- Las métricas (sección 5 del PRD) son un borrador hasta el visto bueno de Ivette.
+- Las métricas (sección 5 del PRD) son una versión inicial hasta el visto bueno de Ivette.
 
 ## Equipo y propiedad
 - Sabrina: dirección, arquitectura e integración, pipeline de IA, panel en Streamlit, infraestructura, RGPD y AI Act.

@@ -30,7 +30,7 @@ Hechos y decisiones que una sesión nueva no debe volver a preguntar. Una línea
 
 ## Estado (20 oct 2026)
 - Hecho: el pipeline completo funciona en el notebook de OVH del equipo (2 GPU V100S, `sm_70` correcto, `docs/PRUEBA_GPU.md`). Una sesión de 1 h 19 min se analiza en 7 min 22 s y separa 12 voces; 8 reciben género por pistas del lenguaje.
-- Hecho: seudonimización («Persona N», modo estricto), métricas M01–M04 y M13 en borrador, panel Streamlit, módulo de vídeo sin cara (`pipeline/video.py`, falta probarlo con el modelo de pose), evaluación (`docs/EVALUACION.md`) y costes (`docs/COSTES_API.md`).
+- Hecho: seudonimización («Persona N», modo estricto), métricas M01–M04 y M13 en versión inicial, panel Streamlit, módulo de vídeo sin cara (`pipeline/video.py`, falta probarlo con el modelo de pose), evaluación (`docs/EVALUACION.md`) y costes (`docs/COSTES_API.md`).
 - Hecho: AI Endpoints de OVH conectado con Qwen3.5-9B; con `reasoning_effort: none` baja a 63 tokens de salida y 3,6 s por llamada (0,000044 € por llamada).
 - Pendiente de otras personas: tres sesiones de años distintos, definiciones formales de las métricas (también M09), revisión de la regla de género, anotación de 150 turnos y de un tramo de vídeo (Ivette); revisión del repositorio el 29 oct (Veru).
 - Pendiente: probar el vídeo en OVH, M09, ajuste ligero de Qwen (28 oct), WER y DER, publicar el repositorio (29 oct) y el vídeo de 5 minutos.

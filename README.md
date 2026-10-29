@@ -100,7 +100,7 @@ El vídeo debe tener su fila completa en el manifiesto (ver `docs/FUENTE_CONGRES
 - `evaluation/`: datos sintéticos y evaluación de los motores.
 - `dashboard/`: panel en Streamlit con el informe de cada sesión y la evolución entre sesiones (ver `docs/PANEL.md`); `voice.py` (órdenes de voz), `handsfree.py` y `vad.js` (modo manos libres y detector de voz), `avatar.py` (avatar del asistente).
 - `docker/`: imágenes para CPU y GPU.
-- `docs/`: documentación (plan de trabajo, fichas de modelo y de datos, uso responsable, proveedores, accesibilidad, borrador del plan RGPD y AI Act, preguntas frecuentes).
+- `docs/`: documentación (plan de trabajo, fichas de modelo y de datos, uso responsable, proveedores, accesibilidad, plan RGPD y AI Act, preguntas frecuentes).
 
 ## Principios
 
@@ -143,7 +143,7 @@ La lista completa, con versiones, fuentes y fecha de verificación (última revi
 
 El plan detallado de esta entrega, con tareas, responsables, fechas y dependencias, está en [`docs/PLAN_DE_TRABAJO.md`](docs/PLAN_DE_TRABAJO.md).
 
-Plan de puesta en producción: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (requisitos documentales, validaciones jurídicas, capacidades técnicas, despliegue en local y variante en la nube europea, workflow y flujos de datos, supervisión humana, mantenimiento, riesgos y sprints) y [`docs/BORRADOR_PRODUCCION_RGPD_AIACT.md`](docs/BORRADOR_PRODUCCION_RGPD_AIACT.md) (RGPD y Reglamento de IA).
+Plan de puesta en producción: [`docs/PRODUCCION.md`](docs/PRODUCCION.md) (requisitos documentales, validaciones jurídicas, capacidades técnicas, despliegue en local y variante en la nube europea, workflow y flujos de datos, supervisión humana, mantenimiento, riesgos y sprints) y [`docs/PRODUCCION_RGPD_AIACT.md`](docs/PRODUCCION_RGPD_AIACT.md) (RGPD y Reglamento de IA).
 
 Evolución futura:
 
