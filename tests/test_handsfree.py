@@ -52,3 +52,12 @@ def test_handsfree_passes_the_speech_stop_counter(monkeypatch):
     assert seen["data"]["sstop"] == 3
     assert "sendStop" in hf._JS and "speechSynthesis.cancel()" in hf._JS
     assert "setMaxUtterance(barge ? 2500" in hf._JS  # trozos cortos mientras habla
+
+
+def test_speaking_does_not_stick_after_stopping():
+    from dashboard import avatar
+    from dashboard import handsfree as hf
+
+    assert "__vozTalk" in hf._JS and "Date.now() >= v.until" in hf._JS
+    page = avatar.avatar_html("Hola.", speak=True)
+    assert "__vozTalk={until:0}" in page  # al terminar de hablar se avisa a la página
