@@ -26,6 +26,8 @@ Qué hace VIS Open para que el panel lo pueda usar cualquier persona, qué no cu
 - **El vídeo original del Congreso** no tiene audiodescripción ni interpretación en lengua de signos: se muestra sin alterar. Los subtítulos son nuestros, automáticos.
 - **Contraste y tamaños** no se han medido con una herramienta formal.
 - **El asistente de voz** funciona solo en español y necesita un navegador con micrófono, Web Audio y WebGL (Chrome, Edge). Con mucho ruido de fondo se equivoca más. El avatar es solo visual; no sustituye al texto.
+- **Palabras muy cortas en manos libres:** un «sí» dicho rápido no llega. El detector de voz solo da por empezada una frase con al menos 0,22 s de voz seguida y descarta lo que dure menos de 0,4 s, para que un golpe de tecla, un clic o un ruido corto no se tomen por una orden. Mejor palabras de dos sílabas o más: «sigue», «para», «stop». Hablar rápido también hace que Whisper confunda palabras («régimen» por «resumen»); se corrigen los errores conocidos, pero conviene hablar a ritmo normal.
+- **Con altavoces, el micrófono no oye a la persona mientras el asistente habla** (oye su voz). Por eso las respuestas largas se leen por partes, con una pausa en la que «para» o «stop» lo detienen. Con auriculares, «para» también corta a mitad de frase.
 - **El modo manos libres no es para usarlo conduciendo:** las validaciones de género piden atención.
 
 ## Cómo se ha comprobado
