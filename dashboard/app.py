@@ -267,8 +267,9 @@ def run_voice(cmd, ids: list[str]) -> str:
             ss.update(voz_estado=None, voz_resto=None)
             return "Ya no queda más."
         ss["voz_resto"] = rest[1:]
-        if not rest[1:]:
-            ss["voz_estado"] = None
+        if rest[1:]:
+            return rest[0] + voice.MORE_ASK
+        ss["voz_estado"] = None
         return rest[0]
     current = cmd.session or ss.get("sesion", ids[0])
     sess = next(x for x in sessions if x.session_id == current)
@@ -457,12 +458,10 @@ def _process_voice(
             ss.update(voz_estado=None, voz_resto=None)  # otra orden: se deja lo que quedaba
         reply = run_voice(cmd, ids)
         parts = voice.in_parts(reply)
-        # en manos libres, por partes con una pausa entre ellas para oír «para»; no si la orden
-        # ya espera otra respuesta (validación de género)
-        long_reply = handsfree and len(parts) > 1 and not ss.get("voz_estado")
-        if long_reply and not cmd.action.startswith("more_"):
+        # por partes: «¿Sigo?»; no si la orden ya espera otra respuesta (validación de género)
+        if not cmd.action.startswith("more_") and len(parts) > 1 and not ss.get("voz_estado"):
             ss.update(voz_estado="more", voz_resto=parts[1:])
-            reply = parts[0]
+            reply = parts[0] + voice.MORE_ASK
     ss["voz_respuesta"] = reply
     ss["voz_nueva"] = True  # el avatar habla en el próximo dibujo
     ss["voz_refrescar"] = True  # la página de fondo se vuelve a dibujar con la orden cumplida
@@ -499,21 +498,6 @@ def on_voice_handsfree() -> None:
         ss.pop("voz_refrescar", None)
 
 
-def on_voice_next() -> None:
-    """Pausa entre partes sin oír nada: el modo manos libres pide la parte siguiente."""
-    from dashboard import voice
-
-    ss = st.session_state
-    try:
-        if ss.get("voz_estado") == "more":
-            reply = run_voice(voice.Command("more_yes"), [x.session_id for x in sessions])
-            ss["voz_respuesta"] = reply
-            ss["voz_nueva"] = True
-            ss["voz_historial"] = [*ss.get("voz_historial", []), ["(sigue)", reply]][-30:]
-    finally:
-        ss["voz_seq"] = ss.get("voz_seq", 0) + 1
-
-
 def on_handsfree_on() -> None:
     if st.session_state["voz_hf"].on:
         st.session_state["voz_abierto"] = True  # se abre la ventana: se ve lo que se dice
@@ -537,7 +521,7 @@ def _hear(
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
         return
     if text.strip():  # una transcripción vacía (ruido, teclas) no es una orden: se ignora
-        _process_voice(voice.fix_misheard(text), during_video, handsfree, during_speech)
+        _process_voice(text, during_video, handsfree, during_speech)
 
 
 def on_voice_text() -> None:
@@ -632,8 +616,6 @@ def voice_button() -> None:
             sstop=ss.get("voz_sstop", 0),
             on_audio=on_voice_handsfree,
             on_on=on_handsfree_on,
-            more=ss.get("voz_estado") == "more",
-            on_next=on_voice_next,
         )
 
 

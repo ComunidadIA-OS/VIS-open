@@ -114,7 +114,6 @@ export default function (component) {
   function resume() {
     if (s.vad) s.vad.reset()
     s.phase = 'listen'
-    s.listenAt = Date.now()
     say('listen')
     if (s.ctx) beep(s.ctx, 600, 70)
   }
@@ -207,16 +206,6 @@ export default function (component) {
     resume()
     s.timer = setInterval(() => {
       const now = Date.now()
-      // quedan partes: si en la pausa no empiezas a hablar, sigue con la siguiente
-      if (s.phase === 'listen' && s.data.more && s.vad && s.vad.state === 'wait' &&
-          !speaking() && now - (s.listenAt || now) > 1500) {
-        s.sentSeq = s.data.seq
-        s.vstopAtSend = s.data.vstop
-        s.t0 = now
-        s.phase = 'processing'
-        say('processing')
-        s.setTriggerValue('next', { id: now })
-      }
       if (s.phase === 'listen') {
         if (clipPlaying() && !s.paused) { s.paused = true; say('video') }
         else if (!clipPlaying() && s.paused) {
@@ -266,8 +255,6 @@ def handsfree(
     sstop: int = 0,
     on_audio,
     on_on,
-    more: bool = False,
-    on_next=None,
 ):
     """Monta el componente. `seq` sube con cada frase atendida; `force_off`, al apagarlo por voz."""
     return _COMPONENT(
@@ -278,11 +265,9 @@ def handsfree(
             "force_off": int(force_off),
             "vstop": int(vstop),  # sube al pedir «para el vídeo»
             "sstop": int(sstop),  # sube al pedir «para» mientras habla el asistente
-            "more": bool(more),  # quedan partes de la respuesta: tras una pausa sin voz, sigue
         },
         on_audio_change=on_audio,
         on_on_change=on_on,
-        on_next_change=on_next or (lambda: None),
     )
 
 
