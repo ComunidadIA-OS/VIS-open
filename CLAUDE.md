@@ -24,7 +24,7 @@ Entregas: antes del 30 oct 2026 a las 08:00, repositorio público, README y .ppt
 
 ## Equipo y propiedad
 - Sabrina: arquitectura e integración, pipeline de IA, panel en Streamlit, infraestructura, RGPD y AI Act, plan de puesta en producción, vídeos, presentación del 04.11 y publicación.
-- Ivette: definición y validación de las métricas (no programa) y presentación .pptx.
+- Ivette: definición y validación de las métricas (no programa), evaluación del modelo, revisión del código, del panel y de la seudonimización, y presentación .pptx.
 - Veru: programación de las métricas.
 - Cada persona dispone de unas 2 h por día laborable.
 Cada carpeta tiene una persona responsable; los cambios en carpetas ajenas se proponen por PR.
