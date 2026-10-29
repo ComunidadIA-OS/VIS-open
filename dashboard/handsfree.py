@@ -174,7 +174,8 @@ export default function (component) {
       const input = new Float32Array(e.inputBuffer.getChannelData(0))
       s.level.style.width = Math.min(100, rms(input) * 400) + '%'
       // mientras el asistente habla se sigue escuchando, estricto, solo para oír «para»
-      const barge = s.phase === 'speaking' && speaking()
+      // (también en «escuchar»: si la voz empieza tarde, el modo ya volvió a esa fase)
+      const barge = speaking() && ['listen', 'await', 'speaking', 'cooldown'].includes(s.phase)
       if ((s.phase !== 'listen' && !barge) || (!barge && speaking()) || clipPlaying() ||
           Date.now() < s.mutedUntil) {
         if (s.vad) s.vad.reset()

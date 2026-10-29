@@ -40,10 +40,21 @@ def stop_intent(text: str) -> bool:
     return any(w in STOP_WORDS for w in words)
 
 
+SPEECH_STOP_WORDS = ("para", "parar", "pare", "stop", "basta", "calla", "callate", "silencio",
+                     "deten", "detente")  # fmt: skip
+
+
 def speech_stop_intent(heard: str, last_reply: str) -> bool:
     """Con el asistente hablando: «para», «stop», «basta»… corta su voz. Un trozo de su propia
-    respuesta que recoja el micrófono no cuenta."""
-    return not is_echo(heard, last_reply) and stop_intent(heard)
+    respuesta que recoja el micrófono no cuenta. Con altavoces, Whisper oye la orden mezclada con
+    la voz del asistente: en una frase larga solo vale si esa palabra no está en la respuesta."""
+    if is_echo(heard, last_reply):
+        return False
+    words = normalize(clean_text(heard)).split()
+    stops = [w for w in words if w in SPEECH_STOP_WORDS]
+    if not stops or any(w in PLAY_WORDS for w in words):
+        return False
+    return len(words) <= 6 or any(w not in normalize(last_reply).split() for w in stops)
 
 
 MAX_AUDIO_BYTES = 4_000_000  # una orden dura segundos; más es un abuso o un error
@@ -617,7 +628,18 @@ en lenguaje claro para leerlo en voz alta. No des cifras ni porcentajes que no e
 no menciones ni deduzcas el género de nadie y no inventes nombres: usa «Persona N». Responde solo \
 con el resumen, en texto plano."""
 MAX_SUMMARY_INPUT = 24_000  # caracteres de transcripción que se envían al modelo
-MAX_SUMMARY_OUTPUT = 700
+MAX_SUMMARY_OUTPUT = 1200  # el resumen se corta en la última frase completa, nunca a medias
+
+
+def whole_sentences(text: str, limit: int = MAX_SUMMARY_OUTPUT) -> str:
+    """Hasta `limit` caracteres y acabado en frase completa: sin frases a medias («y la…»)."""
+    cut = text[:limit]
+    if cut.rstrip().endswith((".", "!", "?")):
+        return cut.rstrip()
+    end = max(cut.rfind(". "), cut.rfind("! "), cut.rfind("? "))
+    if end < 0:
+        return cut.rsplit(" ", 1)[0] + "…"  # una sola frase muy larga
+    return cut[: end + 1]
 
 
 _PERCENT = re.compile(r"%|\bpor\s*ciento\b|\bporcentaje", re.IGNORECASE)
@@ -704,7 +726,7 @@ def build_summary_request(engine, text: str) -> dict:
     request = {
         "model": engine.model,
         "temperature": 0,
-        "max_tokens": 400,
+        "max_tokens": 600,
         "messages": [
             {"role": "system", "content": SUMMARY_PROMPT.format(nonce=nonce)},
             {"role": "user", "content": f"<DATOS-{nonce}>\n{text}\n</DATOS-{nonce}>"},
@@ -735,8 +757,7 @@ def content_summary(session, cache=None, engine=None) -> str:
     body = with_validated_gender(body, voice_genders(session))
     if not body:
         return "No he podido resumir la sesión: el modelo no devolvió texto."
-    if len(body) > MAX_SUMMARY_OUTPUT:
-        body = body[:MAX_SUMMARY_OUTPUT].rsplit(" ", 1)[0] + "…"
+    body = whole_sentences(body)  # también si el modelo se quedó sin tokens a mitad de frase
     out = (
         f"Resumen de lo que se dijo en la sesión {session.session_id}, hecho por IA a partir de la "
         f"transcripción y con posibles errores. {body}"

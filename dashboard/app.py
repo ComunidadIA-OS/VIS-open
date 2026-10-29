@@ -422,6 +422,9 @@ def _process_voice(
         if voice.speech_stop_intent(text, ss.get("voz_respuesta", "")):
             ss["voz_sstop"] = ss.get("voz_sstop", 0) + 1
             ss["voz_historial"] = [*ss.get("voz_historial", []), [text, "(dejo de hablar)"]][-30:]
+        else:  # se apunta, sin contestar, para ver qué se oyó mientras hablaba
+            note = "(mientras hablaba solo atiendo «para» o «stop»)"
+            ss["voz_historial"] = [*ss.get("voz_historial", []), [text, note]][-30:]
         return
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
     if during_video and (cmd is None or cmd.action not in VIDEO_COMMANDS):
