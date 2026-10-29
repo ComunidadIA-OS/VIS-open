@@ -182,6 +182,9 @@ export default function (component) {
       }
       const withVideo = pageVideos().length > 0
       s.vad.setStrict(withVideo || barge)
+      // con el asistente hablando no hay 2 s de silencio: trozos de 2,5 s o pausas de 0,7 s
+      s.vad.setSilence(barge ? 700 : (s.data.silence_s || 2) * 1000)
+      s.vad.setMaxUtterance(barge ? 2500 : 30000)
       if (barge) {
         for (const ev of s.vad.push(input)) if (ev.type === 'end') sendStop(ev.samples)
         return
