@@ -39,3 +39,15 @@ def test_voice_activity_detector_with_synthetic_audio():
     )
     assert run.returncode == 0, run.stderr
     assert "vad: ok" in run.stdout
+
+
+def test_handsfree_passes_the_speech_stop_counter(monkeypatch):
+    from dashboard import handsfree as hf
+
+    seen = {}
+    monkeypatch.setattr(hf, "_COMPONENT", lambda **kw: seen.update(kw))
+    hf.handsfree(
+        key="k", silence_s=2, seq=1, force_off=0, vstop=0, sstop=3, on_audio=None, on_on=None
+    )
+    assert seen["data"]["sstop"] == 3
+    assert "sendStop" in hf._JS and "speechSynthesis.cancel()" in hf._JS

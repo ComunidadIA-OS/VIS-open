@@ -40,6 +40,12 @@ def stop_intent(text: str) -> bool:
     return any(w in STOP_WORDS for w in words)
 
 
+def speech_stop_intent(heard: str, last_reply: str) -> bool:
+    """Con el asistente hablando: «para», «stop», «basta»… corta su voz. Un trozo de su propia
+    respuesta que recoja el micrófono no cuenta."""
+    return not is_echo(heard, last_reply) and stop_intent(heard)
+
+
 MAX_AUDIO_BYTES = 4_000_000  # una orden dura segundos; más es un abuso o un error
 MAX_TEXT_CHARS = 200  # una orden es corta; el resto se descarta
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f<>{}`$\\]")

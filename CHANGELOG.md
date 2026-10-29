@@ -8,6 +8,7 @@ El formato se basa en [Keep a Changelog](https://keepachangelog.com/es-ES/1.1.0/
 
 ### Añadido
 
+- 29 oct 2026: modo manos libres: «para», «stop» o «basta» cortan la voz del asistente mientras habla (por ejemplo, un resumen largo). Mientras habla se escucha con umbral estricto y solo vale esa intención; su propia voz recogida por el micrófono no cuenta (`voice.speech_stop_intent`).
 - 29 oct 2026: plan de puesta en producción completo en `docs/PRODUCCION.md` (sustituye a la versión del 20 oct): despliegue en local como opción principal y variante en la nube europea, PostgreSQL, retención de datos (arts. 5.1.c y 5.2 RGPD), riesgos, piloto y sprints con gates.
 - 26 oct 2026: M03a (intervenciones por pregunta) y M03b (voces por pregunta) como dos métricas de control de calidad, con la definición de la issue #143: una intervención solo termina cuando otra voz habla 5 s o más; una voz cuenta para M03b si suma 5 s o más en el bloque. Se listan los bloques con 3 o más voces y las dos métricas salen en el panel y en la evolución entre sesiones.
 - 23 oct 2026: panel más legible para el jurado: cada métrica lleva su unidad («41,65 %», «25 personas», «−8,35 puntos») y una línea con lo que mide; la tabla y el gráfico de evolución muestran número de sesión y fecha, y explican cada columna; la tabla de vídeo explica pista, tamaño medio y centralidad. M14 (manos levantadas) sale del panel y del informe, como se decidió (el módulo de vídeo sigue en el código).
