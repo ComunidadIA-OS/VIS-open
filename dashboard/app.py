@@ -404,7 +404,9 @@ VIDEO_COMMANDS = ("stop_video", "handsfree_off")  # el resto sería el audio del
 VIDEO_MAX_WORDS = 8  # una orden es corta; el discurso del vídeo, no
 
 
-def _process_voice(text: str, during_video: bool = False, handsfree: bool = False) -> None:
+def _process_voice(
+    text: str, during_video: bool = False, handsfree: bool = False, during_speech: bool = False
+) -> None:
     """Encaja lo dicho en una orden, la ejecuta y apunta la conversación.
 
     Con un vídeo sonando solo valen las órdenes de controlarlo: lo demás es, casi seguro, el audio
@@ -416,6 +418,11 @@ def _process_voice(text: str, during_video: bool = False, handsfree: bool = Fals
     ids = [x.session_id for x in sessions]
     if voice.is_echo(text, ss.get("voz_respuesta", "")):
         return  # el micrófono recogió la voz del propio asistente
+    if during_speech:  # mientras el asistente habla solo vale «para»: corta su voz
+        if voice.speech_stop_intent(text, ss.get("voz_respuesta", "")):
+            ss["voz_sstop"] = ss.get("voz_sstop", 0) + 1
+            ss["voz_historial"] = [*ss.get("voz_historial", []), [text, "(dejo de hablar)"]][-30:]
+        return
     cmd = voice.parse_command(text, ids, ss.get("voz_estado"))
     if during_video and (cmd is None or cmd.action not in VIDEO_COMMANDS):
         if voice.stop_intent(text):  # con el vídeo sonando, Whisper oye mal: basta la intención
@@ -453,7 +460,12 @@ def on_voice_handsfree() -> None:
     ss = st.session_state
     try:
         payload = ss["voz_hf"].audio
-        _hear(handsfree.decode_audio(payload), bool(payload.get("video")), handsfree=True)
+        _hear(
+            handsfree.decode_audio(payload),
+            bool(payload.get("video")),
+            handsfree=True,
+            during_speech=bool(payload.get("speech")),
+        )
     except Exception as exc:  # noqa: BLE001 - un audio roto no debe parar el modo
         reply = f"No he podido oír la orden: {exc}."[:160]
         ss["voz_respuesta"] = reply
@@ -469,7 +481,9 @@ def on_handsfree_on() -> None:
         st.session_state["voz_abierto"] = True  # se abre la ventana: se ve lo que se dice
 
 
-def _hear(audio: bytes, during_video: bool = False, handsfree: bool = False) -> None:
+def _hear(
+    audio: bytes, during_video: bool = False, handsfree: bool = False, during_speech: bool = False
+) -> None:
     """Voz -> texto (Whisper de OVH) -> orden."""
     from dashboard import voice
     from pipeline.envfile import load_dotenv
@@ -485,7 +499,7 @@ def _hear(audio: bytes, during_video: bool = False, handsfree: bool = False) -> 
         ss["voz_historial"] = [*ss.get("voz_historial", []), ["(audio)", reply]][-30:]
         return
     if text.strip():  # una transcripción vacía (ruido, teclas) no es una orden: se ignora
-        _process_voice(text, during_video, handsfree)
+        _process_voice(text, during_video, handsfree, during_speech)
 
 
 def on_voice_text() -> None:
@@ -577,6 +591,7 @@ def voice_button() -> None:
             seq=ss.get("voz_seq", 0),
             force_off=ss.get("voz_hf_off", 0),
             vstop=ss.get("voz_vstop", 0),
+            sstop=ss.get("voz_sstop", 0),
             on_audio=on_voice_handsfree,
             on_on=on_handsfree_on,
         )

@@ -390,3 +390,12 @@ def test_more_stop_video_phrasings(text):
 )  # fmt: skip
 def test_stop_intent_while_video_plays(text, stop):
     assert voice.stop_intent(text) is stop
+
+
+def test_stop_while_the_assistant_speaks():
+    reply = "En la sesión 5, las mujeres hablan el 41,65 % del tiempo; para comparar, mira M04."
+    for text in ("para", "¡Para!", "stop", "basta", "para, por favor", "deja de hablar, para"):
+        assert voice.speech_stop_intent(text, reply), text
+    # su propia voz recogida por el micrófono y frases que no piden parar
+    for text in ("para comparar, mira M04", "lanza el vídeo", "es mujer", ""):
+        assert not voice.speech_stop_intent(text, reply), text

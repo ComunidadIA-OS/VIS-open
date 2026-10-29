@@ -5,7 +5,8 @@ Un componente de Streamlit (v2, inline) que en el navegador:
 - detecta cuándo empiezas a hablar y cuándo paras (detector propio, `dashboard/vad.js`; el
   silencio que cierra la frase es ajustable de 1 a 5 s);
 - manda esa frase como WAV a Python, que la transcribe como cualquier otra orden;
-- se pausa mientras el asistente contesta y vuelve a escuchar cuando termina, con un pitido
+- mientras el asistente contesta solo atiende «para» (corta su voz) y vuelve a escuchar cuando
+  termina, con un pitido
   corto al cortar y otro al volver a escuchar (para quien no ve la pantalla).
 
 Solo viaja tu voz diciendo una orden, igual que con el botón del micrófono. La orden «desactiva el
@@ -86,6 +87,12 @@ export default function (component) {
   s.status = parentElement.querySelector('#st')
   s.level = parentElement.querySelector('#lv i')
   s.data = data
+  // «para» mientras hablaba: el servidor sube `sstop` y aquí se corta la voz
+  if (s.sstop === undefined) s.sstop = data.sstop
+  else if (data.sstop !== s.sstop) {
+    s.sstop = data.sstop
+    if (window.speechSynthesis) speechSynthesis.cancel()
+  }
   s.setStateValue = setStateValue
   s.setTriggerValue = setTriggerValue
 
@@ -136,6 +143,12 @@ export default function (component) {
     s.setTriggerValue('audio', { b64: toBase64(wav), id: Date.now(), video: !!s.hadVideo })
   }
 
+  // Frase oída mientras habla el asistente: se envía marcada; no cambia de fase ni pita.
+  function sendStop(samples) {
+    const wav = encodeWav(downsample(samples, s.ctx.sampleRate, 16000), 16000)
+    s.setTriggerValue('audio', { b64: toBase64(wav), id: Date.now(), speech: true })
+  }
+
   async function start() {
     try {
       s.stream = await navigator.mediaDevices.getUserMedia({
@@ -160,12 +173,19 @@ export default function (component) {
     proc.onaudioprocess = (e) => {
       const input = new Float32Array(e.inputBuffer.getChannelData(0))
       s.level.style.width = Math.min(100, rms(input) * 400) + '%'
-      if (s.phase !== 'listen' || speaking() || clipPlaying() || Date.now() < s.mutedUntil) {
+      // mientras el asistente habla se sigue escuchando, estricto, solo para oír «para»
+      const barge = s.phase === 'speaking' && speaking()
+      if ((s.phase !== 'listen' && !barge) || (!barge && speaking()) || clipPlaying() ||
+          Date.now() < s.mutedUntil) {
         if (s.vad) s.vad.reset()
         return
       }
       const withVideo = pageVideos().length > 0
-      s.vad.setStrict(withVideo)
+      s.vad.setStrict(withVideo || barge)
+      if (barge) {
+        for (const ev of s.vad.push(input)) if (ev.type === 'end') sendStop(ev.samples)
+        return
+      }
       for (const ev of s.vad.push(input)) {
         if (ev.type === 'start') {
           s.startedAt = Date.now(); s.hadVideo = withVideo; say('hear'); if (withVideo) hold()
@@ -221,7 +241,17 @@ export default function (component) {
 _COMPONENT = st.components.v2.component("voz_manos_libres", html=_HTML, css=_CSS, js=_JS)
 
 
-def handsfree(*, key: str, silence_s: float, seq: int, force_off: int, vstop: int, on_audio, on_on):
+def handsfree(
+    *,
+    key: str,
+    silence_s: float,
+    seq: int,
+    force_off: int,
+    vstop: int,
+    sstop: int = 0,
+    on_audio,
+    on_on,
+):
     """Monta el componente. `seq` sube con cada frase atendida; `force_off`, al apagarlo por voz."""
     return _COMPONENT(
         key=key,
@@ -230,6 +260,7 @@ def handsfree(*, key: str, silence_s: float, seq: int, force_off: int, vstop: in
             "seq": int(seq),
             "force_off": int(force_off),
             "vstop": int(vstop),  # sube al pedir «para el vídeo»
+            "sstop": int(sstop),  # sube al pedir «para» mientras habla el asistente
         },
         on_audio_change=on_audio,
         on_on_change=on_on,
