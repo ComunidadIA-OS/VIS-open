@@ -2,6 +2,12 @@
 
 *[English version: README.en.md](README.en.md)*
 
+**¿Cuánto espacio ocupan las mujeres en el debate parlamentario?**
+
+***Tener escaño no es lo mismo que tener la palabra.***
+
+VIS Open mide si la presencia de las mujeres en el Parlamento se traduce también en participación y protagonismo: quién interviene, cuánto habla, en qué proporción y quién ocupa los turnos de mayor visibilidad.
+
 VIS Open es una herramienta de código abierto que mide la presencia y la participación de las mujeres en sesiones grabadas, a partir del audio y del vídeo, sin reconocimiento facial. El primer caso de uso son las sesiones del Congreso de los Diputados.
 
 Proyecto del Equipo 6 en el reto «Mujeres por la IA Abierta» (SEDIA, Comunidad IA de Código Abierto).
