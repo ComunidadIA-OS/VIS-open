@@ -57,6 +57,23 @@ def speech_stop_intent(heard: str, last_reply: str) -> bool:
     return len(words) <= 6 or any(w not in normalize(last_reply).split() for w in stops)
 
 
+PART_CHARS = 330  # unos 20 s de voz: con altavoces el micrófono no oye «para» mientras habla
+MORE_ASK = " ¿Sigo? Di «sí» o «para»."
+
+
+def in_parts(text: str, size: int = PART_CHARS) -> list[str]:
+    """Parte una respuesta larga en trozos de frases completas, de `size` caracteres como mucho
+    (una frase más larga va sola). Entre trozo y trozo el asistente pregunta «¿Sigo?» y calla."""
+    sentences = re.split(r"(?<=[.!?…])\s+", " ".join(text.split()))
+    parts: list[str] = []
+    for sentence in filter(None, sentences):
+        if parts and len(parts[-1]) + 1 + len(sentence) <= size:
+            parts[-1] += " " + sentence
+        else:
+            parts.append(sentence)
+    return parts
+
+
 MAX_AUDIO_BYTES = 4_000_000  # una orden dura segundos; más es un abuso o un error
 MAX_TEXT_CHARS = 200  # una orden es corta; el resto se descarta
 _CONTROL = re.compile(r"[\x00-\x08\x0b-\x1f\x7f<>{}`$\\]")
@@ -260,7 +277,8 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
     """Encaja lo dicho en una orden de la lista cerrada, o None si no la entiende.
 
     `state` es el paso de la validación por voz: None, "gender" (espera mujer/hombre/desconocido)
-    o "confirm" (espera confirmo/cancela). Mujer, hombre y confirmo solo valen en su paso.
+    o "confirm" (espera confirmo/cancela); o "more", tras «¿Sigo?» (espera sí o para).
+    Mujer, hombre y confirmo solo valen en su paso.
     """
     norm = normalize(clean_text(text))
     if not norm:
@@ -270,6 +288,16 @@ def parse_command(text: str, sessions: list[str], state: str | None = None) -> C
         re.search(rf"\b{re.escape(w)}", norm) for w in words
     )
 
+    if state == "more":  # «¿Sigo?»: sí sigue; no, para o stop terminan
+        words = norm.split()
+        if norm in ("no", "no gracias") or any(w in SPEECH_STOP_WORDS for w in words) or has(
+            "no sigas", "termina", "ya esta", "suficiente", "vale ya"
+        ):
+            return Command("more_no")
+        if norm in ("si", "vale", "claro", "si por favor", "venga", "ok") or has(
+            "sigue", "continua", "adelante", "siguiente", "mas"
+        ):
+            return Command("more_yes")
     if state == "confirm":
         if has("cancela", "no confirmo", "me equivoque") or norm == "no":
             return Command("val_cancel")
