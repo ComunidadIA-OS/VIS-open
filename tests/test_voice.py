@@ -399,3 +399,15 @@ def test_stop_while_the_assistant_speaks():
     # su propia voz recogida por el micrófono y frases que no piden parar
     for text in ("para comparar, mira M04", "lanza el vídeo", "es mujer", ""):
         assert not voice.speech_stop_intent(text, reply), text
+    # con altavoces: la orden llega mezclada con su voz en una frase larga
+    assert voice.speech_stop_intent("las mujeres hablan el cuarenta y uno por ciento stop", reply)
+    echo = "las mujeres hablan mucho tiempo para comparar con M04"
+    assert not voice.speech_stop_intent(echo, reply)
+
+
+def test_summary_ends_in_a_whole_sentence():
+    text = "Se habló de presupuestos. Hubo críticas. Finalmente, se cuestionó la política y la"
+    assert voice.whole_sentences(text) == "Se habló de presupuestos. Hubo críticas."
+    assert voice.whole_sentences("Una frase. Otra.") == "Una frase. Otra."
+    long = "Primera frase corta. " + "palabra " * 300
+    assert voice.whole_sentences(long, 200) == "Primera frase corta."
